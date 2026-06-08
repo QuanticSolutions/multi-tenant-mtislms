@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Bell,
   Search,
@@ -67,9 +67,12 @@ function StyleGuide() {
               <Bell className="size-4" />
               <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
             </Button>
-            <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-              AB
-            </div>
+            <Link
+              to="/auth"
+              className="inline-flex h-9 items-center justify-center rounded-sm bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-light"
+            >
+              Sign in
+            </Link>
           </div>
         </div>
       </header>
