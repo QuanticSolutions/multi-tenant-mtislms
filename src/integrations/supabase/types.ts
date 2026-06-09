@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      classes: {
+        Row: {
+          academic_year: string
+          capacity: number
+          created_at: string
+          grade_level: number | null
+          id: string
+          name: string
+          section: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string
+          capacity?: number
+          created_at?: string
+          grade_level?: number | null
+          id?: string
+          name: string
+          section?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          capacity?: number
+          created_at?: string
+          grade_level?: number | null
+          id?: string
+          name?: string
+          section?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -40,6 +73,71 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      students: {
+        Row: {
+          address: string | null
+          admission_no: string
+          class_id: string | null
+          created_at: string
+          date_of_birth: string | null
+          enrollment_date: string
+          full_name: string
+          gender: string | null
+          guardian_email: string | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          id: string
+          notes: string | null
+          photo_url: string | null
+          status: Database["public"]["Enums"]["student_status"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          admission_no: string
+          class_id?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          enrollment_date?: string
+          full_name: string
+          gender?: string | null
+          guardian_email?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          status?: Database["public"]["Enums"]["student_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          admission_no?: string
+          class_id?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          enrollment_date?: string
+          full_name?: string
+          gender?: string | null
+          guardian_email?: string | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          status?: Database["public"]["Enums"]["student_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -83,6 +181,12 @@ export type Database = {
         | "parent"
         | "librarian"
         | "accountant"
+      student_status:
+        | "active"
+        | "inactive"
+        | "graduated"
+        | "transferred"
+        | "probation"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -217,6 +321,13 @@ export const Constants = {
         "parent",
         "librarian",
         "accountant",
+      ],
+      student_status: [
+        "active",
+        "inactive",
+        "graduated",
+        "transferred",
+        "probation",
       ],
     },
   },
