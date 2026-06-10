@@ -139,6 +139,63 @@ export type Database = {
           },
         ]
       }
+      teachers: {
+        Row: {
+          address: string | null
+          created_at: string
+          date_of_birth: string | null
+          date_of_joining: string
+          email: string | null
+          employee_no: string
+          full_name: string
+          gender: string | null
+          id: string
+          notes: string | null
+          phone: string | null
+          photo_url: string | null
+          qualification: string | null
+          specialization: string | null
+          status: Database["public"]["Enums"]["teacher_status"]
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          date_of_joining?: string
+          email?: string | null
+          employee_no: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          qualification?: string | null
+          specialization?: string | null
+          status?: Database["public"]["Enums"]["teacher_status"]
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          date_of_joining?: string
+          email?: string | null
+          employee_no?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          notes?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          qualification?: string | null
+          specialization?: string | null
+          status?: Database["public"]["Enums"]["teacher_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -187,6 +244,7 @@ export type Database = {
         | "graduated"
         | "transferred"
         | "probation"
+      teacher_status: "active" | "on_leave" | "inactive" | "resigned"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -329,6 +387,7 @@ export const Constants = {
         "transferred",
         "probation",
       ],
+      teacher_status: ["active", "on_leave", "inactive", "resigned"],
     },
   },
 } as const

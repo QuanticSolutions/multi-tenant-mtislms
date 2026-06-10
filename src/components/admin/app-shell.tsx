@@ -31,7 +31,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { icon: TrendingUp, label: "Dashboard", to: "/admin" },
   { icon: Users, label: "Students", to: "/admin/students" },
-  { icon: GraduationCap, label: "Teachers", comingSoon: true },
+  { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
   { icon: CalendarCheck, label: "Attendance", comingSoon: true },
   { icon: FileText, label: "Exams", comingSoon: true },
   { icon: Wallet, label: "Fees", comingSoon: true },
