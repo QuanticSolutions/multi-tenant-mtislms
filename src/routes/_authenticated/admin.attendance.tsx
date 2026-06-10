@@ -349,5 +349,3 @@ function toneClasses(s: AttStatus) {
   }
 }
 
-// keep import used for icon set
-export const _icon = CalendarCheck;
