@@ -98,6 +98,116 @@ export type Database = {
         }
         Relationships: []
       }
+      exam_results: {
+        Row: {
+          created_at: string
+          exam_id: string
+          id: string
+          is_absent: boolean
+          marks_obtained: number | null
+          recorded_by: string | null
+          remarks: string | null
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          exam_id: string
+          id?: string
+          is_absent?: boolean
+          marks_obtained?: number | null
+          recorded_by?: string | null
+          remarks?: string | null
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          exam_id?: string
+          id?: string
+          is_absent?: boolean
+          marks_obtained?: number | null
+          recorded_by?: string | null
+          remarks?: string | null
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_results_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exam_results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          class_id: string
+          created_at: string
+          created_by: string | null
+          end_time: string | null
+          exam_date: string
+          id: string
+          notes: string | null
+          passing_marks: number
+          start_time: string | null
+          status: Database["public"]["Enums"]["exam_status"]
+          subject: string
+          title: string
+          total_marks: number
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          exam_date: string
+          id?: string
+          notes?: string | null
+          passing_marks?: number
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["exam_status"]
+          subject: string
+          title: string
+          total_marks?: number
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          exam_date?: string
+          id?: string
+          notes?: string | null
+          passing_marks?: number
+          start_time?: string | null
+          status?: Database["public"]["Enums"]["exam_status"]
+          subject?: string
+          title?: string
+          total_marks?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exams_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -290,6 +400,7 @@ export type Database = {
         | "librarian"
         | "accountant"
       attendance_status: "present" | "absent" | "late" | "excused"
+      exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       student_status:
         | "active"
         | "inactive"
@@ -433,6 +544,7 @@ export const Constants = {
         "accountant",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
+      exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       student_status: [
         "active",
         "inactive",
