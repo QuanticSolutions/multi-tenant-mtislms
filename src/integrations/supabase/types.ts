@@ -208,6 +208,172 @@ export type Database = {
           },
         ]
       }
+      fee_structures: {
+        Row: {
+          academic_year: string
+          amount: number
+          class_id: string
+          created_at: string
+          description: string | null
+          due_day: number | null
+          frequency: Database["public"]["Enums"]["fee_frequency"]
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string
+          amount: number
+          class_id: string
+          created_at?: string
+          description?: string | null
+          due_day?: number | null
+          frequency?: Database["public"]["Enums"]["fee_frequency"]
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string
+          amount?: number
+          class_id?: string
+          created_at?: string
+          description?: string | null
+          due_day?: number | null
+          frequency?: Database["public"]["Enums"]["fee_frequency"]
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_structures_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          amount: number
+          amount_paid: number
+          created_at: string
+          created_by: string | null
+          discount: number
+          due_date: string
+          fee_structure_id: string | null
+          id: string
+          invoice_no: string
+          issue_date: string
+          notes: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          student_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          due_date: string
+          fee_structure_id?: string | null
+          id?: string
+          invoice_no: string
+          issue_date?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          student_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number
+          created_at?: string
+          created_by?: string | null
+          discount?: number
+          due_date?: string
+          fee_structure_id?: string | null
+          id?: string
+          invoice_no?: string
+          issue_date?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          student_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_fee_structure_id_fkey"
+            columns: ["fee_structure_id"]
+            isOneToOne: false
+            referencedRelation: "fee_structures"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          paid_on: string
+          recorded_by: string | null
+          reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          paid_on?: string
+          recorded_by?: string | null
+          reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          paid_on?: string
+          recorded_by?: string | null
+          reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -401,6 +567,15 @@ export type Database = {
         | "accountant"
       attendance_status: "present" | "absent" | "late" | "excused"
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
+      fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
+      invoice_status: "pending" | "paid" | "partial" | "overdue" | "cancelled"
+      payment_method:
+        | "cash"
+        | "bank_transfer"
+        | "card"
+        | "cheque"
+        | "online"
+        | "other"
       student_status:
         | "active"
         | "inactive"
@@ -545,6 +720,16 @@ export const Constants = {
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
+      fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
+      invoice_status: ["pending", "paid", "partial", "overdue", "cancelled"],
+      payment_method: [
+        "cash",
+        "bank_transfer",
+        "card",
+        "cheque",
+        "online",
+        "other",
+      ],
       student_status: [
         "active",
         "inactive",
