@@ -34,7 +34,7 @@ const NAV: NavItem[] = [
   { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
   { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance" },
   { icon: FileText, label: "Exams", to: "/admin/exams" },
-  { icon: Wallet, label: "Fees", comingSoon: true },
+  { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", comingSoon: true },
   { icon: MessageSquare, label: "Messaging", comingSoon: true },
 ];
