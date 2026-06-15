@@ -65,6 +65,114 @@ export type Database = {
           },
         ]
       }
+      book_issues: {
+        Row: {
+          book_id: string
+          created_at: string
+          due_date: string
+          fine_amount: number
+          id: string
+          issue_date: string
+          issued_by: string | null
+          notes: string | null
+          return_date: string | null
+          status: Database["public"]["Enums"]["book_issue_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          book_id: string
+          created_at?: string
+          due_date: string
+          fine_amount?: number
+          id?: string
+          issue_date?: string
+          issued_by?: string | null
+          notes?: string | null
+          return_date?: string | null
+          status?: Database["public"]["Enums"]["book_issue_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          book_id?: string
+          created_at?: string
+          due_date?: string
+          fine_amount?: number
+          id?: string
+          issue_date?: string
+          issued_by?: string | null
+          notes?: string | null
+          return_date?: string | null
+          status?: Database["public"]["Enums"]["book_issue_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "book_issues_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "book_issues_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      books: {
+        Row: {
+          author: string
+          available_copies: number
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          isbn: string | null
+          publication_year: number | null
+          publisher: string | null
+          shelf_location: string | null
+          title: string
+          total_copies: number
+          updated_at: string
+        }
+        Insert: {
+          author: string
+          available_copies?: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          isbn?: string | null
+          publication_year?: number | null
+          publisher?: string | null
+          shelf_location?: string | null
+          title: string
+          total_copies?: number
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          available_copies?: number
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          isbn?: string | null
+          publication_year?: number | null
+          publisher?: string | null
+          shelf_location?: string | null
+          title?: string
+          total_copies?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       classes: {
         Row: {
           academic_year: string
@@ -566,6 +674,7 @@ export type Database = {
         | "librarian"
         | "accountant"
       attendance_status: "present" | "absent" | "late" | "excused"
+      book_issue_status: "issued" | "returned" | "overdue" | "lost"
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
       invoice_status: "pending" | "paid" | "partial" | "overdue" | "cancelled"
@@ -719,6 +828,7 @@ export const Constants = {
         "accountant",
       ],
       attendance_status: ["present", "absent", "late", "excused"],
+      book_issue_status: ["issued", "returned", "overdue", "lost"],
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
       invoice_status: ["pending", "paid", "partial", "overdue", "cancelled"],
