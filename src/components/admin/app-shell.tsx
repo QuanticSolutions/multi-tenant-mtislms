@@ -35,7 +35,7 @@ const NAV: NavItem[] = [
   { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance" },
   { icon: FileText, label: "Exams", to: "/admin/exams" },
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
-  { icon: BookOpen, label: "Library", comingSoon: true },
+  { icon: BookOpen, label: "Library", to: "/admin/library" },
   { icon: MessageSquare, label: "Messaging", comingSoon: true },
 ];
 
