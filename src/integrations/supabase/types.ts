@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          audience: Database["public"]["Enums"]["announcement_audience"]
+          body: string
+          class_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          pinned: boolean
+          published_at: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: Database["public"]["Enums"]["announcement_audience"]
+          body: string
+          class_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pinned?: boolean
+          published_at?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: Database["public"]["Enums"]["announcement_audience"]
+          body?: string
+          class_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          pinned?: boolean
+          published_at?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           class_id: string
@@ -435,6 +482,110 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          body: string
+          channel: Database["public"]["Enums"]["message_channel"]
+          created_at: string
+          id: string
+          parent_contact_id: string | null
+          sent_at: string
+          sent_by: string | null
+          status: Database["public"]["Enums"]["message_status"]
+          student_id: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          channel?: Database["public"]["Enums"]["message_channel"]
+          created_at?: string
+          id?: string
+          parent_contact_id?: string | null
+          sent_at?: string
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+          student_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          channel?: Database["public"]["Enums"]["message_channel"]
+          created_at?: string
+          id?: string
+          parent_contact_id?: string | null
+          sent_at?: string
+          sent_by?: string | null
+          status?: Database["public"]["Enums"]["message_status"]
+          student_id?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_parent_contact_id_fkey"
+            columns: ["parent_contact_id"]
+            isOneToOne: false
+            referencedRelation: "parent_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parent_contacts: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_primary: boolean
+          notes: string | null
+          phone: string | null
+          relation: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          phone?: string | null
+          relation?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_primary?: boolean
+          notes?: string | null
+          phone?: string | null
+          relation?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_contacts_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -666,6 +817,7 @@ export type Database = {
       }
     }
     Enums: {
+      announcement_audience: "all" | "teachers" | "parents" | "class"
       app_role:
         | "admin"
         | "teacher"
@@ -678,6 +830,8 @@ export type Database = {
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
       invoice_status: "pending" | "paid" | "partial" | "overdue" | "cancelled"
+      message_channel: "email" | "sms" | "whatsapp" | "in_app"
+      message_status: "draft" | "queued" | "sent" | "failed"
       payment_method:
         | "cash"
         | "bank_transfer"
@@ -819,6 +973,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      announcement_audience: ["all", "teachers", "parents", "class"],
       app_role: [
         "admin",
         "teacher",
@@ -832,6 +987,8 @@ export const Constants = {
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
       invoice_status: ["pending", "paid", "partial", "overdue", "cancelled"],
+      message_channel: ["email", "sms", "whatsapp", "in_app"],
+      message_status: ["draft", "queued", "sent", "failed"],
       payment_method: [
         "cash",
         "bank_transfer",

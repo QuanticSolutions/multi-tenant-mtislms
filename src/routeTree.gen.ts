@@ -16,6 +16,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/_authenticated/admin.teachers'
 import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/_authenticated/admin.students'
+import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminLibraryRouteImport } from './routes/_authenticated/admin.library'
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
@@ -57,6 +58,12 @@ const AuthenticatedAdminStudentsRoute =
     path: '/students',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminMessagingRoute =
+  AuthenticatedAdminMessagingRouteImport.update({
+    id: '/messaging',
+    path: '/messaging',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminLibraryRoute =
   AuthenticatedAdminLibraryRouteImport.update({
     id: '/library',
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
+  '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -99,6 +107,7 @@ export interface FileRoutesByTo {
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
+  '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -113,6 +122,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
   '/_authenticated/admin/library': typeof AuthenticatedAdminLibraryRoute
+  '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/_authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/admin/exams'
     | '/admin/fees'
     | '/admin/library'
+    | '/admin/messaging'
     | '/admin/students'
     | '/admin/teachers'
     | '/admin/'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/admin/exams'
     | '/admin/fees'
     | '/admin/library'
+    | '/admin/messaging'
     | '/admin/students'
     | '/admin/teachers'
     | '/admin'
@@ -151,6 +163,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/exams'
     | '/_authenticated/admin/fees'
     | '/_authenticated/admin/library'
+    | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/students'
     | '/_authenticated/admin/teachers'
     | '/_authenticated/admin/'
@@ -213,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminStudentsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/messaging': {
+      id: '/_authenticated/admin/messaging'
+      path: '/messaging'
+      fullPath: '/admin/messaging'
+      preLoaderRoute: typeof AuthenticatedAdminMessagingRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/library': {
       id: '/_authenticated/admin/library'
       path: '/library'
@@ -249,6 +269,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
   AuthenticatedAdminLibraryRoute: typeof AuthenticatedAdminLibraryRoute
+  AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminStudentsRoute: typeof AuthenticatedAdminStudentsRoute
   AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
@@ -259,6 +280,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
   AuthenticatedAdminLibraryRoute: AuthenticatedAdminLibraryRoute,
+  AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminStudentsRoute: AuthenticatedAdminStudentsRoute,
   AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
