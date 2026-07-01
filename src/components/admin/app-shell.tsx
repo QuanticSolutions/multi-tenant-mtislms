@@ -34,6 +34,7 @@ const NAV: NavItem[] = [
   { icon: Users, label: "Students", to: "/admin/students" },
   { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
   { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance" },
+  { icon: CalendarDays, label: "Timetable", to: "/admin/timetable" },
   { icon: FileText, label: "Exams", to: "/admin/exams" },
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", to: "/admin/library" },
