@@ -76,7 +76,7 @@ function TimetablePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("teachers")
-        .select("id, full_name, subject_specialization")
+        .select("id, full_name, specialization")
         .order("full_name");
       if (error) throw error;
       return data;
@@ -384,7 +384,7 @@ function TimetablePage() {
                       return (
                         <SelectItem key={t.id} value={t.id}>
                           {t.full_name}
-                          {t.subject_specialization ? ` · ${t.subject_specialization}` : ""}
+                          {t.specialization ? ` · ${t.specialization}` : ""}
                           {busy ? "  (busy)" : ""}
                         </SelectItem>
                       );
