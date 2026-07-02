@@ -14,7 +14,9 @@ import {
   TrendingUp,
   FileText,
   MessageSquare,
+  MessageSquare,
   CalendarDays,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
 
