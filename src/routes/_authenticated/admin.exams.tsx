@@ -29,7 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/exams")({
   head: () => ({
     meta: [
-      { title: "Exams — MTIS" },
+      { title: "Exams — Madina Tul Ilm" },
       { name: "description", content: "Schedule exams and capture results per class." },
     ],
   }),

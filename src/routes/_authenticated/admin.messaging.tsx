@@ -42,7 +42,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/messaging")({
   head: () => ({
     meta: [
-      { title: "Messaging — MTIS" },
+      { title: "Messaging — Madina Tul Ilm" },
       {
         name: "description",
         content: "Send announcements and manage parent contacts and messages.",

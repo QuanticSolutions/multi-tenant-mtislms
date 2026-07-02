@@ -39,7 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/fees")({
   head: () => ({
     meta: [
-      { title: "Fees — MTIS" },
+      { title: "Fees — Madina Tul Ilm" },
       { name: "description", content: "Manage class fee structures, invoices, and payments." },
     ],
   }),
