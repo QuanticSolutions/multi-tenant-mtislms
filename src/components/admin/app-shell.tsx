@@ -14,7 +14,6 @@ import {
   TrendingUp,
   FileText,
   MessageSquare,
-  MessageSquare,
   CalendarDays,
   ClipboardList,
 } from "lucide-react";
