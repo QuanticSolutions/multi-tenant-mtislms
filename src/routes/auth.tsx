@@ -135,7 +135,7 @@ function AuthPage() {
                 M
               </div>
               <div className="font-display text-lg font-bold tracking-tight text-primary">
-                MTIS
+                Madina Tul Ilm
               </div>
             </div>
 
