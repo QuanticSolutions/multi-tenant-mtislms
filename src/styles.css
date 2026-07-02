@@ -107,9 +107,9 @@
   --text-muted: oklch(0.68 0.03 257);       /* #94A3B8 */
 
   /* Brand — Deep Navy */
-  --primary: oklch(0.34 0.13 268);          /* #1D3B8A */
+  --primary: oklch(0.45 0.18 267);          /* #2952C4 — primary-light promoted */
   --primary-foreground: oklch(1 0 0);
-  --primary-light: oklch(0.45 0.18 267);    /* #2952C4 */
+  --primary-light: oklch(0.55 0.19 267);    /* lighter tint */
   --primary-pale: oklch(0.965 0.02 268);    /* #EEF2FF */
 
   /* Accent — Bold Red */
