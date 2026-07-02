@@ -39,6 +39,7 @@ const NAV: NavItem[] = [
   { icon: FileText, label: "Exams", to: "/admin/exams" },
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", to: "/admin/library" },
+  { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
   { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
 ];
 
