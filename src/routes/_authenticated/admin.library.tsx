@@ -38,7 +38,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/library")({
   head: () => ({
     meta: [
-      { title: "Library — MTIS" },
+      { title: "Library — Madina Tul Ilm" },
       { name: "description", content: "Manage book catalog and student book issues." },
     ],
   }),

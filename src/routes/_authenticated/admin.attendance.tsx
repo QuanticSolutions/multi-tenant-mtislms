@@ -20,7 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/attendance")({
   head: () => ({
     meta: [
-      { title: "Attendance — MTIS" },
+      { title: "Attendance — Madina Tul Ilm" },
       { name: "description", content: "Record daily class roll-call attendance." },
     ],
   }),

@@ -29,7 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/timetable")({
   head: () => ({
     meta: [
-      { title: "Timetable — MTIS" },
+      { title: "Timetable — Madina Tul Ilm" },
       { name: "description", content: "Weekly class period grid with teacher allocation and conflict detection." },
     ],
   }),

@@ -413,6 +413,110 @@ export type Database = {
           },
         ]
       }
+      homework: {
+        Row: {
+          assigned_date: string
+          class_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string
+          id: string
+          max_marks: number
+          status: Database["public"]["Enums"]["homework_status"]
+          subject: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_date?: string
+          class_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date: string
+          id?: string
+          max_marks?: number
+          status?: Database["public"]["Enums"]["homework_status"]
+          subject: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_date?: string
+          class_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string
+          id?: string
+          max_marks?: number
+          status?: Database["public"]["Enums"]["homework_status"]
+          subject?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework_submissions: {
+        Row: {
+          created_at: string
+          homework_id: string
+          id: string
+          marks: number | null
+          remarks: string | null
+          status: Database["public"]["Enums"]["submission_status"]
+          student_id: string
+          submitted_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          homework_id: string
+          id?: string
+          marks?: number | null
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["submission_status"]
+          student_id: string
+          submitted_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          homework_id?: string
+          id?: string
+          marks?: number | null
+          remarks?: string | null
+          status?: Database["public"]["Enums"]["submission_status"]
+          student_id?: string
+          submitted_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_submissions_homework_id_fkey"
+            columns: ["homework_id"]
+            isOneToOne: false
+            referencedRelation: "homework"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoices: {
         Row: {
           amount: number
@@ -889,6 +993,7 @@ export type Database = {
       book_issue_status: "issued" | "returned" | "overdue" | "lost"
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
+      homework_status: "draft" | "assigned" | "closed"
       invoice_status: "pending" | "paid" | "partial" | "overdue" | "cancelled"
       message_channel: "email" | "sms" | "whatsapp" | "in_app"
       message_status: "draft" | "queued" | "sent" | "failed"
@@ -905,6 +1010,7 @@ export type Database = {
         | "graduated"
         | "transferred"
         | "probation"
+      submission_status: "pending" | "submitted" | "late" | "graded"
       teacher_status: "active" | "on_leave" | "inactive" | "resigned"
     }
     CompositeTypes: {
@@ -1046,6 +1152,7 @@ export const Constants = {
       book_issue_status: ["issued", "returned", "overdue", "lost"],
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
+      homework_status: ["draft", "assigned", "closed"],
       invoice_status: ["pending", "paid", "partial", "overdue", "cancelled"],
       message_channel: ["email", "sms", "whatsapp", "in_app"],
       message_status: ["draft", "queued", "sent", "failed"],
@@ -1064,6 +1171,7 @@ export const Constants = {
         "transferred",
         "probation",
       ],
+      submission_status: ["pending", "submitted", "late", "graded"],
       teacher_status: ["active", "on_leave", "inactive", "resigned"],
     },
   },

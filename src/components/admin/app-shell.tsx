@@ -15,6 +15,7 @@ import {
   FileText,
   MessageSquare,
   CalendarDays,
+  ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +39,7 @@ const NAV: NavItem[] = [
   { icon: FileText, label: "Exams", to: "/admin/exams" },
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", to: "/admin/library" },
+  { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
   { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
 ];
 
@@ -110,7 +112,7 @@ function Header({
             M
           </div>
           <div className="leading-tight">
-            <div className="font-display text-lg font-bold tracking-tight text-primary">MTIS</div>
+            <div className="font-display text-lg font-bold tracking-tight text-primary">Madina Tul Ilm</div>
             <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Admin Panel
             </div>
@@ -188,7 +190,7 @@ function Sidebar() {
         <div className="mt-auto rounded-md border border-border bg-background p-3">
           <p className="text-xs font-semibold text-foreground">Need help?</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Check the MTIS handbook for setup steps.
+            Check the Madina Tul Ilm handbook for setup steps.
           </p>
         </div>
       </nav>

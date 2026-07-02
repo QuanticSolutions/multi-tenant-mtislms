@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * MTIS Management Portal — Design System
+ * Madina Tul Ilm Management Portal — Design System
  * Brand: deep navy + bold red accent, white-dominant surfaces.
  * All color tokens use oklch so Tailwind utilities and CSS vars stay in sync.
  */
@@ -107,9 +107,9 @@
   --text-muted: oklch(0.68 0.03 257);       /* #94A3B8 */
 
   /* Brand — Deep Navy */
-  --primary: oklch(0.34 0.13 268);          /* #1D3B8A */
+  --primary: oklch(0.45 0.18 267);          /* #2952C4 — primary-light promoted */
   --primary-foreground: oklch(1 0 0);
-  --primary-light: oklch(0.45 0.18 267);    /* #2952C4 */
+  --primary-light: oklch(0.55 0.19 267);    /* lighter tint */
   --primary-pale: oklch(0.965 0.02 268);    /* #EEF2FF */
 
   /* Accent — Bold Red */
@@ -119,7 +119,7 @@
 
   /* Secondary / Muted */
   --secondary: oklch(0.965 0.02 268);
-  --secondary-foreground: oklch(0.34 0.13 268);
+  --secondary-foreground: oklch(0.45 0.18 267);
   --muted: oklch(0.968 0.007 248);
   --muted-foreground: oklch(0.45 0.04 257);
 
@@ -156,7 +156,7 @@
   /* Sidebar */
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.18 0.04 265);
-  --sidebar-primary: oklch(0.34 0.13 268);
+  --sidebar-primary: oklch(0.45 0.18 267);
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.965 0.02 268);
   --sidebar-accent-foreground: oklch(0.34 0.13 268);

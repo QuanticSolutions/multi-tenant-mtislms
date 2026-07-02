@@ -12,8 +12,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — MTIS" },
-      { name: "description", content: "Sign in to the MTIS Management Portal." },
+      { title: "Sign in — Madina Tul Ilm" },
+      { name: "description", content: "Sign in to the Madina Tul Ilm Management Portal." },
     ],
   }),
   component: AuthPage,
@@ -102,7 +102,7 @@ function AuthPage() {
               M
             </div>
             <div>
-              <div className="font-display text-lg font-bold tracking-tight">MTIS</div>
+              <div className="font-display text-lg font-bold tracking-tight">Madina Tul Ilm</div>
               <div className="text-xs uppercase tracking-widest text-primary-foreground/70">
                 Management Portal
               </div>
@@ -135,7 +135,7 @@ function AuthPage() {
                 M
               </div>
               <div className="font-display text-lg font-bold tracking-tight text-primary">
-                MTIS
+                Madina Tul Ilm
               </div>
             </div>
 

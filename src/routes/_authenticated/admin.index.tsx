@@ -20,8 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin Dashboard — MTIS" },
-      { name: "description", content: "MTIS administration overview." },
+      { title: "Admin Dashboard — Madina Tul Ilm" },
+      { name: "description", content: "Madina Tul Ilm administration overview." },
     ],
   }),
   component: AdminDashboard,
