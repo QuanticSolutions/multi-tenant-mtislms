@@ -16,6 +16,8 @@ import {
   MessageSquare,
   CalendarDays,
   ClipboardList,
+  Bus,
+
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,6 +42,7 @@ const NAV: NavItem[] = [
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", to: "/admin/library" },
   { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
+  { icon: Bus, label: "Transport", to: "/admin/transport" },
   { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
 ];
 
