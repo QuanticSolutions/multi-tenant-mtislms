@@ -946,6 +946,155 @@ export type Database = {
           },
         ]
       }
+      transport_assignments: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          is_active: boolean
+          monthly_fare: number
+          notes: string | null
+          pickup_stop: string | null
+          route_id: string
+          start_date: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_fare?: number
+          notes?: string | null
+          pickup_stop?: string | null
+          route_id: string
+          start_date?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_fare?: number
+          notes?: string | null
+          pickup_stop?: string | null
+          route_id?: string
+          start_date?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_assignments_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "transport_routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transport_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transport_routes: {
+        Row: {
+          code: string
+          created_at: string
+          driver_name: string | null
+          driver_phone: string | null
+          id: string
+          is_active: boolean
+          monthly_fare: number
+          name: string
+          notes: string | null
+          stops: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_fare?: number
+          name: string
+          notes?: string | null
+          stops?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          is_active?: boolean
+          monthly_fare?: number
+          name?: string
+          notes?: string | null
+          stops?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transport_vehicles: {
+        Row: {
+          capacity: number
+          created_at: string
+          driver_name: string | null
+          driver_phone: string | null
+          id: string
+          is_active: boolean
+          model: string | null
+          notes: string | null
+          registration_no: string
+          route_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          capacity?: number
+          created_at?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          notes?: string | null
+          registration_no: string
+          route_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          driver_name?: string | null
+          driver_phone?: string | null
+          id?: string
+          is_active?: boolean
+          model?: string | null
+          notes?: string | null
+          registration_no?: string
+          route_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_vehicles_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "transport_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
