@@ -18,6 +18,7 @@ import { Route as AuthenticatedAdminTransportRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminTimetableRouteImport } from './routes/_authenticated/admin.timetable'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/_authenticated/admin.teachers'
 import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/_authenticated/admin.students'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminLibraryRouteImport } from './routes/_authenticated/admin.library'
 import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authenticated/admin.homework'
@@ -73,6 +74,12 @@ const AuthenticatedAdminStudentsRoute =
     path: '/students',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminReportsRoute =
+  AuthenticatedAdminReportsRouteImport.update({
+    id: '/reports',
+    path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminMessagingRoute =
   AuthenticatedAdminMessagingRouteImport.update({
     id: '/messaging',
@@ -118,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/timetable': typeof AuthenticatedAdminTimetableRoute
@@ -133,6 +141,7 @@ export interface FileRoutesByTo {
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
+  '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/timetable': typeof AuthenticatedAdminTimetableRoute
@@ -151,6 +160,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/_authenticated/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
+  '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
   '/_authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/_authenticated/admin/timetable': typeof AuthenticatedAdminTimetableRoute
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/admin/homework'
     | '/admin/library'
     | '/admin/messaging'
+    | '/admin/reports'
     | '/admin/students'
     | '/admin/teachers'
     | '/admin/timetable'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/admin/homework'
     | '/admin/library'
     | '/admin/messaging'
+    | '/admin/reports'
     | '/admin/students'
     | '/admin/teachers'
     | '/admin/timetable'
@@ -201,6 +213,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/homework'
     | '/_authenticated/admin/library'
     | '/_authenticated/admin/messaging'
+    | '/_authenticated/admin/reports'
     | '/_authenticated/admin/students'
     | '/_authenticated/admin/teachers'
     | '/_authenticated/admin/timetable'
@@ -279,6 +292,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminStudentsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/reports': {
+      id: '/_authenticated/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/messaging': {
       id: '/_authenticated/admin/messaging'
       path: '/messaging'
@@ -331,6 +351,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminHomeworkRoute: typeof AuthenticatedAdminHomeworkRoute
   AuthenticatedAdminLibraryRoute: typeof AuthenticatedAdminLibraryRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
+  AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminStudentsRoute: typeof AuthenticatedAdminStudentsRoute
   AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
   AuthenticatedAdminTimetableRoute: typeof AuthenticatedAdminTimetableRoute
@@ -345,6 +366,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminHomeworkRoute: AuthenticatedAdminHomeworkRoute,
   AuthenticatedAdminLibraryRoute: AuthenticatedAdminLibraryRoute,
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
+  AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminStudentsRoute: AuthenticatedAdminStudentsRoute,
   AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
   AuthenticatedAdminTimetableRoute: AuthenticatedAdminTimetableRoute,
