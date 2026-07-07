@@ -366,16 +366,17 @@ function ExamsReport() {
     queryFn: async () => {
       const { data: results, error } = await supabase
         .from("exam_results")
-        .select("marks_obtained, max_marks, exams(name, subject)");
+        .select("marks_obtained, is_absent, exams(title, subject, total_marks)");
       if (error) throw error;
 
       const byExam = new Map<string, { name: string; count: number; sum: number; pass: number }>();
       for (const r of results ?? []) {
         const ex = (r as any).exams;
-        if (!ex) continue;
-        const key = `${ex.name} · ${ex.subject}`;
+        if (!ex || r.is_absent) continue;
+        const key = `${ex.title} · ${ex.subject}`;
         const b = byExam.get(key) ?? { name: key, count: 0, sum: 0, pass: 0 };
-        const pct = Number(r.max_marks) > 0 ? (Number(r.marks_obtained) / Number(r.max_marks)) * 100 : 0;
+        const max = Number(ex.total_marks ?? 0);
+        const pct = max > 0 ? (Number(r.marks_obtained ?? 0) / max) * 100 : 0;
         b.count += 1;
         b.sum += pct;
         if (pct >= 40) b.pass += 1;
