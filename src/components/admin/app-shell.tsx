@@ -17,6 +17,9 @@ import {
   CalendarDays,
   ClipboardList,
   Bus,
+  BarChart3,
+
+
 
 } from "lucide-react";
 import { toast } from "sonner";
@@ -44,6 +47,7 @@ const NAV: NavItem[] = [
   { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
   { icon: Bus, label: "Transport", to: "/admin/transport" },
   { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
+  { icon: BarChart3, label: "Reports", to: "/admin/reports" },
 ];
 
 export interface SessionUser {
