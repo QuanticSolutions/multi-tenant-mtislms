@@ -110,8 +110,8 @@ function OverviewTiles({ since }: { since: string }) {
       const [students, teachers, invoices, payments, attendance, books] = await Promise.all([
         supabase.from("students").select("id, status", { count: "exact" }),
         supabase.from("teachers").select("id", { count: "exact", head: true }),
-        supabase.from("invoices").select("id, amount_due, amount_paid, status").gte("created_at", since),
-        supabase.from("payments").select("amount, paid_at").gte("paid_at", since),
+        supabase.from("invoices").select("id, amount, amount_paid, status").gte("created_at", since),
+        supabase.from("payments").select("amount, paid_on").gte("paid_on", since),
         supabase.from("attendance").select("status, date").gte("date", since),
         supabase.from("books").select("id, available_copies, total_copies", { count: "exact" }),
       ]);
@@ -119,7 +119,7 @@ function OverviewTiles({ since }: { since: string }) {
       const activeStudents = (students.data ?? []).filter((s) => s.status === "active").length;
       const collected = (payments.data ?? []).reduce((a, p) => a + Number(p.amount ?? 0), 0);
       const outstanding = (invoices.data ?? []).reduce(
-        (a, i) => a + Math.max(0, Number(i.amount_due ?? 0) - Number(i.amount_paid ?? 0)),
+        (a, i) => a + Math.max(0, Number(i.amount ?? 0) - Number(i.amount_paid ?? 0)),
         0,
       );
       const attRows = attendance.data ?? [];
@@ -284,8 +284,8 @@ function FeesReport({ since }: { since: string }) {
     queryKey: ["reports-fees", since],
     queryFn: async () => {
       const [invoices, payments] = await Promise.all([
-        supabase.from("invoices").select("id, amount_due, amount_paid, status, due_date, created_at"),
-        supabase.from("payments").select("amount, paid_at, method").gte("paid_at", since),
+        supabase.from("invoices").select("id, amount, amount_paid, status, due_date, created_at"),
+        supabase.from("payments").select("amount, paid_on, method").gte("paid_on", since),
       ]);
 
       const inv = invoices.data ?? [];
@@ -295,7 +295,7 @@ function FeesReport({ since }: { since: string }) {
         i.status !== "paid" && i.due_date && new Date(i.due_date as string) < new Date()
       ).length;
       const outstanding = inv.reduce(
-        (a, i) => a + Math.max(0, Number(i.amount_due ?? 0) - Number(i.amount_paid ?? 0)),
+        (a, i) => a + Math.max(0, Number(i.amount ?? 0) - Number(i.amount_paid ?? 0)),
         0,
       );
 
