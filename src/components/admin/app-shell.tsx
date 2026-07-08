@@ -49,6 +49,7 @@ const NAV: NavItem[] = [
   { icon: Bus, label: "Transport", to: "/admin/transport" },
   { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
   { icon: BarChart3, label: "Reports", to: "/admin/reports" },
+  { icon: CalendarRange, label: "Events", to: "/admin/events" },
 ];
 
 export interface SessionUser {
