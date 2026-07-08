@@ -253,6 +253,71 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          audience: Database["public"]["Enums"]["event_audience"]
+          class_id: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string
+          end_time: string | null
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          is_holiday: boolean
+          location: string | null
+          start_date: string
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audience?: Database["public"]["Enums"]["event_audience"]
+          class_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          end_time?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          is_holiday?: boolean
+          location?: string | null
+          start_date: string
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audience?: Database["public"]["Enums"]["event_audience"]
+          class_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          end_time?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          is_holiday?: boolean
+          location?: string | null
+          start_date?: string
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exam_results: {
         Row: {
           created_at: string
@@ -1140,6 +1205,14 @@ export type Database = {
         | "accountant"
       attendance_status: "present" | "absent" | "late" | "excused"
       book_issue_status: "issued" | "returned" | "overdue" | "lost"
+      event_audience: "all" | "students" | "teachers" | "parents" | "staff"
+      event_type:
+        | "holiday"
+        | "exam"
+        | "ptm"
+        | "activity"
+        | "announcement"
+        | "other"
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
       homework_status: "draft" | "assigned" | "closed"
@@ -1299,6 +1372,15 @@ export const Constants = {
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       book_issue_status: ["issued", "returned", "overdue", "lost"],
+      event_audience: ["all", "students", "teachers", "parents", "staff"],
+      event_type: [
+        "holiday",
+        "exam",
+        "ptm",
+        "activity",
+        "announcement",
+        "other",
+      ],
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
       homework_status: ["draft", "assigned", "closed"],
