@@ -111,7 +111,7 @@ function AuthPage() {
 
           <div className="relative">
             <p className="mtis-eyebrow text-primary-foreground/70">Welcome to</p>
-            <h1 className="mt-2 font-display text-3xl font-bold leading-tight">
+            <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-primary-foreground/70">
               Madina Tul Ilm<br />School
             </h1>
             <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
