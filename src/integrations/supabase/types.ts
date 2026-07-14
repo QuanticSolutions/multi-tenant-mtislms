@@ -938,6 +938,105 @@ export type Database = {
           },
         ]
       }
+      payroll_items: {
+        Row: {
+          allowances: number
+          basic_salary: number
+          bonus: number
+          created_at: string
+          deductions: number
+          id: string
+          net_pay: number
+          notes: string | null
+          present_days: number | null
+          run_id: string
+          staff_id: string
+          updated_at: string
+          working_days: number | null
+        }
+        Insert: {
+          allowances?: number
+          basic_salary?: number
+          bonus?: number
+          created_at?: string
+          deductions?: number
+          id?: string
+          net_pay?: number
+          notes?: string | null
+          present_days?: number | null
+          run_id: string
+          staff_id: string
+          updated_at?: string
+          working_days?: number | null
+        }
+        Update: {
+          allowances?: number
+          basic_salary?: number
+          bonus?: number
+          created_at?: string
+          deductions?: number
+          id?: string
+          net_pay?: number
+          notes?: string | null
+          present_days?: number | null
+          run_id?: string
+          staff_id?: string
+          updated_at?: string
+          working_days?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_items_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_items_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payroll_runs: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          period_month: number
+          period_year: number
+          processed_at: string | null
+          processed_by: string | null
+          status: Database["public"]["Enums"]["payroll_run_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_month: number
+          period_year: number
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["payroll_run_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          period_month?: number
+          period_year?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          status?: Database["public"]["Enums"]["payroll_run_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -964,6 +1063,56 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      staff_attendance: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          date: string
+          hours_worked: number | null
+          id: string
+          notes: string | null
+          recorded_by: string | null
+          staff_id: string
+          status: Database["public"]["Enums"]["staff_attendance_status"]
+          updated_at: string
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          date: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          staff_id: string
+          status?: Database["public"]["Enums"]["staff_attendance_status"]
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          date?: string
+          hours_worked?: number | null
+          id?: string
+          notes?: string | null
+          recorded_by?: string | null
+          staff_id?: string
+          status?: Database["public"]["Enums"]["staff_attendance_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_attendance_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {
@@ -1362,6 +1511,13 @@ export type Database = {
         | "cheque"
         | "online"
         | "other"
+      payroll_run_status: "draft" | "finalized" | "paid"
+      staff_attendance_status:
+        | "present"
+        | "absent"
+        | "late"
+        | "half_day"
+        | "leave"
       student_status:
         | "active"
         | "inactive"
@@ -1530,6 +1686,14 @@ export const Constants = {
         "cheque",
         "online",
         "other",
+      ],
+      payroll_run_status: ["draft", "finalized", "paid"],
+      staff_attendance_status: [
+        "present",
+        "absent",
+        "late",
+        "half_day",
+        "leave",
       ],
       student_status: [
         "active",
