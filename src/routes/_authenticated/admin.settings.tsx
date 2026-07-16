@@ -184,7 +184,7 @@ function GradingTab() {
     queryFn: async () => {
       const { data, error } = await supabase.from("grading_scales").select("*").order("created_at");
       if (error) throw error;
-      return data as Scale[];
+      return (data as unknown) as Scale[];
     },
   });
 
