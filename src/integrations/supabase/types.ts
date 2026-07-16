@@ -14,6 +14,146 @@ export type Database = {
   }
   public: {
     Tables: {
+      admission_applications: {
+        Row: {
+          address: string | null
+          application_fee: number
+          application_no: string
+          applying_for_class_id: string | null
+          created_at: string
+          date_of_birth: string | null
+          decision_date: string | null
+          decision_notes: string | null
+          fee_paid: boolean
+          first_name: string
+          gender: string | null
+          guardian_email: string | null
+          guardian_name: string
+          guardian_phone: string
+          id: string
+          last_name: string
+          offer_date: string | null
+          previous_school: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["admission_status"]
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          application_fee?: number
+          application_no: string
+          applying_for_class_id?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          decision_date?: string | null
+          decision_notes?: string | null
+          fee_paid?: boolean
+          first_name: string
+          gender?: string | null
+          guardian_email?: string | null
+          guardian_name: string
+          guardian_phone: string
+          id?: string
+          last_name: string
+          offer_date?: string | null
+          previous_school?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["admission_status"]
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          application_fee?: number
+          application_no?: string
+          applying_for_class_id?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          decision_date?: string | null
+          decision_notes?: string | null
+          fee_paid?: boolean
+          first_name?: string
+          gender?: string | null
+          guardian_email?: string | null
+          guardian_name?: string
+          guardian_phone?: string
+          id?: string
+          last_name?: string
+          offer_date?: string | null
+          previous_school?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["admission_status"]
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_applications_applying_for_class_id_fkey"
+            columns: ["applying_for_class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admission_interviews: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          interviewer_id: string | null
+          interviewer_name: string | null
+          mode: Database["public"]["Enums"]["interview_mode"]
+          outcome: Database["public"]["Enums"]["interview_outcome"]
+          remarks: string | null
+          scheduled_at: string
+          score: number | null
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          interviewer_id?: string | null
+          interviewer_name?: string | null
+          mode?: Database["public"]["Enums"]["interview_mode"]
+          outcome?: Database["public"]["Enums"]["interview_outcome"]
+          remarks?: string | null
+          scheduled_at: string
+          score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          interviewer_id?: string | null
+          interviewer_name?: string | null
+          mode?: Database["public"]["Enums"]["interview_mode"]
+          outcome?: Database["public"]["Enums"]["interview_outcome"]
+          remarks?: string | null
+          scheduled_at?: string
+          score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admission_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "admission_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admission_interviews_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       announcements: {
         Row: {
           audience: Database["public"]["Enums"]["announcement_audience"]
@@ -1480,6 +1620,14 @@ export type Database = {
       }
     }
     Enums: {
+      admission_status:
+        | "new"
+        | "screening"
+        | "interview"
+        | "offered"
+        | "accepted"
+        | "rejected"
+        | "withdrawn"
       announcement_audience: "all" | "teachers" | "parents" | "class"
       app_role:
         | "admin"
@@ -1501,6 +1649,8 @@ export type Database = {
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
       homework_status: "draft" | "assigned" | "closed"
+      interview_mode: "in_person" | "online" | "phone"
+      interview_outcome: "pending" | "pass" | "fail" | "hold"
       invoice_status: "pending" | "paid" | "partial" | "overdue" | "cancelled"
       message_channel: "email" | "sms" | "whatsapp" | "in_app"
       message_status: "draft" | "queued" | "sent" | "failed"
@@ -1653,6 +1803,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      admission_status: [
+        "new",
+        "screening",
+        "interview",
+        "offered",
+        "accepted",
+        "rejected",
+        "withdrawn",
+      ],
       announcement_audience: ["all", "teachers", "parents", "class"],
       app_role: [
         "admin",
@@ -1676,6 +1835,8 @@ export const Constants = {
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
       homework_status: ["draft", "assigned", "closed"],
+      interview_mode: ["in_person", "online", "phone"],
+      interview_outcome: ["pending", "pass", "fail", "hold"],
       invoice_status: ["pending", "paid", "partial", "overdue", "cancelled"],
       message_channel: ["email", "sms", "whatsapp", "in_app"],
       message_status: ["draft", "queued", "sent", "failed"],
