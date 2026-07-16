@@ -22,6 +22,9 @@ import {
   Package,
   UserCheck,
   ClipboardCheck,
+  Bell,
+  Settings,
+  Activity,
 } from "lucide-react";
 import { toast } from "sonner";
 

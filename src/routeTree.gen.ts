@@ -29,6 +29,7 @@ import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
+import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin.attendance'
 import { Route as AuthenticatedAdminAdmissionsRouteImport } from './routes/_authenticated/admin.admissions'
 
@@ -143,6 +144,11 @@ const AuthenticatedAdminEventsRoute =
     path: '/events',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
 const AuthenticatedAdminAttendanceRoute =
   AuthenticatedAdminAttendanceRouteImport.update({
     id: '/attendance',
@@ -162,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
+  '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
+  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/admissions'
     | '/admin/attendance'
+    | '/admin/audit'
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
@@ -256,6 +266,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin/admissions'
     | '/admin/attendance'
+    | '/admin/audit'
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
@@ -280,6 +291,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/admin/admissions'
     | '/_authenticated/admin/attendance'
+    | '/_authenticated/admin/audit'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
     | '/_authenticated/admin/fees'
@@ -446,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/audit': {
+      id: '/_authenticated/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/attendance': {
       id: '/_authenticated/admin/attendance'
       path: '/attendance'
@@ -466,6 +485,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdmissionsRoute: typeof AuthenticatedAdminAdmissionsRoute
   AuthenticatedAdminAttendanceRoute: typeof AuthenticatedAdminAttendanceRoute
+  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
@@ -487,6 +507,7 @@ interface AuthenticatedAdminRouteChildren {
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdmissionsRoute: AuthenticatedAdminAdmissionsRoute,
   AuthenticatedAdminAttendanceRoute: AuthenticatedAdminAttendanceRoute,
+  AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
