@@ -55,6 +55,9 @@ const NAV: NavItem[] = [
   { icon: CalendarRange, label: "Events", to: "/admin/events" },
   { icon: Package, label: "Inventory", to: "/admin/inventory" },
   { icon: UserCheck, label: "Staff & Payroll", to: "/admin/staff" },
+  { icon: Bell, label: "Notifications", to: "/admin/notifications" },
+  { icon: Settings, label: "Settings", to: "/admin/settings" },
+  { icon: Activity, label: "Audit Log", to: "/admin/audit" },
 ];
 
 export interface SessionUser {
