@@ -252,6 +252,42 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          details: Json | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          details?: Json | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: string | null
+        }
+        Relationships: []
+      }
       book_issues: {
         Row: {
           book_id: string
@@ -617,6 +653,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      grading_scales: {
+        Row: {
+          bands: Json
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          bands?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          bands?: Json
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       homework: {
         Row: {
@@ -984,6 +1050,57 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          recipient: string
+          recipient_name: string | null
+          related_id: string | null
+          related_module: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["notification_status"]
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          channel: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          recipient: string
+          recipient_name?: string | null
+          related_id?: string | null
+          related_module?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          channel?: Database["public"]["Enums"]["notification_channel"]
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          recipient?: string
+          recipient_name?: string | null
+          related_id?: string | null
+          related_module?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["notification_status"]
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       parent_contacts: {
         Row: {
           created_at: string
@@ -1201,6 +1318,69 @@ export type Database = {
           full_name?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      school_settings: {
+        Row: {
+          academic_terms: Json | null
+          address: string | null
+          city: string | null
+          created_at: string
+          currency: string
+          current_session: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          phone: string | null
+          school_name: string
+          session_end_date: string | null
+          session_start_date: string | null
+          singleton: boolean
+          tagline: string | null
+          timezone: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          academic_terms?: Json | null
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          currency?: string
+          current_session?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          school_name?: string
+          session_end_date?: string | null
+          session_start_date?: string | null
+          singleton?: boolean
+          tagline?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          academic_terms?: Json | null
+          address?: string | null
+          city?: string | null
+          created_at?: string
+          currency?: string
+          current_session?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          school_name?: string
+          session_end_date?: string | null
+          session_start_date?: string | null
+          singleton?: boolean
+          tagline?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -1654,6 +1834,8 @@ export type Database = {
       invoice_status: "pending" | "paid" | "partial" | "overdue" | "cancelled"
       message_channel: "email" | "sms" | "whatsapp" | "in_app"
       message_status: "draft" | "queued" | "sent" | "failed"
+      notification_channel: "email" | "sms" | "push" | "in_app"
+      notification_status: "queued" | "sent" | "failed" | "delivered"
       payment_method:
         | "cash"
         | "bank_transfer"
@@ -1840,6 +2022,8 @@ export const Constants = {
       invoice_status: ["pending", "paid", "partial", "overdue", "cancelled"],
       message_channel: ["email", "sms", "whatsapp", "in_app"],
       message_status: ["draft", "queued", "sent", "failed"],
+      notification_channel: ["email", "sms", "push", "in_app"],
+      notification_status: ["queued", "sent", "failed", "delivered"],
       payment_method: [
         "cash",
         "bank_transfer",
