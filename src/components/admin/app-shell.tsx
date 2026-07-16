@@ -21,10 +21,7 @@ import {
   CalendarRange,
   Package,
   UserCheck,
-
-
-
-
+  ClipboardCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -51,6 +48,7 @@ const NAV: NavItem[] = [
   { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
   { icon: Bus, label: "Transport", to: "/admin/transport" },
   { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
+  { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
   { icon: BarChart3, label: "Reports", to: "/admin/reports" },
   { icon: CalendarRange, label: "Events", to: "/admin/events" },
   { icon: Package, label: "Inventory", to: "/admin/inventory" },

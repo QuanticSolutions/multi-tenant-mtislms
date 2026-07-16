@@ -28,6 +28,7 @@ import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin.attendance'
+import { Route as AuthenticatedAdminAdmissionsRouteImport } from './routes/_authenticated/admin.admissions'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -134,11 +135,18 @@ const AuthenticatedAdminAttendanceRoute =
     path: '/attendance',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAdmissionsRoute =
+  AuthenticatedAdminAdmissionsRouteImport.update({
+    id: '/admissions',
+    path: '/admissions',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
@@ -158,6 +166,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
@@ -180,6 +189,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/admin/admissions'
     | '/admin/attendance'
     | '/admin/events'
     | '/admin/exams'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/admin/admissions'
     | '/admin/attendance'
     | '/admin/events'
     | '/admin/exams'
@@ -242,6 +254,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/_authenticated/admin/admissions'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
@@ -400,10 +413,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAttendanceRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/admissions': {
+      id: '/_authenticated/admin/admissions'
+      path: '/admissions'
+      fullPath: '/admin/admissions'
+      preLoaderRoute: typeof AuthenticatedAdminAdmissionsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
   }
 }
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAdmissionsRoute: typeof AuthenticatedAdminAdmissionsRoute
   AuthenticatedAdminAttendanceRoute: typeof AuthenticatedAdminAttendanceRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
@@ -422,6 +443,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAdmissionsRoute: AuthenticatedAdminAdmissionsRoute,
   AuthenticatedAdminAttendanceRoute: AuthenticatedAdminAttendanceRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
@@ -461,13 +483,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
