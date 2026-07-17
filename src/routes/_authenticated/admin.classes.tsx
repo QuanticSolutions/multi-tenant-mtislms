@@ -155,10 +155,10 @@ function ClassDialog({ cls, teachers, onClose, onSaved }: {
         class_teacher_id: teacherId === "none" ? null : teacherId,
       };
       if (cls) {
-        const { error } = await supabase.from("classes").update(payload).eq("id", cls.id);
+        const { error } = await supabase.from("classes").update(payload as never).eq("id", cls.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("classes").insert(payload);
+        const { error } = await supabase.from("classes").insert(payload as never);
         if (error) throw error;
       }
     },
