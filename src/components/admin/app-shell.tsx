@@ -24,6 +24,9 @@ import {
   ClipboardCheck,
   Settings,
   Activity,
+  School,
+  Layers,
+  ArrowUpRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,7 +44,11 @@ type NavItem = {
 const NAV: NavItem[] = [
   { icon: TrendingUp, label: "Dashboard", to: "/admin" },
   { icon: Users, label: "Students", to: "/admin/students" },
+  { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
   { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
+  { icon: UserCheck, label: "Parents", to: "/admin/parents" },
+  { icon: School, label: "Classes", to: "/admin/classes" },
+  { icon: Layers, label: "Subjects", to: "/admin/subjects" },
   { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance" },
   { icon: CalendarDays, label: "Timetable", to: "/admin/timetable" },
   { icon: FileText, label: "Exams", to: "/admin/exams" },

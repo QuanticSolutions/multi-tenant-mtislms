@@ -17,10 +17,13 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminTransportRouteImport } from './routes/_authenticated/admin.transport'
 import { Route as AuthenticatedAdminTimetableRouteImport } from './routes/_authenticated/admin.timetable'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/_authenticated/admin.teachers'
+import { Route as AuthenticatedAdminSubjectsRouteImport } from './routes/_authenticated/admin.subjects'
 import { Route as AuthenticatedAdminStudentsRouteImport } from './routes/_authenticated/admin.students'
 import { Route as AuthenticatedAdminStaffRouteImport } from './routes/_authenticated/admin.staff'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
+import { Route as AuthenticatedAdminPromotionRouteImport } from './routes/_authenticated/admin.promotion'
+import { Route as AuthenticatedAdminParentsRouteImport } from './routes/_authenticated/admin.parents'
 import { Route as AuthenticatedAdminNotificationsRouteImport } from './routes/_authenticated/admin.notifications'
 import { Route as AuthenticatedAdminMessagingRouteImport } from './routes/_authenticated/admin.messaging'
 import { Route as AuthenticatedAdminLibraryRouteImport } from './routes/_authenticated/admin.library'
@@ -29,6 +32,7 @@ import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
+import { Route as AuthenticatedAdminClassesRouteImport } from './routes/_authenticated/admin.classes'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin.attendance'
 import { Route as AuthenticatedAdminAdmissionsRouteImport } from './routes/_authenticated/admin.admissions'
@@ -75,6 +79,12 @@ const AuthenticatedAdminTeachersRoute =
     path: '/teachers',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSubjectsRoute =
+  AuthenticatedAdminSubjectsRouteImport.update({
+    id: '/subjects',
+    path: '/subjects',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminStudentsRoute =
   AuthenticatedAdminStudentsRouteImport.update({
     id: '/students',
@@ -96,6 +106,18 @@ const AuthenticatedAdminReportsRoute =
   AuthenticatedAdminReportsRouteImport.update({
     id: '/reports',
     path: '/reports',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminPromotionRoute =
+  AuthenticatedAdminPromotionRouteImport.update({
+    id: '/promotion',
+    path: '/promotion',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminParentsRoute =
+  AuthenticatedAdminParentsRouteImport.update({
+    id: '/parents',
+    path: '/parents',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
 const AuthenticatedAdminNotificationsRoute =
@@ -144,6 +166,12 @@ const AuthenticatedAdminEventsRoute =
     path: '/events',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminClassesRoute =
+  AuthenticatedAdminClassesRouteImport.update({
+    id: '/classes',
+    path: '/classes',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -169,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/classes': typeof AuthenticatedAdminClassesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -177,10 +206,13 @@ export interface FileRoutesByFullPath {
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin/parents': typeof AuthenticatedAdminParentsRoute
+  '/admin/promotion': typeof AuthenticatedAdminPromotionRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/staff': typeof AuthenticatedAdminStaffRoute
   '/admin/students': typeof AuthenticatedAdminStudentsRoute
+  '/admin/subjects': typeof AuthenticatedAdminSubjectsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/timetable': typeof AuthenticatedAdminTimetableRoute
   '/admin/transport': typeof AuthenticatedAdminTransportRoute
@@ -192,6 +224,7 @@ export interface FileRoutesByTo {
   '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/admin/classes': typeof AuthenticatedAdminClassesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -200,10 +233,13 @@ export interface FileRoutesByTo {
   '/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/admin/parents': typeof AuthenticatedAdminParentsRoute
+  '/admin/promotion': typeof AuthenticatedAdminPromotionRoute
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/staff': typeof AuthenticatedAdminStaffRoute
   '/admin/students': typeof AuthenticatedAdminStudentsRoute
+  '/admin/subjects': typeof AuthenticatedAdminSubjectsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/timetable': typeof AuthenticatedAdminTimetableRoute
   '/admin/transport': typeof AuthenticatedAdminTransportRoute
@@ -218,6 +254,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
+  '/_authenticated/admin/classes': typeof AuthenticatedAdminClassesRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -226,10 +263,13 @@ export interface FileRoutesById {
   '/_authenticated/admin/library': typeof AuthenticatedAdminLibraryRoute
   '/_authenticated/admin/messaging': typeof AuthenticatedAdminMessagingRoute
   '/_authenticated/admin/notifications': typeof AuthenticatedAdminNotificationsRoute
+  '/_authenticated/admin/parents': typeof AuthenticatedAdminParentsRoute
+  '/_authenticated/admin/promotion': typeof AuthenticatedAdminPromotionRoute
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/staff': typeof AuthenticatedAdminStaffRoute
   '/_authenticated/admin/students': typeof AuthenticatedAdminStudentsRoute
+  '/_authenticated/admin/subjects': typeof AuthenticatedAdminSubjectsRoute
   '/_authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/_authenticated/admin/timetable': typeof AuthenticatedAdminTimetableRoute
   '/_authenticated/admin/transport': typeof AuthenticatedAdminTransportRoute
@@ -244,6 +284,7 @@ export interface FileRouteTypes {
     | '/admin/admissions'
     | '/admin/attendance'
     | '/admin/audit'
+    | '/admin/classes'
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
@@ -252,10 +293,13 @@ export interface FileRouteTypes {
     | '/admin/library'
     | '/admin/messaging'
     | '/admin/notifications'
+    | '/admin/parents'
+    | '/admin/promotion'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/staff'
     | '/admin/students'
+    | '/admin/subjects'
     | '/admin/teachers'
     | '/admin/timetable'
     | '/admin/transport'
@@ -267,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin/admissions'
     | '/admin/attendance'
     | '/admin/audit'
+    | '/admin/classes'
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
@@ -275,10 +320,13 @@ export interface FileRouteTypes {
     | '/admin/library'
     | '/admin/messaging'
     | '/admin/notifications'
+    | '/admin/parents'
+    | '/admin/promotion'
     | '/admin/reports'
     | '/admin/settings'
     | '/admin/staff'
     | '/admin/students'
+    | '/admin/subjects'
     | '/admin/teachers'
     | '/admin/timetable'
     | '/admin/transport'
@@ -292,6 +340,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/admissions'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
+    | '/_authenticated/admin/classes'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
     | '/_authenticated/admin/fees'
@@ -300,10 +349,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/library'
     | '/_authenticated/admin/messaging'
     | '/_authenticated/admin/notifications'
+    | '/_authenticated/admin/parents'
+    | '/_authenticated/admin/promotion'
     | '/_authenticated/admin/reports'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/staff'
     | '/_authenticated/admin/students'
+    | '/_authenticated/admin/subjects'
     | '/_authenticated/admin/teachers'
     | '/_authenticated/admin/timetable'
     | '/_authenticated/admin/transport'
@@ -374,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminTeachersRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/subjects': {
+      id: '/_authenticated/admin/subjects'
+      path: '/subjects'
+      fullPath: '/admin/subjects'
+      preLoaderRoute: typeof AuthenticatedAdminSubjectsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/students': {
       id: '/_authenticated/admin/students'
       path: '/students'
@@ -400,6 +459,20 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/admin/reports'
       preLoaderRoute: typeof AuthenticatedAdminReportsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/promotion': {
+      id: '/_authenticated/admin/promotion'
+      path: '/promotion'
+      fullPath: '/admin/promotion'
+      preLoaderRoute: typeof AuthenticatedAdminPromotionRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/parents': {
+      id: '/_authenticated/admin/parents'
+      path: '/parents'
+      fullPath: '/admin/parents'
+      preLoaderRoute: typeof AuthenticatedAdminParentsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/notifications': {
@@ -458,6 +531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/classes': {
+      id: '/_authenticated/admin/classes'
+      path: '/classes'
+      fullPath: '/admin/classes'
+      preLoaderRoute: typeof AuthenticatedAdminClassesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/audit': {
       id: '/_authenticated/admin/audit'
       path: '/audit'
@@ -486,6 +566,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAdmissionsRoute: typeof AuthenticatedAdminAdmissionsRoute
   AuthenticatedAdminAttendanceRoute: typeof AuthenticatedAdminAttendanceRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
+  AuthenticatedAdminClassesRoute: typeof AuthenticatedAdminClassesRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
@@ -494,10 +575,13 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminLibraryRoute: typeof AuthenticatedAdminLibraryRoute
   AuthenticatedAdminMessagingRoute: typeof AuthenticatedAdminMessagingRoute
   AuthenticatedAdminNotificationsRoute: typeof AuthenticatedAdminNotificationsRoute
+  AuthenticatedAdminParentsRoute: typeof AuthenticatedAdminParentsRoute
+  AuthenticatedAdminPromotionRoute: typeof AuthenticatedAdminPromotionRoute
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminStaffRoute: typeof AuthenticatedAdminStaffRoute
   AuthenticatedAdminStudentsRoute: typeof AuthenticatedAdminStudentsRoute
+  AuthenticatedAdminSubjectsRoute: typeof AuthenticatedAdminSubjectsRoute
   AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
   AuthenticatedAdminTimetableRoute: typeof AuthenticatedAdminTimetableRoute
   AuthenticatedAdminTransportRoute: typeof AuthenticatedAdminTransportRoute
@@ -508,6 +592,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAdmissionsRoute: AuthenticatedAdminAdmissionsRoute,
   AuthenticatedAdminAttendanceRoute: AuthenticatedAdminAttendanceRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
+  AuthenticatedAdminClassesRoute: AuthenticatedAdminClassesRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
@@ -516,10 +601,13 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminLibraryRoute: AuthenticatedAdminLibraryRoute,
   AuthenticatedAdminMessagingRoute: AuthenticatedAdminMessagingRoute,
   AuthenticatedAdminNotificationsRoute: AuthenticatedAdminNotificationsRoute,
+  AuthenticatedAdminParentsRoute: AuthenticatedAdminParentsRoute,
+  AuthenticatedAdminPromotionRoute: AuthenticatedAdminPromotionRoute,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminStaffRoute: AuthenticatedAdminStaffRoute,
   AuthenticatedAdminStudentsRoute: AuthenticatedAdminStudentsRoute,
+  AuthenticatedAdminSubjectsRoute: AuthenticatedAdminSubjectsRoute,
   AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
   AuthenticatedAdminTimetableRoute: AuthenticatedAdminTimetableRoute,
   AuthenticatedAdminTransportRoute: AuthenticatedAdminTransportRoute,
