@@ -24,6 +24,9 @@ import {
   ClipboardCheck,
   Settings,
   Activity,
+  School,
+  Layers,
+  ArrowUpRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
