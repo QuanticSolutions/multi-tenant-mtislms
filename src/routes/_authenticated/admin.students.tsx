@@ -55,6 +55,8 @@ function StudentsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<StudentRow | null>(null);
+
 
   const { data: classes } = useQuery({
     queryKey: ["classes"],
