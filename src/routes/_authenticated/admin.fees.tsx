@@ -34,7 +34,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export const Route = createFileRoute("/_authenticated/admin/fees")({
   head: () => ({
@@ -262,9 +264,11 @@ function InvoicesTab() {
               ))}
             </SelectContent>
           </Select>
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
+            <BulkInvoiceDialog classes={classes ?? []} />
             <CreateInvoiceDialog classes={classes ?? []} />
           </div>
+
         </div>
       </div>
 
@@ -572,6 +576,259 @@ function CreateInvoiceDialog({ classes }: { classes: ClassRow[] }) {
     </Dialog>
   );
 }
+
+/* ─────────────────── Bulk Invoice Generator ─────────────────── */
+
+function BulkInvoiceDialog({ classes }: { classes: ClassRow[] }) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [classId, setClassId] = useState<string>("");
+  const [structureId, setStructureId] = useState<string>("");
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState<string>("");
+  const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().slice(0, 10);
+  });
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [discounts, setDiscounts] = useState<Record<string, string>>({});
+
+  const { data: students } = useQuery({
+    enabled: !!classId,
+    queryKey: ["bulk-students-of-class", classId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("students")
+        .select("id, full_name, admission_no, class_id")
+        .eq("class_id", classId)
+        .eq("status", "active")
+        .order("full_name");
+      if (error) throw error;
+      return data as StudentRow[];
+    },
+  });
+
+  const { data: structures } = useQuery({
+    enabled: !!classId,
+    queryKey: ["bulk-structures-of-class", classId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_structures")
+        .select("id, class_id, name, amount, frequency, due_day, is_active, academic_year, description")
+        .eq("class_id", classId)
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return data as FeeStructureRow[];
+    },
+  });
+
+  // Auto-select all students when the list loads
+  useEffect(() => {
+    if (!students) return;
+    setSelected((prev) => {
+      if (Object.keys(prev).length) return prev;
+      const next: Record<string, boolean> = {};
+      students.forEach((s) => (next[s.id] = true));
+      return next;
+    });
+  }, [students]);
+
+  useEffect(() => {
+    if (!structureId) return;
+    const s = structures?.find((x) => x.id === structureId);
+    if (s) {
+      setTitle(s.name);
+      setAmount(String(s.amount));
+    }
+  }, [structureId, structures]);
+
+  function resetAll() {
+    setClassId("");
+    setStructureId("");
+    setTitle("");
+    setAmount("");
+    setSelected({});
+    setDiscounts({});
+  }
+
+  const selectedIds = useMemo(
+    () => Object.entries(selected).filter(([, v]) => v).map(([k]) => k),
+    [selected],
+  );
+
+  const generate = useMutation({
+    mutationFn: async () => {
+      if (!classId || !title.trim() || !amount || !dueDate) {
+        throw new Error("Class, title, amount and due date are required");
+      }
+      if (selectedIds.length === 0) throw new Error("Select at least one student");
+      const amt = Number(amount);
+      if (amt < 0) throw new Error("Amount must be positive");
+      const today = new Date().toISOString().slice(0, 10);
+      const status: InvoiceStatus = dueDate < today ? "overdue" : "pending";
+      const { data: userRes } = await supabase.auth.getUser();
+      const base = Date.now().toString().slice(-8);
+
+      const rows = selectedIds.map((sid, i) => {
+        const disc = Number(discounts[sid] ?? "0") || 0;
+        if (disc < 0 || disc > amt) throw new Error("Invalid discount for a student");
+        return {
+          invoice_no: `INV-${base}-${(i + 1).toString().padStart(3, "0")}`,
+          student_id: sid,
+          fee_structure_id: structureId || null,
+          title: title.trim(),
+          amount: amt,
+          discount: disc,
+          issue_date: issueDate,
+          due_date: dueDate,
+          status,
+          created_by: userRes.user?.id ?? null,
+        };
+      });
+      const { error } = await supabase.from("invoices").insert(rows);
+      if (error) throw error;
+      return rows.length;
+    },
+    onSuccess: (n) => {
+      toast.success(`${n} invoice${n === 1 ? "" : "s"} generated`);
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      resetAll();
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const allChecked = (students?.length ?? 0) > 0 && selectedIds.length === students!.length;
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) resetAll(); }}>
+      <DialogTrigger asChild>
+        <Button variant="outline">
+          <Receipt className="mr-1 size-4" /> Bulk generate
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Bulk generate invoices</DialogTitle>
+          <DialogDescription>
+            Pick a class to auto-list every active student. Unselect anyone who shouldn't be billed and set per-student discounts as needed.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Class">
+            <Select value={classId} onValueChange={(v) => { setClassId(v); setStructureId(""); setSelected({}); setDiscounts({}); }}>
+              <SelectTrigger><SelectValue placeholder="Select class" /></SelectTrigger>
+              <SelectContent>
+                {classes.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{classLabel(c)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Fee structure (optional)">
+            <Select value={structureId} onValueChange={setStructureId} disabled={!classId}>
+              <SelectTrigger><SelectValue placeholder="None (custom)" /></SelectTrigger>
+              <SelectContent>
+                {(structures ?? []).map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name} — {money(s.amount)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Title" className="sm:col-span-2">
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Term 1 Tuition" />
+          </Field>
+          <Field label="Amount">
+            <Input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} />
+          </Field>
+          <Field label="Issue date">
+            <Input type="date" value={issueDate} onChange={(e) => setIssueDate(e.target.value)} />
+          </Field>
+          <Field label="Due date" className="sm:col-span-2">
+            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </Field>
+        </div>
+
+        {classId && (
+          <div className="mt-2 rounded-md border border-border">
+            <div className="flex items-center justify-between border-b border-border px-3 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <span>{selectedIds.length} of {students?.length ?? 0} students selected</span>
+              <button
+                type="button"
+                className="text-primary hover:underline"
+                onClick={() => {
+                  if (!students) return;
+                  const next: Record<string, boolean> = {};
+                  if (!allChecked) students.forEach((s) => (next[s.id] = true));
+                  setSelected(next);
+                }}
+              >
+                {allChecked ? "Clear all" : "Select all"}
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto">
+              <table className="w-full text-sm">
+                <tbody>
+                  {(students ?? []).map((s) => {
+                    const on = !!selected[s.id];
+                    return (
+                      <tr key={s.id} className="border-b border-border/60 last:border-b-0">
+                        <td className="px-3 py-2 w-8">
+                          <Checkbox
+                            checked={on}
+                            onCheckedChange={(c) =>
+                              setSelected((prev) => ({ ...prev, [s.id]: !!c }))
+                            }
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          <div className="font-medium">{s.full_name}</div>
+                          <div className="text-xs text-muted-foreground">{s.admission_no}</div>
+                        </td>
+                        <td className="px-3 py-2 w-40">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Discount"
+                            disabled={!on}
+                            value={discounts[s.id] ?? ""}
+                            onChange={(e) =>
+                              setDiscounts((prev) => ({ ...prev, [s.id]: e.target.value }))
+                            }
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {students?.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-3 py-6 text-center text-muted-foreground">
+                        No active students in this class.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+          <Button onClick={() => generate.mutate()} disabled={generate.isPending || !classId}>
+            {generate.isPending ? "Generating…" : `Generate ${selectedIds.length || ""} invoice${selectedIds.length === 1 ? "" : "s"}`}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 
 /* ─────────────────────────── Payment ─────────────────────────── */
 

@@ -379,21 +379,72 @@ function AddAnnouncementDialog({ onDone }: { onDone: () => void }) {
 
 /* ============================== PARENT CONTACTS ============================== */
 
+type LinkedParentRow = {
+  link_id: string;
+  student_id: string;
+  parent_id: string;
+  relation: string;
+  is_primary: boolean;
+  parent_full_name: string;
+  parent_email: string | null;
+  parent_phone: string | null;
+  student_full_name: string;
+  student_admission_no: string;
+};
+
+async function fetchLinkedParents(): Promise<LinkedParentRow[]> {
+  const { data, error } = await supabase
+    .from("student_parents")
+    .select(
+      "id, student_id, parent_id, relation, is_primary, parents(full_name, email, phone), students(full_name, admission_no)",
+    )
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    link_id: r.id,
+    student_id: r.student_id,
+    parent_id: r.parent_id,
+    relation: r.relation,
+    is_primary: r.is_primary,
+    parent_full_name: r.parents?.full_name ?? "—",
+    parent_email: r.parents?.email ?? null,
+    parent_phone: r.parents?.phone ?? null,
+    student_full_name: r.students?.full_name ?? "—",
+    student_admission_no: r.students?.admission_no ?? "",
+  }));
+}
+
+/** Ensure a parent_contacts row exists mirroring a parent–student link; return its id. */
+async function ensureParentContact(link: LinkedParentRow): Promise<string> {
+  const { data: existing } = await supabase
+    .from("parent_contacts")
+    .select("id")
+    .eq("student_id", link.student_id)
+    .eq("full_name", link.parent_full_name)
+    .maybeSingle();
+  if (existing?.id) return existing.id;
+  const { data: inserted, error } = await supabase
+    .from("parent_contacts")
+    .insert({
+      student_id: link.student_id,
+      full_name: link.parent_full_name,
+      relation: link.relation,
+      phone: link.parent_phone,
+      email: link.parent_email,
+      is_primary: link.is_primary,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return inserted.id;
+}
+
 function ContactsTab() {
-  const qc = useQueryClient();
   const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(false);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["parent-contacts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("parent_contacts")
-        .select("*, students(full_name, admission_no)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as ParentContactRow[];
-    },
+    queryKey: ["linked-parents"],
+    queryFn: fetchLinkedParents,
   });
 
   const filtered = useMemo(() => {
@@ -401,28 +452,17 @@ function ContactsTab() {
     return (data ?? []).filter(
       (c) =>
         !q ||
-        c.full_name.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.phone?.toLowerCase().includes(q) ||
-        c.students?.full_name.toLowerCase().includes(q),
+        c.parent_full_name.toLowerCase().includes(q) ||
+        c.parent_email?.toLowerCase().includes(q) ||
+        c.parent_phone?.toLowerCase().includes(q) ||
+        c.student_full_name.toLowerCase().includes(q),
     );
   }, [data, search]);
 
-  const remove = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("parent_contacts").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Contact removed");
-      qc.invalidateQueries({ queryKey: ["parent-contacts"] });
-    },
-  });
-
   return (
     <div className="space-y-4">
-      <div className="mtis-card p-4 flex items-center gap-3">
-        <div className="relative flex-1">
+      <div className="mtis-card p-4 flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[220px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
@@ -431,21 +471,23 @@ function ContactsTab() {
             className="pl-9"
           />
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4" /> Add contact
-            </Button>
-          </DialogTrigger>
-          <AddContactDialog onDone={() => setOpen(false)} />
-        </Dialog>
+        <a href="/admin/parents">
+          <Button variant="outline">
+            <UsersIcon className="size-4 mr-2" /> Manage parents
+          </Button>
+        </a>
+      </div>
+
+      <div className="mtis-card p-3 text-xs text-muted-foreground">
+        Contacts are drawn from the <span className="font-semibold text-foreground">Parents</span> module.
+        Link a parent to a student there and they will appear here for messaging.
       </div>
 
       {isLoading ? (
         <div className="mtis-card p-8 text-center text-sm text-muted-foreground">Loading…</div>
       ) : filtered.length === 0 ? (
         <div className="mtis-card p-8 text-center text-sm text-muted-foreground">
-          No parent contacts yet.
+          No parent contacts yet. Add parents in the Parents module and link them to students.
         </div>
       ) : (
         <div className="mtis-card overflow-hidden">
@@ -456,55 +498,41 @@ function ContactsTab() {
                 <th className="px-4 py-3">Student</th>
                 <th className="px-4 py-3">Phone</th>
                 <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-t border-border">
+                <tr key={c.link_id} className="border-t border-border">
                   <td className="px-4 py-3">
-                    <div className="font-medium">{c.full_name}</div>
+                    <div className="font-medium">{c.parent_full_name}</div>
                     <div className="text-xs text-muted-foreground capitalize">
                       {c.relation}
                       {c.is_primary ? " · primary" : ""}
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    {c.students?.full_name ?? "—"}
-                    {c.students?.admission_no && (
-                      <div className="text-xs text-muted-foreground">
-                        {c.students.admission_no}
-                      </div>
+                    {c.student_full_name}
+                    {c.student_admission_no && (
+                      <div className="text-xs text-muted-foreground">{c.student_admission_no}</div>
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {c.phone ? (
+                    {c.parent_phone ? (
                       <span className="inline-flex items-center gap-1.5">
-                        <Phone className="size-3.5 text-muted-foreground" /> {c.phone}
+                        <Phone className="size-3.5 text-muted-foreground" /> {c.parent_phone}
                       </span>
                     ) : (
                       "—"
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {c.email ? (
+                    {c.parent_email ? (
                       <span className="inline-flex items-center gap-1.5">
-                        <Mail className="size-3.5 text-muted-foreground" /> {c.email}
+                        <Mail className="size-3.5 text-muted-foreground" /> {c.parent_email}
                       </span>
                     ) : (
                       "—"
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        if (confirm("Delete this contact?")) remove.mutate(c.id);
-                      }}
-                    >
-                      Delete
-                    </Button>
                   </td>
                 </tr>
               ))}
@@ -515,6 +543,7 @@ function ContactsTab() {
     </div>
   );
 }
+
 
 function AddContactDialog({ onDone }: { onDone: () => void }) {
   const qc = useQueryClient();
@@ -739,34 +768,27 @@ function MessagesTab() {
 
 function NewMessageDialog({ onDone }: { onDone: () => void }) {
   const qc = useQueryClient();
-  const [contactId, setContactId] = useState("");
+  const [linkId, setLinkId] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [channel, setChannel] = useState<Channel>("in_app");
 
   const { data: contacts } = useQuery({
-    queryKey: ["parent-contacts-min"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("parent_contacts")
-        .select("id, full_name, student_id, students(full_name)")
-        .order("full_name");
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryKey: ["linked-parents-min"],
+    queryFn: fetchLinkedParents,
   });
 
   const send = useMutation({
     mutationFn: async () => {
-      if (!contactId) throw new Error("Pick a parent contact");
+      if (!linkId) throw new Error("Pick a parent contact");
       if (!body.trim()) throw new Error("Message body is required");
-      const contact = (contacts ?? []).find(
-        (c: { id: string }) => c.id === contactId,
-      ) as { id: string; student_id: string | null } | undefined;
+      const link = (contacts ?? []).find((c) => c.link_id === linkId);
+      if (!link) throw new Error("Contact not found");
+      const contactId = await ensureParentContact(link);
       const { data: u } = await supabase.auth.getUser();
       const { error } = await supabase.from("messages").insert({
         parent_contact_id: contactId,
-        student_id: contact?.student_id ?? null,
+        student_id: link.student_id,
         subject: subject.trim() || null,
         body: body.trim(),
         channel,
@@ -793,26 +815,20 @@ function NewMessageDialog({ onDone }: { onDone: () => void }) {
       <div className="space-y-3">
         <div>
           <Label>Parent</Label>
-          <Select value={contactId} onValueChange={setContactId}>
+          <Select value={linkId} onValueChange={setLinkId}>
             <SelectTrigger>
               <SelectValue placeholder="Pick parent" />
             </SelectTrigger>
             <SelectContent>
-              {(contacts ?? []).map(
-                (c: {
-                  id: string;
-                  full_name: string;
-                  students?: { full_name: string } | null;
-                }) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.full_name}
-                    {c.students?.full_name ? ` · ${c.students.full_name}` : ""}
-                  </SelectItem>
-                ),
-              )}
+              {(contacts ?? []).map((c) => (
+                <SelectItem key={c.link_id} value={c.link_id}>
+                  {c.parent_full_name} · {c.student_full_name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Channel</Label>
           <Select value={channel} onValueChange={(v) => setChannel(v as Channel)}>

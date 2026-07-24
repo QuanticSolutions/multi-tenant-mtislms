@@ -87,6 +87,21 @@ function TimetablePage() {
     if (!classId && classes?.length) setClassId(classes[0].id);
   }, [classes, classId]);
 
+  const { data: classSubjects } = useQuery({
+    queryKey: ["subjects-of-class", classId],
+    enabled: !!classId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("id, name, teacher_id")
+        .eq("class_id", classId)
+        .order("name");
+      if (error) throw error;
+      return data as { id: string; name: string; teacher_id: string | null }[];
+    },
+  });
+
+
   const { data: classSlots } = useQuery({
     queryKey: ["timetable", classId],
     enabled: !!classId,
@@ -360,12 +375,44 @@ function TimetablePage() {
             <div className="grid gap-3">
               <div>
                 <Label>Subject</Label>
-                <Input
-                  value={editing.subject ?? ""}
-                  onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
-                  placeholder="Mathematics"
-                />
+                {(classSubjects?.length ?? 0) > 0 ? (
+                  <Select
+                    value={editing.subject ?? ""}
+                    onValueChange={(v) => {
+                      const s = classSubjects!.find((x) => x.name === v);
+                      setEditing({
+                        ...editing,
+                        subject: v,
+                        teacher_id: s?.teacher_id ?? editing.teacher_id ?? null,
+                      });
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pick subject" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classSubjects!.map((s) => (
+                        <SelectItem key={s.id} value={s.name}>
+                          {s.name}
+                          {s.teacher_id ? "" : " · no teacher"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <>
+                    <Input
+                      value={editing.subject ?? ""}
+                      onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
+                      placeholder="Add subjects in the Subjects module for auto-fill"
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      No subjects defined for this class yet. Add them in Subjects to auto-assign teachers.
+                    </p>
+                  </>
+                )}
               </div>
+
               <div>
                 <Label>Teacher</Label>
                 <Select
