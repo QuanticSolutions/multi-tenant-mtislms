@@ -56,6 +56,8 @@ function TeachersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<TeacherRow | null>(null);
+
 
   const { data: teachers, isLoading } = useQuery({
     queryKey: ["teachers"],
@@ -109,15 +111,16 @@ function TeachersPage() {
             Faculty directory, qualifications, and employment status.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => setEditing(null)}>
               <Plus /> Add teacher
             </Button>
           </DialogTrigger>
-          <AddTeacherDialog onDone={() => setOpen(false)} />
+          <TeacherDialog existing={editing} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
       </div>
+
 
       <div className="mtis-card p-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -212,9 +215,10 @@ function TeachersPage() {
                   </Td>
                   <Td className="text-muted-foreground">{t.date_of_joining}</Td>
                   <Td className="text-right">
-                    <Button variant="ghost" size="icon" aria-label="Edit" disabled>
+                    <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => { setEditing(t); setOpen(true); }}>
                       <Pencil className="size-4" />
                     </Button>
+
                     <Button
                       variant="ghost"
                       size="icon"
@@ -236,24 +240,24 @@ function TeachersPage() {
   );
 }
 
-function AddTeacherDialog({ onDone }: { onDone: () => void }) {
+function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDone: () => void }) {
   const qc = useQueryClient();
-  const [form, setForm] = useState({
-    employee_no: "",
-    full_name: "",
-    email: "",
-    phone: "",
+  const [form, setForm] = useState(() => ({
+    employee_no: existing?.employee_no ?? "",
+    full_name: existing?.full_name ?? "",
+    email: existing?.email ?? "",
+    phone: existing?.phone ?? "",
     gender: "",
     date_of_birth: "",
-    qualification: "",
-    specialization: "",
-    date_of_joining: new Date().toISOString().slice(0, 10),
-    status: "active" as TeacherStatus,
+    qualification: existing?.qualification ?? "",
+    specialization: existing?.specialization ?? "",
+    date_of_joining: existing?.date_of_joining ?? new Date().toISOString().slice(0, 10),
+    status: (existing?.status ?? "active") as TeacherStatus,
     address: "",
-  });
+  }));
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const createMut = useMutation({
+  const saveMut = useMutation({
     mutationFn: async () => {
       if (!form.employee_no.trim() || !form.full_name.trim()) {
         throw new Error("Employee number and full name are required");
@@ -263,32 +267,39 @@ function AddTeacherDialog({ onDone }: { onDone: () => void }) {
         full_name: form.full_name.trim(),
         email: form.email || null,
         phone: form.phone || null,
-        gender: form.gender || null,
-        date_of_birth: form.date_of_birth || null,
         qualification: form.qualification || null,
         specialization: form.specialization || null,
         date_of_joining: form.date_of_joining,
         status: form.status,
-        address: form.address || null,
       };
-      const { error } = await supabase.from("teachers").insert(payload);
-      if (error) throw error;
+      if (form.gender) payload.gender = form.gender;
+      if (form.date_of_birth) payload.date_of_birth = form.date_of_birth;
+      if (form.address) payload.address = form.address;
+      if (existing) {
+        const { error } = await supabase.from("teachers").update(payload).eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("teachers").insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      toast.success("Teacher added");
+      toast.success(existing ? "Teacher updated" : "Teacher added");
       qc.invalidateQueries({ queryKey: ["teachers"] });
       qc.invalidateQueries({ queryKey: ["admin-stats"] });
       onDone();
     },
-    onError: (e: any) => toast.error(e.message ?? "Failed to add teacher"),
+    onError: (e: any) => toast.error(e.message ?? "Failed to save"),
   });
+
 
   return (
     <DialogContent className="max-w-2xl">
       <DialogHeader>
-        <DialogTitle>Add new teacher</DialogTitle>
-        <DialogDescription>Create a faculty record. You can edit details later.</DialogDescription>
+        <DialogTitle>{existing ? "Edit teacher" : "Add new teacher"}</DialogTitle>
+        <DialogDescription>{existing ? "Update this faculty record." : "Create a faculty record. You can edit details later."}</DialogDescription>
       </DialogHeader>
+
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Employee No *">
@@ -383,13 +394,14 @@ function AddTeacherDialog({ onDone }: { onDone: () => void }) {
       </div>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onDone} disabled={createMut.isPending}>
+        <Button variant="outline" onClick={onDone} disabled={saveMut.isPending}>
           Cancel
         </Button>
-        <Button onClick={() => createMut.mutate()} disabled={createMut.isPending}>
-          {createMut.isPending ? "Saving…" : "Save teacher"}
+        <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+          {saveMut.isPending ? "Saving…" : existing ? "Update teacher" : "Save teacher"}
         </Button>
       </DialogFooter>
+
     </DialogContent>
   );
 }
