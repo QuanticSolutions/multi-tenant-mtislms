@@ -262,9 +262,11 @@ function InvoicesTab() {
               ))}
             </SelectContent>
           </Select>
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
+            <BulkInvoiceDialog classes={classes ?? []} />
             <CreateInvoiceDialog classes={classes ?? []} />
           </div>
+
         </div>
       </div>
 
