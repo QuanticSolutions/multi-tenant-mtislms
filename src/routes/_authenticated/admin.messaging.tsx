@@ -768,34 +768,27 @@ function MessagesTab() {
 
 function NewMessageDialog({ onDone }: { onDone: () => void }) {
   const qc = useQueryClient();
-  const [contactId, setContactId] = useState("");
+  const [linkId, setLinkId] = useState("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
   const [channel, setChannel] = useState<Channel>("in_app");
 
   const { data: contacts } = useQuery({
-    queryKey: ["parent-contacts-min"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("parent_contacts")
-        .select("id, full_name, student_id, students(full_name)")
-        .order("full_name");
-      if (error) throw error;
-      return data ?? [];
-    },
+    queryKey: ["linked-parents-min"],
+    queryFn: fetchLinkedParents,
   });
 
   const send = useMutation({
     mutationFn: async () => {
-      if (!contactId) throw new Error("Pick a parent contact");
+      if (!linkId) throw new Error("Pick a parent contact");
       if (!body.trim()) throw new Error("Message body is required");
-      const contact = (contacts ?? []).find(
-        (c: { id: string }) => c.id === contactId,
-      ) as { id: string; student_id: string | null } | undefined;
+      const link = (contacts ?? []).find((c) => c.link_id === linkId);
+      if (!link) throw new Error("Contact not found");
+      const contactId = await ensureParentContact(link);
       const { data: u } = await supabase.auth.getUser();
       const { error } = await supabase.from("messages").insert({
         parent_contact_id: contactId,
-        student_id: contact?.student_id ?? null,
+        student_id: link.student_id,
         subject: subject.trim() || null,
         body: body.trim(),
         channel,
@@ -822,26 +815,20 @@ function NewMessageDialog({ onDone }: { onDone: () => void }) {
       <div className="space-y-3">
         <div>
           <Label>Parent</Label>
-          <Select value={contactId} onValueChange={setContactId}>
+          <Select value={linkId} onValueChange={setLinkId}>
             <SelectTrigger>
               <SelectValue placeholder="Pick parent" />
             </SelectTrigger>
             <SelectContent>
-              {(contacts ?? []).map(
-                (c: {
-                  id: string;
-                  full_name: string;
-                  students?: { full_name: string } | null;
-                }) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.full_name}
-                    {c.students?.full_name ? ` · ${c.students.full_name}` : ""}
-                  </SelectItem>
-                ),
-              )}
+              {(contacts ?? []).map((c) => (
+                <SelectItem key={c.link_id} value={c.link_id}>
+                  {c.parent_full_name} · {c.student_full_name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
+
         <div>
           <Label>Channel</Label>
           <Select value={channel} onValueChange={(v) => setChannel(v as Channel)}>
