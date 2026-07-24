@@ -121,15 +121,16 @@ function StudentsPage() {
             Admissions, profiles, and class assignments.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
-            <Button>
+            <Button onClick={() => setEditing(null)}>
               <Plus /> Add student
             </Button>
           </DialogTrigger>
-          <AddStudentDialog classes={classes ?? []} onDone={() => setOpen(false)} />
+          <StudentDialog existing={editing} classes={classes ?? []} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
       </div>
+
 
       <div className="mtis-card p-4">
         <div className="flex flex-wrap items-center gap-3">
@@ -215,9 +216,10 @@ function StudentsPage() {
                   </Td>
                   <Td className="text-muted-foreground">{s.enrollment_date}</Td>
                   <Td className="text-right">
-                    <Button variant="ghost" size="icon" aria-label="Edit" disabled>
+                    <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => { setEditing(s); setOpen(true); }}>
                       <Pencil className="size-4" />
                     </Button>
+
                     <Button
                       variant="ghost"
                       size="icon"
@@ -239,30 +241,32 @@ function StudentsPage() {
   );
 }
 
-function AddStudentDialog({
+function StudentDialog({
+  existing,
   classes,
   onDone,
 }: {
+  existing: StudentRow | null;
   classes: Array<{ id: string; name: string; section: string | null }>;
   onDone: () => void;
 }) {
   const qc = useQueryClient();
-  const [form, setForm] = useState({
-    admission_no: "",
-    full_name: "",
-    gender: "",
+  const [form, setForm] = useState(() => ({
+    admission_no: existing?.admission_no ?? "",
+    full_name: existing?.full_name ?? "",
+    gender: existing?.gender ?? "",
     date_of_birth: "",
-    guardian_name: "",
-    guardian_phone: "",
+    guardian_name: existing?.guardian_name ?? "",
+    guardian_phone: existing?.guardian_phone ?? "",
     guardian_email: "",
     address: "",
-    class_id: "",
-    status: "active" as "active" | "inactive" | "probation" | "graduated" | "transferred",
-  });
+    class_id: existing?.class_id ?? "",
+    status: (existing?.status ?? "active") as "active" | "inactive" | "probation" | "graduated" | "transferred",
+  }));
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
-  const createMut = useMutation({
+  const saveMut = useMutation({
     mutationFn: async () => {
       if (!form.admission_no.trim() || !form.full_name.trim()) {
         throw new Error("Admission number and full name are required");
@@ -279,27 +283,39 @@ function AddStudentDialog({
         class_id: form.class_id || null,
         status: form.status,
       };
-      const { error } = await supabase.from("students").insert(payload);
-      if (error) throw error;
+      if (existing) {
+        // Only send fields user could edit; keep nulls out for blank optionals
+        const upd: any = { ...payload };
+        if (!form.date_of_birth) delete upd.date_of_birth;
+        if (!form.guardian_email) delete upd.guardian_email;
+        if (!form.address) delete upd.address;
+        const { error } = await supabase.from("students").update(upd).eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("students").insert(payload);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      toast.success("Student added");
+      toast.success(existing ? "Student updated" : "Student added");
       qc.invalidateQueries({ queryKey: ["students"] });
       qc.invalidateQueries({ queryKey: ["admin-stats"] });
       qc.invalidateQueries({ queryKey: ["admin-recent-students"] });
       onDone();
     },
-    onError: (e: any) => toast.error(e.message ?? "Failed to add student"),
+    onError: (e: any) => toast.error(e.message ?? "Failed to save"),
   });
+
 
   return (
     <DialogContent className="max-w-2xl">
       <DialogHeader>
-        <DialogTitle>Add new student</DialogTitle>
+        <DialogTitle>{existing ? "Edit student" : "Add new student"}</DialogTitle>
         <DialogDescription>
-          Create an admission record. You can edit details later.
+          {existing ? "Update this student's record." : "Create an admission record. You can edit details later."}
         </DialogDescription>
       </DialogHeader>
+
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field label="Admission No *">
@@ -396,16 +412,17 @@ function AddStudentDialog({
       </div>
 
       <DialogFooter>
-        <Button variant="outline" onClick={onDone} disabled={createMut.isPending}>
+        <Button variant="outline" onClick={onDone} disabled={saveMut.isPending}>
           Cancel
         </Button>
-        <Button onClick={() => createMut.mutate()} disabled={createMut.isPending}>
-          {createMut.isPending ? "Saving…" : "Save student"}
+        <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+          {saveMut.isPending ? "Saving…" : existing ? "Update student" : "Save student"}
         </Button>
       </DialogFooter>
     </DialogContent>
   );
 }
+
 
 function Field({
   label,
