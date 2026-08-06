@@ -27,45 +27,49 @@ import {
   School,
   Layers,
   ArrowUpRight,
+  UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { useMyRoles } from "@/hooks/use-role";
 
 type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   to?: string;
   comingSoon?: boolean;
+  teacher?: boolean;
 };
 
 const NAV: NavItem[] = [
-  { icon: TrendingUp, label: "Dashboard", to: "/admin" },
-  { icon: Users, label: "Students", to: "/admin/students" },
+  { icon: TrendingUp, label: "Dashboard", to: "/admin", teacher: true },
+  { icon: Users, label: "Students", to: "/admin/students", teacher: true },
   { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
   { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
   { icon: UserCheck, label: "Parents", to: "/admin/parents" },
-  { icon: School, label: "Classes", to: "/admin/classes" },
-  { icon: Layers, label: "Subjects", to: "/admin/subjects" },
-  { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance" },
-  { icon: CalendarDays, label: "Timetable", to: "/admin/timetable" },
+  { icon: School, label: "Classes", to: "/admin/classes", teacher: true },
+  { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true },
+  { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true },
+  { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true },
   { icon: FileText, label: "Exams", to: "/admin/exams" },
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", to: "/admin/library" },
-  { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
   { icon: Bus, label: "Transport", to: "/admin/transport" },
-  { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
+  { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true },
   { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
   { icon: BarChart3, label: "Reports", to: "/admin/reports" },
   { icon: CalendarRange, label: "Events", to: "/admin/events" },
   { icon: Package, label: "Inventory", to: "/admin/inventory" },
   { icon: UserCheck, label: "Staff & Payroll", to: "/admin/staff" },
   { icon: Bell, label: "Notifications", to: "/admin/notifications" },
+  { icon: UserCog, label: "Users", to: "/admin/users" },
   { icon: Settings, label: "Settings", to: "/admin/settings" },
   { icon: Activity, label: "Audit Log", to: "/admin/audit" },
 ];
+
 
 export interface SessionUser {
   id: string;
@@ -121,7 +125,10 @@ function Header({
   user: SessionUser | null;
   onSignOut: () => void;
 }) {
+  const { isAdmin, isTeacher } = useMyRoles();
+  const roleLabel = isAdmin ? "Administrator" : isTeacher ? "Teacher" : "Staff";
   const initials = (user?.full_name ?? user?.email ?? "MT")
+
     .split(" ")
     .map((p) => p[0])
     .slice(0, 2)
@@ -161,7 +168,7 @@ function Header({
           </Button>
           <div className="hidden text-right sm:block">
             <div className="text-xs font-semibold text-foreground">{user?.full_name ?? "—"}</div>
-            <div className="text-[11px] text-muted-foreground">Administrator</div>
+            <div className="text-[11px] capitalize text-muted-foreground">{roleLabel}</div>
           </div>
           <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
             {initials}
@@ -177,13 +184,16 @@ function Header({
 
 function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { isAdmin, loaded } = useMyRoles();
+  const items = loaded && !isAdmin ? NAV.filter((it) => it.teacher) : NAV;
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100vh-104px)] w-60 shrink-0 lg:block">
       <div className="mtis-card flex h-full flex-col overflow-hidden p-3">
         <p className="mtis-eyebrow shrink-0 px-3 pb-2 pt-1">Workspace</p>
         <nav className="min-h-0 flex-1 overflow-y-auto pr-1">
           <ul className="space-y-1">
-            {NAV.map((it) => {
+            {items.map((it) => {
+
               const active =
                 it.to &&
                 (it.to === "/admin" ? pathname === "/admin" : pathname.startsWith(it.to));
