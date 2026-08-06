@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { useMyRoles } from "@/hooks/use-role";
 
 type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
