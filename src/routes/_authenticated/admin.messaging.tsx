@@ -216,20 +216,23 @@ function AnnouncementsTab() {
                     {new Date(a.created_at).toLocaleString()}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => togglePin.mutate(a)}>
-                    {a.pinned ? "Unpin" : "Pin"}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      if (confirm("Delete this announcement?")) remove.mutate(a.id);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                {isAdmin && (
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" onClick={() => togglePin.mutate(a)}>
+                      {a.pinned ? "Unpin" : "Pin"}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm("Delete this announcement?")) remove.mutate(a.id);
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
+
               </div>
             </li>
           ))}
