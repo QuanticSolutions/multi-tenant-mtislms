@@ -125,7 +125,10 @@ function Header({
   user: SessionUser | null;
   onSignOut: () => void;
 }) {
+  const { isAdmin, isTeacher } = useMyRoles();
+  const roleLabel = isAdmin ? "Administrator" : isTeacher ? "Teacher" : "Staff";
   const initials = (user?.full_name ?? user?.email ?? "MT")
+
     .split(" ")
     .map((p) => p[0])
     .slice(0, 2)
