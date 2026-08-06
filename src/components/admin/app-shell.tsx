@@ -180,13 +180,16 @@ function Header({
 
 function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { isAdmin, loaded } = useMyRoles();
+  const items = loaded && !isAdmin ? NAV.filter((it) => it.teacher) : NAV;
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100vh-104px)] w-60 shrink-0 lg:block">
       <div className="mtis-card flex h-full flex-col overflow-hidden p-3">
         <p className="mtis-eyebrow shrink-0 px-3 pb-2 pt-1">Workspace</p>
         <nav className="min-h-0 flex-1 overflow-y-auto pr-1">
           <ul className="space-y-1">
-            {NAV.map((it) => {
+            {items.map((it) => {
+
               const active =
                 it.to &&
                 (it.to === "/admin" ? pathname === "/admin" : pathname.startsWith(it.to));
