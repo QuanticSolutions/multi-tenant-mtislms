@@ -98,39 +98,18 @@ function MessagingPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="mtis-eyebrow mb-1">Communication</p>
-          <h1 className="font-display text-2xl font-bold tracking-tight">Messaging</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">Announcements</h1>
           <p className="text-sm text-muted-foreground">
-            Broadcast announcements and stay in touch with parents.
+            Broadcast notices to staff, parents and students.
           </p>
         </div>
       </div>
 
-      <Tabs defaultValue="announcements" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="announcements">
-            <Megaphone className="size-4 mr-2" /> Announcements
-          </TabsTrigger>
-          <TabsTrigger value="contacts">
-            <UsersIcon className="size-4 mr-2" /> Parent Contacts
-          </TabsTrigger>
-          <TabsTrigger value="messages">
-            <Send className="size-4 mr-2" /> Messages
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="announcements">
-          <AnnouncementsTab />
-        </TabsContent>
-        <TabsContent value="contacts">
-          <ContactsTab />
-        </TabsContent>
-        <TabsContent value="messages">
-          <MessagesTab />
-        </TabsContent>
-      </Tabs>
+      <AnnouncementsTab />
     </AppShell>
   );
 }
+
 
 /* ============================== ANNOUNCEMENTS ============================== */
 
