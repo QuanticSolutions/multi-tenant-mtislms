@@ -1550,6 +1550,7 @@ export type Database = {
           photo_url: string | null
           status: Database["public"]["Enums"]["student_status"]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -1568,6 +1569,7 @@ export type Database = {
           photo_url?: string | null
           status?: Database["public"]["Enums"]["student_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -1586,6 +1588,7 @@ export type Database = {
           photo_url?: string | null
           status?: Database["public"]["Enums"]["student_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1666,6 +1669,7 @@ export type Database = {
           specialization: string | null
           status: Database["public"]["Enums"]["teacher_status"]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -1684,6 +1688,7 @@ export type Database = {
           specialization?: string | null
           status?: Database["public"]["Enums"]["teacher_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -1702,6 +1707,7 @@ export type Database = {
           specialization?: string | null
           status?: Database["public"]["Enums"]["teacher_status"]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
