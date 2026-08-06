@@ -39,33 +39,35 @@ type NavItem = {
   label: string;
   to?: string;
   comingSoon?: boolean;
+  teacher?: boolean;
 };
 
 const NAV: NavItem[] = [
-  { icon: TrendingUp, label: "Dashboard", to: "/admin" },
-  { icon: Users, label: "Students", to: "/admin/students" },
+  { icon: TrendingUp, label: "Dashboard", to: "/admin", teacher: true },
+  { icon: Users, label: "Students", to: "/admin/students", teacher: true },
   { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
   { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
   { icon: UserCheck, label: "Parents", to: "/admin/parents" },
-  { icon: School, label: "Classes", to: "/admin/classes" },
-  { icon: Layers, label: "Subjects", to: "/admin/subjects" },
-  { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance" },
-  { icon: CalendarDays, label: "Timetable", to: "/admin/timetable" },
+  { icon: School, label: "Classes", to: "/admin/classes", teacher: true },
+  { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true },
+  { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true },
+  { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true },
   { icon: FileText, label: "Exams", to: "/admin/exams" },
   { icon: Wallet, label: "Fees", to: "/admin/fees" },
   { icon: BookOpen, label: "Library", to: "/admin/library" },
-  { icon: ClipboardList, label: "Homework", to: "/admin/homework" },
   { icon: Bus, label: "Transport", to: "/admin/transport" },
-  { icon: MessageSquare, label: "Messaging", to: "/admin/messaging" },
+  { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true },
   { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
   { icon: BarChart3, label: "Reports", to: "/admin/reports" },
   { icon: CalendarRange, label: "Events", to: "/admin/events" },
   { icon: Package, label: "Inventory", to: "/admin/inventory" },
   { icon: UserCheck, label: "Staff & Payroll", to: "/admin/staff" },
   { icon: Bell, label: "Notifications", to: "/admin/notifications" },
+  { icon: UserCog, label: "Users", to: "/admin/users" },
   { icon: Settings, label: "Settings", to: "/admin/settings" },
   { icon: Activity, label: "Audit Log", to: "/admin/audit" },
 ];
+
 
 export interface SessionUser {
   id: string;
