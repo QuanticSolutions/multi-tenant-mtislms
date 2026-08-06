@@ -27,6 +27,7 @@ import {
   School,
   Layers,
   ArrowUpRight,
+  UserCog,
 } from "lucide-react";
 import { toast } from "sonner";
 
