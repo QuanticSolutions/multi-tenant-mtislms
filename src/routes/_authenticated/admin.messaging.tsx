@@ -172,14 +172,17 @@ function AnnouncementsTab() {
             className="pl-9"
           />
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="size-4" /> New announcement
-            </Button>
-          </DialogTrigger>
-          <AddAnnouncementDialog onDone={() => setOpen(false)} />
-        </Dialog>
+        {isAdmin && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="size-4" /> New announcement
+              </Button>
+            </DialogTrigger>
+            <AddAnnouncementDialog onDone={() => setOpen(false)} />
+          </Dialog>
+        )}
+
       </div>
 
       {isLoading ? (
