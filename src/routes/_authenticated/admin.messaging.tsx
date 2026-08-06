@@ -115,8 +115,10 @@ function MessagingPage() {
 
 function AnnouncementsTab() {
   const qc = useQueryClient();
+  const { isAdmin } = useMyRoles();
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["announcements"],
