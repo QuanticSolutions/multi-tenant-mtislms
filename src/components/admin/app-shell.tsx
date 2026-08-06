@@ -165,7 +165,7 @@ function Header({
           </Button>
           <div className="hidden text-right sm:block">
             <div className="text-xs font-semibold text-foreground">{user?.full_name ?? "—"}</div>
-            <div className="text-[11px] text-muted-foreground">Administrator</div>
+            <div className="text-[11px] capitalize text-muted-foreground">{roleLabel}</div>
           </div>
           <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
             {initials}
