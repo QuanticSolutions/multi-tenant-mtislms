@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/events")({
   head: () => ({
@@ -341,7 +342,7 @@ function EventsPage() {
                     </Badge>
                     {ev.audience !== "all" && (
                       <Badge variant="outline" className="capitalize">
-                        {ev.audience}
+                        {formatStatus(ev.audience)}
                       </Badge>
                     )}
                   </div>

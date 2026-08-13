@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate, formatStatus } from "@/lib/format";
 import { StaffAttendancePanel } from "@/components/admin/staff-attendance-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/staff")({
@@ -274,7 +275,7 @@ function PayrollTab() {
                 <SelectContent>
                   {(runs ?? []).map((r) => (
                     <SelectItem key={r.id} value={r.id}>
-                      {MONTHS[r.period_month - 1]} {r.period_year} — {r.status}
+                      {MONTHS[r.period_month - 1]} {r.period_year} — {formatStatus(r.status)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -331,7 +332,7 @@ function PayrollTab() {
               </>
             )}
             {selectedRun?.status === "paid" && (
-              <Badge variant="success">Paid on {selectedRun.processed_at?.slice(0,10)}</Badge>
+              <Badge variant="success">Paid on {formatDate(selectedRun.processed_at)}</Badge>
             )}
           </div>
         </div>

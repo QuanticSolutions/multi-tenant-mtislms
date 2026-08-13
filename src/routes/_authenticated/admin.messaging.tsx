@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateTime, formatStatus } from "@/lib/format";
 import { useMyRoles } from "@/hooks/use-role";
 
 
@@ -212,7 +213,7 @@ function AnnouncementsTab() {
                       </Badge>
                     )}
                     <Badge variant="outline" className="capitalize">
-                      {a.audience}
+                      {formatStatus(a.audience)}
                       {a.audience === "class" && a.classes?.name ? ` · ${a.classes.name}` : ""}
                     </Badge>
                   </div>
@@ -220,7 +221,7 @@ function AnnouncementsTab() {
                     {a.body}
                   </p>
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {new Date(a.created_at).toLocaleString()}
+                    {formatDateTime(a.created_at)}
                   </p>
                 </div>
                 {isAdmin && (
