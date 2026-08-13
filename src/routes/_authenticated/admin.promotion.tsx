@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/promotion")({
   head: () => ({ meta: [{ title: "Promotion — Madina Tul Ilm" }, { name: "description", content: "Bulk promote students from one class to another." }] }),
@@ -24,6 +25,8 @@ function PromotionPage() {
   const [toId, setToId] = useState("");
   const [session, setSession] = useState("2026-27");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const classesQ = useQuery({
     queryKey: ["classes-lite"],
@@ -45,8 +48,25 @@ function PromotionPage() {
 
   const classes = classesQ.data ?? [];
   const students = studentsQ.data ?? [];
-  const allChecked = students.length > 0 && selected.size === students.length;
-  const toggleAll = () => setSelected(allChecked ? new Set() : new Set(students.map((s) => s.id)));
+
+  const statuses = useMemo(
+    () => Array.from(new Set(students.map((s) => s.status ?? "active"))),
+    [students],
+  );
+
+  const filteredStudents = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return students.filter((s) => {
+      if (statusFilter !== "all" && (s.status ?? "active") !== statusFilter) return false;
+      if (term && !s.full_name.toLowerCase().includes(term) && !(s.admission_no ?? "").toLowerCase().includes(term)) return false;
+      return true;
+    });
+  }, [students, search, statusFilter]);
+
+  const activeFilterCount = [statusFilter !== "all", !!search].filter(Boolean).length;
+  const clearFilters = () => { setSearch(""); setStatusFilter("all"); };
+  const allChecked = filteredStudents.length > 0 && filteredStudents.every((s) => selected.has(s.id));
+  const toggleAll = () => setSelected(allChecked ? new Set() : new Set(filteredStudents.map((s) => s.id)));
   const toggle = (id: string) => {
     const n = new Set(selected);
     n.has(id) ? n.delete(id) : n.add(id);
@@ -87,7 +107,7 @@ function PromotionPage() {
           <span className="mb-1 block text-xs font-medium text-muted-foreground">From class</span>
           <Select value={fromId} onValueChange={(v) => { setFromId(v); setSelected(new Set()); }}>
             <SelectTrigger><SelectValue placeholder="Current class" /></SelectTrigger>
-            <SelectContent>{classes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+            <SelectContent>{classes.map((c) => <SelectItem key={c.id} value={c.id}>{formatClass(c.name)}</SelectItem>)}</SelectContent>
           </Select>
         </label>
         <div className="hidden md:flex items-end pb-2"><ArrowRight className="size-5 text-muted-foreground" /></div>
@@ -95,7 +115,7 @@ function PromotionPage() {
           <span className="mb-1 block text-xs font-medium text-muted-foreground">To class</span>
           <Select value={toId} onValueChange={setToId}>
             <SelectTrigger><SelectValue placeholder="Target class" /></SelectTrigger>
-            <SelectContent>{classes.filter((c) => c.id !== fromId).map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+            <SelectContent>{classes.filter((c) => c.id !== fromId).map((c) => <SelectItem key={c.id} value={c.id}>{formatClass(c.name)}</SelectItem>)}</SelectContent>
           </Select>
         </label>
         <label className="text-sm">
@@ -106,14 +126,29 @@ function PromotionPage() {
 
       {fromId && (
         <div className="mtis-card p-4">
+          <div className="mb-3 flex flex-wrap items-end gap-3">
+            <div className="min-w-[180px] flex-1">
+              <Input placeholder="Search student…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All status</SelectItem>
+                {statuses.map((s) => <SelectItem key={s} value={s}>{formatStatus(s)}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            {activeFilterCount > 1 && (
+              <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+            )}
+          </div>
           <div className="mb-3 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm">
               <GraduationCap className="size-4 text-primary" />
-              <span className="font-medium">{students.length} student{students.length === 1 ? "" : "s"} in {fromName}</span>
+              <span className="font-medium">{filteredStudents.length} student{filteredStudents.length === 1 ? "" : "s"} in {fromName ? formatClass(fromName) : fromName}</span>
               <span className="text-muted-foreground">· {selected.size} selected</span>
             </div>
             <Button onClick={() => promote.mutate()} disabled={promote.isPending || !toId || selected.size === 0}>
-              Promote to {toName ?? "…"}
+              Promote to {toName ? formatClass(toName) : "…"}
             </Button>
           </div>
           <div className="overflow-x-auto">
@@ -127,13 +162,13 @@ function PromotionPage() {
                 </tr>
               </thead>
               <tbody>
-                {students.length === 0 && <tr><td colSpan={4} className="px-3 py-10 text-center text-muted-foreground">{studentsQ.isLoading ? "Loading…" : "No students in this class."}</td></tr>}
-                {students.map((s) => (
+                {filteredStudents.length === 0 && <tr><td colSpan={4} className="px-3 py-10 text-center text-muted-foreground">{studentsQ.isLoading ? "Loading…" : "No students match this view."}</td></tr>}
+                {filteredStudents.map((s) => (
                   <tr key={s.id} className="border-t border-border">
                     <td className="px-3 py-2"><input type="checkbox" checked={selected.has(s.id)} onChange={() => toggle(s.id)} /></td>
                     <td className="px-3 py-2 text-muted-foreground">{s.admission_no ?? "—"}</td>
                     <td className="px-3 py-2 font-medium">{s.full_name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{s.status ?? "active"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{formatStatus(s.status ?? "active")}</td>
                   </tr>
                 ))}
               </tbody>

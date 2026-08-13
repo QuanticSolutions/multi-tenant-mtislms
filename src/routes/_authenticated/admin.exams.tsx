@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatDate, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/exams")({
   head: () => ({
@@ -59,6 +60,7 @@ function ExamsPage() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<ExamStatus | "all">("all");
   const [classFilter, setClassFilter] = useState<string>("all");
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [resultsExam, setResultsExam] = useState<ExamRow | null>(null);
 
@@ -89,16 +91,26 @@ function ExamsPage() {
     },
   });
 
+  const subjects = useMemo(
+    () => Array.from(new Set((exams ?? []).map((e) => e.subject))).sort(),
+    [exams],
+  );
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return exams ?? [];
-    return (exams ?? []).filter(
-      (e) =>
+    return (exams ?? []).filter((e) => {
+      if (subjectFilter !== "all" && e.subject !== subjectFilter) return false;
+      if (!term) return true;
+      return (
         e.title.toLowerCase().includes(term) ||
         e.subject.toLowerCase().includes(term) ||
-        e.classes?.name?.toLowerCase().includes(term),
-    );
-  }, [exams, search]);
+        e.classes?.name?.toLowerCase().includes(term)
+      );
+    });
+  }, [exams, search, subjectFilter]);
+
+  const activeFilterCount = [classFilter !== "all", statusFilter !== "all", subjectFilter !== "all", !!search].filter(Boolean).length;
+  const clearFilters = () => { setSearch(""); setClassFilter("all"); setStatusFilter("all"); setSubjectFilter("all"); };
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
@@ -139,39 +151,54 @@ function ExamsPage() {
       </div>
 
       <div className="mtis-card p-4">
-        <div className="grid gap-3 sm:grid-cols-[1fr_220px_180px]">
-          <Input
-            placeholder="Search by title, subject, class…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[220px] flex-1">
+            <Input
+              placeholder="Search by title, subject, class…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
           <Select value={classFilter} onValueChange={setClassFilter}>
-            <SelectTrigger>
+            <SelectTrigger className="w-52">
               <SelectValue placeholder="Class" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All classes</SelectItem>
               {(classes ?? []).map((c) => (
                 <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                  {c.section ? ` — ${c.section}` : ""}
+                  {formatClass(c.name, c.section)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="Subject" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All subjects</SelectItem>
+              {subjects.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as any)}>
-            <SelectTrigger>
+            <SelectTrigger className="w-40">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All status</SelectItem>
               {STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {s[0].toUpperCase() + s.slice(1)}
+                  {formatStatus(s)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+          )}
         </div>
       </div>
 
@@ -207,13 +234,12 @@ function ExamsPage() {
                     <div className="text-xs text-muted-foreground">{e.subject}</div>
                   </Td>
                   <Td>
-                    {e.classes?.name ?? "—"}
-                    {e.classes?.section ? ` — ${e.classes.section}` : ""}
+                    {formatClass(e.classes?.name, e.classes?.section)}
                   </Td>
                   <Td>
                     <div className="flex items-center gap-1.5">
                       <CalendarDays className="size-3.5 text-muted-foreground" />
-                      {new Date(e.exam_date).toLocaleDateString()}
+                      {formatDate(e.exam_date)}
                     </div>
                     {(e.start_time || e.end_time) && (
                       <div className="text-xs text-muted-foreground">
@@ -229,7 +255,7 @@ function ExamsPage() {
                     </div>
                   </Td>
                   <Td>
-                    <Badge variant={statusTone(e.status)}>{e.status}</Badge>
+                    <Badge variant={statusTone(e.status)}>{formatStatus(e.status)}</Badge>
                   </Td>
                   <Td className="text-right">
                     <div className="flex justify-end gap-1.5">
@@ -358,8 +384,7 @@ function AddExamDialog({
               <SelectContent>
                 {classes.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.section ? ` — ${c.section}` : ""}
+                    {formatClass(c.name, c.section)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -376,7 +401,7 @@ function AddExamDialog({
               <SelectContent>
                 {STATUSES.map((s) => (
                   <SelectItem key={s} value={s}>
-                    {s[0].toUpperCase() + s.slice(1)}
+                    {formatStatus(s)}
                   </SelectItem>
                 ))}
               </SelectContent>

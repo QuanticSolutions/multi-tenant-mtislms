@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
-import { Plus, Trash2, ShieldCheck } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Plus, Trash2, ShieldCheck, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -34,6 +34,7 @@ import {
   setUserRole,
   type ManagedUser,
 } from "@/lib/api/users.functions";
+import { formatDateTime, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
@@ -64,6 +65,8 @@ function UsersPage() {
   const updateRole = useServerFn(setUserRole);
   const removeUser = useServerFn(deleteUser);
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["managed-users"],
@@ -90,6 +93,25 @@ function UsersPage() {
 
   const users = (data ?? []) as ManagedUser[];
 
+  const activeFilterCount = (roleFilter !== "all" ? 1 : 0) + (search.trim() ? 1 : 0);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return users.filter((u) => {
+      const matchesQ =
+        !q ||
+        (u.full_name?.toLowerCase().includes(q) ?? false) ||
+        (u.email?.toLowerCase().includes(q) ?? false);
+      const matchesRole = roleFilter === "all" || u.roles.includes(roleFilter as Role);
+      return matchesQ && matchesRole;
+    });
+  }, [users, search, roleFilter]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setRoleFilter("all");
+  };
+
   return (
     <AppShell>
       <div className="mb-6 flex items-start justify-between gap-4">
@@ -108,6 +130,39 @@ function UsersPage() {
           </DialogTrigger>
           <AddUserDialog onDone={() => setOpen(false)} />
         </Dialog>
+      </div>
+
+      <div className="mtis-card p-4 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[220px]">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All roles</SelectItem>
+              {ROLE_OPTIONS.map((r) => (
+                <SelectItem key={r} value={r}>{formatStatus(r)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="size-4" /> Clear filters
+            </Button>
+          )}
+          <div className="ml-auto text-xs text-muted-foreground">
+            {filtered.length} of {users.length} users
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
@@ -129,7 +184,7 @@ function UsersPage() {
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {filtered.map((u) => (
                 <tr key={u.id} className="border-t border-border">
                   <td className="px-4 py-3 font-medium">{u.full_name ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">{u.email ?? "—"}</td>
@@ -146,8 +201,8 @@ function UsersPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {ROLE_OPTIONS.map((r) => (
-                            <SelectItem key={r} value={r} className="capitalize">
-                              {r}
+                            <SelectItem key={r} value={r}>
+                              {formatStatus(r)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -160,7 +215,7 @@ function UsersPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleString() : "Never"}
+                    {u.last_sign_in_at ? formatDateTime(u.last_sign_in_at) : "Never"}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <Button
@@ -176,10 +231,10 @@ function UsersPage() {
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
+              {filtered.length === 0 && (
                 <tr>
                   <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    No users yet.
+                    No users found.
                   </td>
                 </tr>
               )}
@@ -286,8 +341,8 @@ function AddUserDialog({ onDone }: { onDone: () => void }) {
             </SelectTrigger>
             <SelectContent>
               {ROLE_OPTIONS.map((r) => (
-                <SelectItem key={r} value={r} className="capitalize">
-                  {r}
+                <SelectItem key={r} value={r}>
+                  {formatStatus(r)}
                 </SelectItem>
               ))}
             </SelectContent>

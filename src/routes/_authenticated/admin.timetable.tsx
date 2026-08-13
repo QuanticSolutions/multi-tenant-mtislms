@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/timetable")({
   head: () => ({
@@ -241,7 +242,7 @@ function TimetablePage() {
               <SelectContent>
                 {(classes ?? []).map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name} {c.section ? `— ${c.section}` : ""}
+                    {formatClass(c.name, c.section)}
                   </SelectItem>
                 ))}
               </SelectContent>

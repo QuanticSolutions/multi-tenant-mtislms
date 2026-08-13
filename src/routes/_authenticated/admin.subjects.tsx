@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BookOpen, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/subjects")({
   head: () => ({ meta: [{ title: "Subjects — Madina Tul Ilm" }, { name: "description", content: "Manage subjects per class and teacher allocation." }] }),
@@ -23,6 +24,9 @@ function SubjectsPage() {
   const [classId, setClassId] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Subject | null>(null);
+  const [search, setSearch] = useState("");
+  const [teacherFilter, setTeacherFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   const classesQ = useQuery({
     queryKey: ["classes-lite"],
@@ -63,8 +67,21 @@ function SubjectsPage() {
   const classes = classesQ.data ?? [];
   const teachers = teachersQ.data ?? [];
   const subjects = subjectsQ.data ?? [];
-  const className = (id: string) => classes.find((c) => c.id === id)?.name ?? "—";
+  const className = (id: string) => formatClass(classes.find((c) => c.id === id)?.name ?? null);
   const teacherName = (id: string | null) => teachers.find((t) => t.id === id)?.full_name ?? "Unassigned";
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return subjects.filter((s) => {
+      if (term && !s.name.toLowerCase().includes(term) && !(s.code ?? "").toLowerCase().includes(term)) return false;
+      if (teacherFilter !== "all" && s.teacher_id !== teacherFilter) return false;
+      if (typeFilter !== "all" && (typeFilter === "optional") !== s.is_optional) return false;
+      return true;
+    });
+  }, [subjects, search, teacherFilter, typeFilter]);
+
+  const activeFilterCount = [classId !== "all", teacherFilter !== "all", typeFilter !== "all", !!search].filter(Boolean).length;
+  const clearFilters = () => { setSearch(""); setClassId("all"); setTeacherFilter("all"); setTypeFilter("all"); };
 
   return (
     <AppShell>
@@ -74,15 +91,39 @@ function SubjectsPage() {
           <h1 className="mtis-section-title mt-1">Subjects</h1>
           <p className="mt-1 text-sm text-muted-foreground">Define subjects per class and assign teachers.</p>
         </div>
-        <div className="flex gap-2">
+        <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus className="mr-2 size-4" /> Add subject</Button>
+      </div>
+
+      <div className="mtis-card p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[200px] flex-1">
+            <Input placeholder="Search subject or code…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
           <Select value={classId} onValueChange={setClassId}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Class" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All classes</SelectItem>
-              {classes.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              {classes.map((c) => <SelectItem key={c.id} value={c.id}>{formatClass(c.name)}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus className="mr-2 size-4" /> Add subject</Button>
+          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
+            <SelectTrigger className="w-48"><SelectValue placeholder="Teacher" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All teachers</SelectItem>
+              {teachers.map((t) => <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-40"><SelectValue placeholder="Type" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              <SelectItem value="core">Core</SelectItem>
+              <SelectItem value="optional">Optional</SelectItem>
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+          )}
         </div>
       </div>
 
@@ -96,8 +137,8 @@ function SubjectsPage() {
               <th className="px-3 py-2 text-right">Actions</th>
             </tr></thead>
             <tbody>
-              {subjects.length === 0 && <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">{subjectsQ.isLoading ? "Loading…" : "No subjects yet."}</td></tr>}
-              {subjects.map((s) => (
+              {filtered.length === 0 && <tr><td colSpan={7} className="px-3 py-10 text-center text-muted-foreground">{subjectsQ.isLoading ? "Loading…" : "No subjects match this view."}</td></tr>}
+              {filtered.map((s) => (
                 <tr key={s.id} className="border-t border-border hover:bg-primary-pale/30">
                   <td className="px-3 py-2 font-medium flex items-center gap-2"><BookOpen className="size-4 text-primary" />{s.name}</td>
                   <td className="px-3 py-2 text-muted-foreground">{s.code ?? "—"}</td>

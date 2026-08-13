@@ -16,6 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { StaffAttendancePanel } from "@/components/admin/staff-attendance-panel";
+import { useMyRoles } from "@/hooks/use-role";
+import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/attendance")({
   head: () => ({
@@ -37,7 +41,7 @@ const STATUS_OPTIONS: { value: AttStatus; label: string }[] = [
   { value: "excused", label: "Excused" },
 ];
 
-function AttendancePage() {
+function StudentAttendancePanel() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [classId, setClassId] = useState<string>("");
@@ -158,15 +162,8 @@ function AttendancePage() {
   const studentCount = students?.length ?? 0;
 
   return (
-    <AppShell>
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="mtis-eyebrow">Module</p>
-          <h1 className="mt-1 font-display text-2xl font-bold">Attendance</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Take daily roll call for each class and record notes.
-          </p>
-        </div>
+    <>
+      <div className="flex justify-end">
         <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending || studentCount === 0}>
           <Save /> {saveMut.isPending ? "Saving…" : "Save attendance"}
         </Button>
@@ -183,8 +180,7 @@ function AttendancePage() {
               <SelectContent>
                 {(classes ?? []).map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                    {c.section ? ` — ${c.section}` : ""}
+                    {formatClass(c.name, c.section)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -283,6 +279,36 @@ function AttendancePage() {
           </table>
         )}
       </div>
+    </>
+  );
+}
+
+function AttendancePage() {
+  const { isAdmin } = useMyRoles();
+  return (
+    <AppShell>
+      <div>
+        <p className="mtis-eyebrow">Module</p>
+        <h1 className="mt-1 font-display text-2xl font-bold">Attendance</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Daily roll call for students and staff.
+        </p>
+      </div>
+
+      <Tabs defaultValue="students" className="w-full">
+        <TabsList>
+          <TabsTrigger value="students">Student Attendance</TabsTrigger>
+          {isAdmin && <TabsTrigger value="teachers">Teacher Attendance</TabsTrigger>}
+        </TabsList>
+        <TabsContent value="students" className="mt-4 space-y-6">
+          <StudentAttendancePanel />
+        </TabsContent>
+        {isAdmin && (
+          <TabsContent value="teachers" className="mt-4 space-y-6">
+            <StaffAttendancePanel />
+          </TabsContent>
+        )}
+      </Tabs>
     </AppShell>
   );
 }

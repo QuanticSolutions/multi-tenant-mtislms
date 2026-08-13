@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateTime, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/notifications")({
   head: () => ({
@@ -58,6 +59,7 @@ function NotificationsPage() {
   const [composeOpen, setCompose] = useState(false);
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<Channel | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<Status | "all">("all");
 
   const q = useQuery({
     queryKey: ["notifications"],
@@ -69,12 +71,20 @@ function NotificationsPage() {
   });
 
   const rows = q.data ?? [];
-  const filtered = rows.filter((r) => {
-    if (tab !== "all" && r.channel !== tab) return false;
-    if (!search) return true;
-    const s = search.toLowerCase();
-    return r.recipient.toLowerCase().includes(s) || (r.subject ?? "").toLowerCase().includes(s) || r.body.toLowerCase().includes(s);
-  });
+  const filtered = useMemo(() => {
+    return rows.filter((r) => {
+      if (tab !== "all" && r.channel !== tab) return false;
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return r.recipient.toLowerCase().includes(s) || (r.subject ?? "").toLowerCase().includes(s) || r.body.toLowerCase().includes(s);
+    });
+  }, [rows, tab, statusFilter, search]);
+
+  const filterCount = (tab !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
+  function clearFilters() {
+    setTab("all"); setStatusFilter("all"); setSearch("");
+  }
 
   const stats = useMemo(() => {
     const s: Record<string, number> = { total: rows.length, sent: 0, failed: 0, queued: 0 };
@@ -106,8 +116,20 @@ function NotificationsPage() {
             <button key={t} onClick={() => setTab(t)}
               className={`rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors ${
                 tab === t ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-primary-pale hover:text-primary"
-              }`}>{t.replace("_", " ")}</button>
+              }`}>{t === "all" ? "All" : formatStatus(t)}</button>
           ))}
+          <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as Status | "all")}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {(["queued", "sent", "delivered", "failed"] as const).map((s) => (
+                <SelectItem key={s} value={s}>{formatStatus(s)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {filterCount > 1 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Clear filters</Button>
+          )}
           <div className="ml-auto relative w-full max-w-xs">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search recipient or content…" className="pl-9" />
@@ -138,7 +160,7 @@ function NotificationsPage() {
                     <td className="px-3 py-2">
                       <div className="flex items-center gap-2 text-foreground">
                         <Icon className="size-4 text-primary" />
-                        <span className="capitalize">{r.channel.replace("_", " ")}</span>
+                        <span>{formatStatus(r.channel)}</span>
                       </div>
                     </td>
                     <td className="px-3 py-2">
@@ -151,10 +173,10 @@ function NotificationsPage() {
                       {r.error_message && <div className="mt-1 text-xs text-destructive">Error: {r.error_message}</div>}
                     </td>
                     <td className="px-3 py-2">
-                      <Badge variant="outline" className={STATUS_CLS[r.status]}>{r.status}</Badge>
+                      <Badge variant="outline" className={STATUS_CLS[r.status]}>{formatStatus(r.status)}</Badge>
                     </td>
                     <td className="px-3 py-2 text-xs text-muted-foreground">
-                      {new Date(r.sent_at ?? r.created_at).toLocaleString()}
+                      {formatDateTime(r.sent_at ?? r.created_at)}
                     </td>
                   </tr>
                 );

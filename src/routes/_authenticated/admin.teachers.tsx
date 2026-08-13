@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, GraduationCap, Trash2, Pencil, Mail, Phone } from "lucide-react";
+import { Plus, Search, GraduationCap, Trash2, Pencil, Mail, Phone, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/teachers")({
   head: () => ({
@@ -37,7 +38,8 @@ export const Route = createFileRoute("/_authenticated/admin/teachers")({
   component: TeachersPage,
 });
 
-type TeacherStatus = "active" | "on_leave" | "inactive" | "resigned";
+type TeacherStatus = "active" | "on_leave" | "inactive" | "resigned" | "probation";
+const STATUS_OPTIONS: TeacherStatus[] = ["active", "on_leave", "inactive", "resigned", "probation"];
 
 type TeacherRow = {
   id: string;
@@ -55,6 +57,7 @@ function TeachersPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [specializationFilter, setSpecializationFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TeacherRow | null>(null);
 
@@ -73,6 +76,16 @@ function TeachersPage() {
     },
   });
 
+  const specializations = useMemo(() => {
+    const set = new Set<string>();
+    (teachers ?? []).forEach((t) => {
+      if (t.specialization) set.add(t.specialization);
+    });
+    return Array.from(set).sort();
+  }, [teachers]);
+
+  const activeFilterCount = [statusFilter, specializationFilter].filter((v) => v !== "all").length + (search.trim() ? 1 : 0);
+
   const filtered = useMemo(() => {
     if (!teachers) return [];
     return teachers.filter((t) => {
@@ -84,9 +97,16 @@ function TeachersPage() {
         (t.email?.toLowerCase().includes(q) ?? false) ||
         (t.specialization?.toLowerCase().includes(q) ?? false);
       const matchesStatus = statusFilter === "all" || t.status === statusFilter;
-      return matchesQ && matchesStatus;
+      const matchesSpecialization = specializationFilter === "all" || t.specialization === specializationFilter;
+      return matchesQ && matchesStatus && matchesSpecialization;
     });
-  }, [teachers, search, statusFilter]);
+  }, [teachers, search, statusFilter, specializationFilter]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setSpecializationFilter("all");
+  };
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
@@ -134,17 +154,32 @@ function TeachersPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="on_leave">On leave</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="resigned">Resigned</SelectItem>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>{formatStatus(s)}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          <Select value={specializationFilter} onValueChange={setSpecializationFilter}>
+            <SelectTrigger className="w-[190px]">
+              <SelectValue placeholder="Specialization" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All specializations</SelectItem>
+              {specializations.map((s) => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="size-4" /> Clear filters
+            </Button>
+          )}
           <div className="ml-auto text-xs text-muted-foreground">
             {filtered.length} of {teachers?.length ?? 0} teachers
           </div>
@@ -211,9 +246,9 @@ function TeachersPage() {
                     <div className="text-xs text-muted-foreground">{t.specialization ?? ""}</div>
                   </Td>
                   <Td>
-                    <Badge variant={statusVariant(t.status)}>{t.status.replace("_", " ")}</Badge>
+                    <Badge variant={statusVariant(t.status)}>{formatStatus(t.status)}</Badge>
                   </Td>
-                  <Td className="text-muted-foreground">{t.date_of_joining}</Td>
+                  <Td className="text-muted-foreground">{formatDate(t.date_of_joining)}</Td>
                   <Td className="text-right">
                     <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => { setEditing(t); setOpen(true); }}>
                       <Pencil className="size-4" />
@@ -377,10 +412,9 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="on_leave">On leave</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="resigned">Resigned</SelectItem>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>{formatStatus(s)}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
@@ -447,7 +481,7 @@ function initialsOf(name: string) {
 
 function statusVariant(s: TeacherStatus): "success" | "warning" | "danger" | "default" {
   if (s === "active") return "success";
-  if (s === "on_leave") return "warning";
+  if (s === "on_leave" || s === "probation") return "warning";
   if (s === "inactive" || s === "resigned") return "danger";
   return "default";
 }

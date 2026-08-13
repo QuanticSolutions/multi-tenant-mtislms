@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Trash2, School, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/classes")({
   head: () => ({ meta: [{ title: "Classes — Madina Tul Ilm" }, { name: "description", content: "Manage classes, sections and class teachers." }] }),
@@ -28,6 +29,9 @@ function ClassesPage() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<ClassRow | null>(null);
+  const [search, setSearch] = useState("");
+  const [sessionFilter, setSessionFilter] = useState("all");
+  const [teacherFilter, setTeacherFilter] = useState("all");
 
   const classesQ = useQuery({
     queryKey: ["classes-full"],
@@ -70,6 +74,24 @@ function ClassesPage() {
   const counts = countsQ.data ?? {};
   const teacherName = (id: string | null) => teachers.find((t) => t.id === id)?.full_name ?? "—";
 
+  const sessions = useMemo(
+    () => Array.from(new Set(classes.map((c) => c.academic_year).filter(Boolean))) as string[],
+    [classes],
+  );
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return classes.filter((c) => {
+      if (term && !formatClass(c.name, c.section).toLowerCase().includes(term)) return false;
+      if (sessionFilter !== "all" && c.academic_year !== sessionFilter) return false;
+      if (teacherFilter !== "all" && c.class_teacher_id !== teacherFilter) return false;
+      return true;
+    });
+  }, [classes, search, sessionFilter, teacherFilter]);
+
+  const activeFilterCount = [sessionFilter !== "all", teacherFilter !== "all", !!search].filter(Boolean).length;
+  const clearFilters = () => { setSearch(""); setSessionFilter("all"); setTeacherFilter("all"); };
+
   return (
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -82,13 +104,38 @@ function ClassesPage() {
       </div>
 
       <div className="mtis-card p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[200px] flex-1">
+            <Input placeholder="Search class…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+          <Select value={sessionFilter} onValueChange={setSessionFilter}>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Session" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sessions</SelectItem>
+              {sessions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={teacherFilter} onValueChange={setTeacherFilter}>
+            <SelectTrigger className="w-52"><SelectValue placeholder="Class teacher" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All class teachers</SelectItem>
+              {teachers.map((t) => <SelectItem key={t.id} value={t.id}>{t.full_name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+          )}
+        </div>
+      </div>
+
+      <div className="mtis-card p-4">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-xs uppercase tracking-wider text-muted-foreground">
                 <th className="px-3 py-2">Class</th>
                 <th className="px-3 py-2">Section</th>
-                <th className="px-3 py-2">Grade</th>
+                <th className="px-3 py-2">Class Level</th>
                 <th className="px-3 py-2">Session</th>
                 <th className="px-3 py-2">Class teacher</th>
                 <th className="px-3 py-2">Students</th>
@@ -97,15 +144,15 @@ function ClassesPage() {
               </tr>
             </thead>
             <tbody>
-              {classes.length === 0 && (
+              {filtered.length === 0 && (
                 <tr><td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">
-                  {classesQ.isLoading ? "Loading…" : "No classes yet."}
+                  {classesQ.isLoading ? "Loading…" : "No classes match this view."}
                 </td></tr>
               )}
-              {classes.map((c) => (
+              {filtered.map((c) => (
                 <tr key={c.id} className="border-t border-border hover:bg-primary-pale/30">
                   <td className="px-3 py-2 font-medium text-foreground flex items-center gap-2">
-                    <School className="size-4 text-primary" /> {c.name}
+                    <School className="size-4 text-primary" /> {formatClass(c.name, c.section)}
                   </td>
                   <td className="px-3 py-2">{c.section ?? "—"}</td>
                   <td className="px-3 py-2">{c.grade_level ?? "—"}</td>

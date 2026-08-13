@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, User, Search, Link2 } from "lucide-react";
+import { Plus, Trash2, User, Search, Link2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/parents")({
   head: () => ({ meta: [{ title: "Parents — Madina Tul Ilm" }, { name: "description", content: "Manage parents and link them to students." }] }),
@@ -24,6 +25,8 @@ type Link = { id: string; parent_id: string; student_id: string; relation: strin
 function ParentsPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [professionFilter, setProfessionFilter] = useState("all");
+  const [relationFilter, setRelationFilter] = useState("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Parent | null>(null);
   const [linkFor, setLinkFor] = useState<Parent | null>(null);
@@ -56,10 +59,39 @@ function ParentsPage() {
 
   const parents = parentsQ.data ?? [];
   const links = linksQ.data ?? [];
+
+  const professions = useMemo(() => {
+    const set = new Set<string>();
+    parents.forEach((p) => { if (p.profession) set.add(p.profession); });
+    return Array.from(set).sort();
+  }, [parents]);
+
+  const relations = useMemo(() => {
+    const set = new Set<string>();
+    links.forEach((l) => { if (l.relation) set.add(l.relation); });
+    return Array.from(set).sort();
+  }, [links]);
+
+  const parentRelations = (pid: string) => links.filter((l) => l.parent_id === pid).map((l) => l.relation);
+
+  const activeFilterCount = [professionFilter, relationFilter].filter((v) => v !== "all").length + (search.trim() ? 1 : 0);
+
   const filtered = useMemo(() => {
     const s = search.toLowerCase();
-    return parents.filter((p) => !s || p.full_name.toLowerCase().includes(s) || (p.phone ?? "").includes(s) || (p.email ?? "").toLowerCase().includes(s));
-  }, [parents, search]);
+    return parents.filter((p) => {
+      const matchesQ = !s || p.full_name.toLowerCase().includes(s) || (p.phone ?? "").includes(s) || (p.email ?? "").toLowerCase().includes(s);
+      const matchesProfession = professionFilter === "all" || p.profession === professionFilter;
+      const matchesRelation = relationFilter === "all" || parentRelations(p.id).includes(relationFilter);
+      return matchesQ && matchesProfession && matchesRelation;
+    });
+  }, [parents, search, professionFilter, relationFilter, links]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setProfessionFilter("all");
+    setRelationFilter("all");
+  };
+
   const linkCount = (pid: string) => links.filter((l) => l.parent_id === pid).length;
 
   return (
@@ -70,12 +102,45 @@ function ParentsPage() {
           <h1 className="mtis-section-title mt-1">Parents & Guardians</h1>
           <p className="mt-1 text-sm text-muted-foreground">{parents.length} records · {links.length} student links</p>
         </div>
-        <div className="flex gap-2">
-          <div className="relative">
+        <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus className="mr-2 size-4" /> Add parent</Button>
+      </div>
+
+      <div className="mtis-card p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[220px]">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="pl-9 w-64" />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by name, phone, email…" className="pl-9" />
           </div>
-          <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus className="mr-2 size-4" /> Add parent</Button>
+          <Select value={relationFilter} onValueChange={setRelationFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Relation" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All relations</SelectItem>
+              {relations.map((r) => (
+                <SelectItem key={r} value={r}>{formatStatus(r)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={professionFilter} onValueChange={setProfessionFilter}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="Profession" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All professions</SelectItem>
+              {professions.map((p) => (
+                <SelectItem key={p} value={p}>{p}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="size-4" /> Clear filters
+            </Button>
+          )}
+          <div className="ml-auto text-xs text-muted-foreground">
+            {filtered.length} of {parents.length} parents
+          </div>
         </div>
       </div>
 
@@ -88,7 +153,7 @@ function ParentsPage() {
               <th className="px-3 py-2 text-right">Actions</th>
             </tr></thead>
             <tbody>
-              {filtered.length === 0 && <tr><td colSpan={5} className="px-3 py-10 text-center text-muted-foreground">{parentsQ.isLoading ? "Loading…" : "No parents yet."}</td></tr>}
+              {filtered.length === 0 && <tr><td colSpan={5} className="px-3 py-10 text-center text-muted-foreground">{parentsQ.isLoading ? "Loading…" : "No parents found."}</td></tr>}
               {filtered.map((p) => (
                 <tr key={p.id} className="border-t border-border hover:bg-primary-pale/30">
                   <td className="px-3 py-2 font-medium flex items-center gap-2"><User className="size-4 text-primary" />{p.full_name}</td>
@@ -220,7 +285,7 @@ function LinkDialog({ parent, onClose }: { parent: Parent; onClose: () => void }
             <Select value={relation} onValueChange={setRelation}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {["father", "mother", "guardian", "other"].map((r) => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                {["father", "mother", "guardian", "other"].map((r) => <SelectItem key={r} value={r}>{formatStatus(r)}</SelectItem>)}
               </SelectContent>
             </Select>
             <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={isPrimary} onChange={(e) => setIsPrimary(e.target.checked)} /> Primary</label>
@@ -235,7 +300,7 @@ function LinkDialog({ parent, onClose }: { parent: Parent; onClose: () => void }
                   {links.map((l) => (
                     <tr key={l.id} className="border-b last:border-0 border-border">
                       <td className="px-3 py-2">{studentName(l.student_id)}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{l.relation}{l.is_primary ? " · primary" : ""}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{formatStatus(l.relation)}{l.is_primary ? " · primary" : ""}</td>
                       <td className="px-3 py-2 text-right"><Button size="sm" variant="ghost" onClick={() => removeLink.mutate(l.id)}><Trash2 className="size-4 text-destructive" /></Button></td>
                     </tr>
                   ))}
