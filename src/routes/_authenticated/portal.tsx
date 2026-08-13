@@ -6,6 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatDateTime } from "@/lib/format";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/portal")({
   head: () => ({
@@ -80,7 +84,7 @@ function PortalPage() {
               <div className="text-xs font-semibold">{student?.full_name ?? me?.name ?? "—"}</div>
               <div className="text-[11px] text-muted-foreground">
                 {student?.classes?.name
-                  ? `${student.classes.name}${student.classes.section ? " · " + student.classes.section : ""}`
+                  ? formatClass(student.classes.name, student.classes.section)
                   : "Student"}
               </div>
             </div>
@@ -185,6 +189,7 @@ function TimetableTab({ classId }: { classId: string | null }) {
 }
 
 function AnnouncementsTab({ classId }: { classId: string | null }) {
+  const [search, setSearch] = useState("");
   const { data, isLoading } = useQuery({
     queryKey: ["portal-announcements", classId],
     queryFn: async () => {
@@ -206,6 +211,12 @@ function AnnouncementsTab({ classId }: { classId: string | null }) {
   }
 
   const items = data ?? [];
+  const filtered = useMemo(() => {
+    if (!search) return items;
+    const s = search.toLowerCase();
+    return items.filter((a) => a.title.toLowerCase().includes(s) || a.body.toLowerCase().includes(s));
+  }, [items, search]);
+
   if (items.length === 0) {
     return (
       <div className="mtis-card p-8 text-center text-sm text-muted-foreground">
@@ -215,8 +226,15 @@ function AnnouncementsTab({ classId }: { classId: string | null }) {
   }
 
   return (
-    <ul className="space-y-3">
-      {items.map((a) => (
+    <div className="space-y-3">
+      <div className="mtis-card p-4">
+        <div className="relative w-full max-w-xs">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search announcements…" className="pl-9" />
+        </div>
+      </div>
+      <ul className="space-y-3">
+      {filtered.map((a) => (
         <li key={a.id} className="mtis-card p-4">
           <div className="flex items-start gap-2">
             {a.pinned && <Pin className="mt-1 size-4 text-accent" />}
@@ -224,12 +242,13 @@ function AnnouncementsTab({ classId }: { classId: string | null }) {
               <h2 className="font-display text-base font-semibold">{a.title}</h2>
               <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{a.body}</p>
               <p className="mt-2 text-xs text-muted-foreground">
-                {new Date(a.published_at ?? a.created_at).toLocaleString()}
+                {formatDateTime(a.published_at ?? a.created_at)}
               </p>
             </div>
           </div>
         </li>
       ))}
-    </ul>
+      </ul>
+    </div>
   );
 }

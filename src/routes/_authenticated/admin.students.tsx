@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, Users, Trash2, Pencil } from "lucide-react";
+import { Plus, Search, Users, Trash2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatDate, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/students")({
   head: () => ({
@@ -37,12 +38,14 @@ export const Route = createFileRoute("/_authenticated/admin/students")({
   component: StudentsPage,
 });
 
+type StudentStatus = "active" | "inactive" | "graduated" | "transferred" | "terminated";
+
 type StudentRow = {
   id: string;
   admission_no: string;
   full_name: string;
   gender: string | null;
-  status: string;
+  status: StudentStatus;
   guardian_name: string | null;
   guardian_phone: string | null;
   enrollment_date: string;
@@ -50,10 +53,14 @@ type StudentRow = {
   classes: { name: string; section: string | null } | null;
 };
 
+const STATUS_OPTIONS: StudentStatus[] = ["active", "inactive", "graduated", "transferred", "terminated"];
+
 function StudentsPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [classFilter, setClassFilter] = useState<string>("all");
+  const [genderFilter, setGenderFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<StudentRow | null>(null);
 
@@ -84,6 +91,8 @@ function StudentsPage() {
     },
   });
 
+  const activeFilterCount = [statusFilter, classFilter, genderFilter].filter((v) => v !== "all").length + (search.trim() ? 1 : 0);
+
   const filtered = useMemo(() => {
     if (!students) return [];
     return students.filter((s) => {
@@ -94,9 +103,18 @@ function StudentsPage() {
         s.admission_no.toLowerCase().includes(q) ||
         (s.guardian_name?.toLowerCase().includes(q) ?? false);
       const matchesStatus = statusFilter === "all" || s.status === statusFilter;
-      return matchesQ && matchesStatus;
+      const matchesClass = classFilter === "all" || s.class_id === classFilter;
+      const matchesGender = genderFilter === "all" || s.gender === genderFilter;
+      return matchesQ && matchesStatus && matchesClass && matchesGender;
     });
-  }, [students, search, statusFilter]);
+  }, [students, search, statusFilter, classFilter, genderFilter]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("all");
+    setClassFilter("all");
+    setGenderFilter("all");
+  };
 
   const deleteMut = useMutation({
     mutationFn: async (id: string) => {
@@ -144,18 +162,43 @@ function StudentsPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="probation">Probation</SelectItem>
-              <SelectItem value="graduated">Graduated</SelectItem>
-              <SelectItem value="transferred">Transferred</SelectItem>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>{formatStatus(s)}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          <Select value={classFilter} onValueChange={setClassFilter}>
+            <SelectTrigger className="w-[170px]">
+              <SelectValue placeholder="Class" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All classes</SelectItem>
+              {(classes ?? []).map((c) => (
+                <SelectItem key={c.id} value={c.id}>{formatClass(c.name, c.section)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={genderFilter} onValueChange={setGenderFilter}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All genders</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="size-4" /> Clear filters
+            </Button>
+          )}
           <div className="ml-auto text-xs text-muted-foreground">
             {filtered.length} of {students?.length ?? 0} students
           </div>
@@ -205,16 +248,16 @@ function StudentsPage() {
                     </div>
                   </Td>
                   <Td className="text-muted-foreground">
-                    {s.classes ? `${s.classes.name}${s.classes.section ? ` — ${s.classes.section}` : ""}` : "—"}
+                    {s.classes ? formatClass(s.classes.name, s.classes.section) : "—"}
                   </Td>
                   <Td>
                     <div className="text-foreground">{s.guardian_name ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">{s.guardian_phone ?? ""}</div>
                   </Td>
                   <Td>
-                    <Badge variant={statusVariant(s.status)}>{s.status}</Badge>
+                    <Badge variant={statusVariant(s.status)}>{formatStatus(s.status)}</Badge>
                   </Td>
-                  <Td className="text-muted-foreground">{s.enrollment_date}</Td>
+                  <Td className="text-muted-foreground">{formatDate(s.enrollment_date)}</Td>
                   <Td className="text-right">
                     <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => { setEditing(s); setOpen(true); }}>
                       <Pencil className="size-4" />
@@ -261,7 +304,7 @@ function StudentDialog({
     guardian_email: "",
     address: "",
     class_id: existing?.class_id ?? "",
-    status: (existing?.status ?? "active") as "active" | "inactive" | "probation" | "graduated" | "transferred",
+    status: (existing?.status ?? "active") as StudentStatus,
   }));
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -359,8 +402,7 @@ function StudentDialog({
             <SelectContent>
               {classes.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                  {c.section ? ` — ${c.section}` : ""}
+                  {formatClass(c.name, c.section)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -372,11 +414,9 @@ function StudentDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="probation">Probation</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="graduated">Graduated</SelectItem>
-              <SelectItem value="transferred">Transferred</SelectItem>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>{formatStatus(s)}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </Field>
@@ -463,9 +503,8 @@ function initialsOf(name: string) {
     .toUpperCase();
 }
 
-function statusVariant(s: string): "success" | "warning" | "danger" | "default" {
+function statusVariant(s: StudentStatus): "success" | "warning" | "danger" | "default" {
   if (s === "active") return "success";
-  if (s === "probation") return "warning";
-  if (s === "inactive" || s === "transferred") return "danger";
+  if (s === "inactive" || s === "transferred" || s === "terminated") return "danger";
   return "default";
 }

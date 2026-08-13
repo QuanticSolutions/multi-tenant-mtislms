@@ -44,30 +44,67 @@ type NavItem = {
   teacher?: boolean;
 };
 
-const NAV: NavItem[] = [
-  { icon: TrendingUp, label: "Dashboard", to: "/admin", teacher: true },
-  { icon: Users, label: "Students", to: "/admin/students", teacher: true },
-  { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
-  { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
-  { icon: UserCheck, label: "Parents", to: "/admin/parents" },
-  { icon: School, label: "Classes", to: "/admin/classes", teacher: true },
-  { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true },
-  { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true },
-  { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true },
-  { icon: FileText, label: "Exams", to: "/admin/exams" },
-  { icon: Wallet, label: "Fees", to: "/admin/fees" },
-  { icon: BookOpen, label: "Library", to: "/admin/library" },
-  { icon: Bus, label: "Transport", to: "/admin/transport" },
-  { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true },
-  { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
-  { icon: BarChart3, label: "Reports", to: "/admin/reports" },
-  { icon: CalendarRange, label: "Events", to: "/admin/events" },
-  { icon: Package, label: "Inventory", to: "/admin/inventory" },
-  { icon: UserCheck, label: "Staff & Payroll", to: "/admin/staff" },
-  { icon: Bell, label: "Notifications", to: "/admin/notifications" },
-  { icon: UserCog, label: "Users", to: "/admin/users" },
-  { icon: Settings, label: "Settings", to: "/admin/settings" },
-  { icon: Activity, label: "Audit Log", to: "/admin/audit" },
+type NavGroup = { label: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Overview",
+    items: [
+      { icon: TrendingUp, label: "Dashboard", to: "/admin", teacher: true },
+      { icon: BarChart3, label: "Reports", to: "/admin/reports" },
+    ],
+  },
+  {
+    label: "Students",
+    items: [
+      { icon: Users, label: "Students", to: "/admin/students", teacher: true },
+      { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
+      { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
+      { icon: UserCheck, label: "Parents", to: "/admin/parents" },
+    ],
+  },
+  {
+    label: "Teachers & Staff",
+    items: [
+      { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
+      { icon: ClipboardList, label: "Staff & Payroll", to: "/admin/staff" },
+    ],
+  },
+  {
+    label: "Academics",
+    items: [
+      { icon: School, label: "Classes", to: "/admin/classes", teacher: true },
+      { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true },
+      { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true },
+      { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true },
+      { icon: FileText, label: "Exams", to: "/admin/exams" },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { icon: Wallet, label: "Fees", to: "/admin/fees" },
+      { icon: BookOpen, label: "Library", to: "/admin/library" },
+      { icon: Bus, label: "Transport", to: "/admin/transport" },
+      { icon: Package, label: "Inventory", to: "/admin/inventory" },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
+      { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true },
+      { icon: Bell, label: "Notifications", to: "/admin/notifications" },
+      { icon: CalendarRange, label: "Events", to: "/admin/events" },
+    ],
+  },
+  {
+    label: "General",
+    items: [
+      { icon: UserCog, label: "Users", to: "/admin/users" },
+      { icon: Settings, label: "Settings", to: "/admin/settings" },
+      { icon: Activity, label: "Audit Log", to: "/admin/audit" },
+    ],
+  },
 ];
 
 
@@ -185,43 +222,57 @@ function Header({
 function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin, loaded } = useMyRoles();
-  const items = loaded && !isAdmin ? NAV.filter((it) => it.teacher) : NAV;
+  const restrict = loaded && !isAdmin;
+
+  const groups = NAV_GROUPS.map((g) => ({
+    ...g,
+    items: restrict ? g.items.filter((it) => it.teacher) : g.items,
+  })).filter((g) => g.items.length > 0);
+
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100vh-104px)] w-60 shrink-0 lg:block">
-      <div className="mtis-card flex h-full flex-col overflow-hidden p-3">
+      <div className="mtis-card flex h-full min-h-0 flex-col overflow-hidden p-3">
         <p className="mtis-eyebrow shrink-0 px-3 pb-2 pt-1">Workspace</p>
-        <nav className="min-h-0 flex-1 overflow-y-auto pr-1">
-          <ul className="space-y-1">
-            {items.map((it) => {
-
-              const active =
-                it.to &&
-                (it.to === "/admin" ? pathname === "/admin" : pathname.startsWith(it.to));
-              const cls = `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-primary-pale text-primary"
-                  : "text-muted-foreground hover:bg-primary-pale/60 hover:text-primary"
-              }`;
-              return (
-                <li key={it.label}>
-                  {it.to && !it.comingSoon ? (
-                    <Link to={it.to} className={cls}>
-                      <it.icon className="size-4 shrink-0" />
-                      <span className="truncate">{it.label}</span>
-                    </Link>
-                  ) : (
-                    <button onClick={() => toast(`${it.label} — coming soon`)} className={cls}>
-                      <it.icon className="size-4 shrink-0" />
-                      <span className="truncate">{it.label}</span>
-                      <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Soon
-                      </span>
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
+        <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">
+          <div className="space-y-4">
+            {groups.map((group) => (
+              <div key={group.label}>
+                <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+                  {group.label}
+                </p>
+                <ul className="space-y-1">
+                  {group.items.map((it) => {
+                    const active =
+                      it.to &&
+                      (it.to === "/admin" ? pathname === "/admin" : pathname.startsWith(it.to));
+                    const cls = `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      active
+                        ? "bg-primary-pale text-primary"
+                        : "text-muted-foreground hover:bg-primary-pale/60 hover:text-primary"
+                    }`;
+                    return (
+                      <li key={it.label} className="min-w-0">
+                        {it.to && !it.comingSoon ? (
+                          <Link to={it.to} className={cls}>
+                            <it.icon className="size-4 shrink-0" />
+                            <span className="truncate">{it.label}</span>
+                          </Link>
+                        ) : (
+                          <button
+                            onClick={() => toast(`${it.label} — coming soon`)}
+                            className={cls}
+                          >
+                            <it.icon className="size-4 shrink-0" />
+                            <span className="truncate">{it.label}</span>
+                          </button>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </nav>
         <div className="mt-3 shrink-0 rounded-md border border-border bg-background p-3">
           <p className="text-xs font-semibold text-foreground">Need help?</p>
@@ -233,4 +284,5 @@ function Sidebar() {
     </aside>
   );
 }
+
 

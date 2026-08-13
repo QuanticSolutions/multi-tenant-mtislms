@@ -2010,9 +2010,14 @@ export type Database = {
         | "inactive"
         | "graduated"
         | "transferred"
-        | "probation"
+        | "terminated"
       submission_status: "pending" | "submitted" | "late" | "graded"
-      teacher_status: "active" | "on_leave" | "inactive" | "resigned"
+      teacher_status:
+        | "active"
+        | "on_leave"
+        | "inactive"
+        | "resigned"
+        | "probation"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2200,10 +2205,16 @@ export const Constants = {
         "inactive",
         "graduated",
         "transferred",
-        "probation",
+        "terminated",
       ],
       submission_status: ["pending", "submitted", "late", "graded"],
-      teacher_status: ["active", "on_leave", "inactive", "resigned"],
+      teacher_status: [
+        "active",
+        "on_leave",
+        "inactive",
+        "resigned",
+        "probation",
+      ],
     },
   },
 } as const

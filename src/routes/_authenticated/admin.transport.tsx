@@ -17,6 +17,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/transport")({
   head: () => ({
@@ -73,6 +74,8 @@ function TransportPage() {
 function RoutesTab() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
   const { data: routes, isLoading } = useQuery({
     queryKey: ["transport_routes"],
     queryFn: async () => {
@@ -97,14 +100,42 @@ function RoutesTab() {
     onError: (e: any) => toast.error(e.message),
   });
 
+  const filteredRoutes = useMemo(() => {
+    return (routes ?? []).filter((r) => {
+      if (activeFilter === "active" && !r.is_active) return false;
+      if (activeFilter === "inactive" && r.is_active) return false;
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return r.code.toLowerCase().includes(s) || r.name.toLowerCase().includes(s) || (r.driver_name ?? "").toLowerCase().includes(s);
+    });
+  }, [routes, search, activeFilter]);
+
+  const routeFilterCount = (activeFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">{routes?.length ?? 0} routes</div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus /> Add route</Button></DialogTrigger>
-          <NewRouteDialog onDone={() => setOpen(false)} />
-        </Dialog>
+      <div className="mtis-card p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Input placeholder="Search code, name, driver…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
+          <Select value={activeFilter} onValueChange={setActiveFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          {routeFilterCount > 1 && (
+            <Button variant="ghost" onClick={() => { setSearch(""); setActiveFilter("all"); }}>Clear filters</Button>
+          )}
+          <div className="ml-auto flex items-center gap-3">
+            <div className="text-sm text-muted-foreground">{filteredRoutes.length} routes</div>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button><Plus /> Add route</Button></DialogTrigger>
+              <NewRouteDialog onDone={() => setOpen(false)} />
+            </Dialog>
+          </div>
+        </div>
       </div>
 
       <div className="mtis-card overflow-hidden">
@@ -112,6 +143,8 @@ function RoutesTab() {
           <div className="p-10 text-center text-sm text-muted-foreground">Loading routes…</div>
         ) : !routes || routes.length === 0 ? (
           <div className="p-10 text-center text-sm text-muted-foreground">No routes yet. Add your first route.</div>
+        ) : filteredRoutes.length === 0 ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">No routes match your filters.</div>
         ) : (
           <table className="w-full text-left text-sm">
             <thead>
@@ -120,7 +153,7 @@ function RoutesTab() {
               </tr>
             </thead>
             <tbody>
-              {routes.map((r) => (
+              {filteredRoutes.map((r) => (
                 <tr key={r.id} className="border-t border-border hover:bg-primary-pale/40">
                   <Td className="font-medium">{r.code}</Td>
                   <Td>{r.name}</Td>
@@ -132,7 +165,7 @@ function RoutesTab() {
                   <Td>{Number(r.monthly_fare).toLocaleString()}</Td>
                   <Td>
                     <Badge variant={r.is_active ? "success" : "default"}>
-                      {r.is_active ? "active" : "inactive"}
+                      {r.is_active ? "Active" : "Inactive"}
                     </Badge>
                   </Td>
                   <Td className="text-right">
@@ -279,7 +312,7 @@ function VehiclesTab() {
                     <div className="text-xs text-muted-foreground">{v.driver_phone ?? ""}</div>
                   </Td>
                   <Td>
-                    <Badge variant={v.is_active ? "success" : "default"}>{v.is_active ? "active" : "inactive"}</Badge>
+                    <Badge variant={v.is_active ? "success" : "default"}>{v.is_active ? "Active" : "Inactive"}</Badge>
                   </Td>
                   <Td className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => confirm(`Delete vehicle ${v.registration_no}?`) && del.mutate(v.id)}>
@@ -361,6 +394,8 @@ function AssignmentsTab() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [routeFilter, setRouteFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState("all");
 
   const { data: assignments, isLoading } = useQuery({
     queryKey: ["transport_assignments"],
@@ -385,8 +420,17 @@ function AssignmentsTab() {
 
   const filtered = useMemo(() => {
     if (!assignments) return [];
-    return routeFilter === "all" ? assignments : assignments.filter((a) => a.route_id === routeFilter);
-  }, [assignments, routeFilter]);
+    return assignments.filter((a) => {
+      if (routeFilter !== "all" && a.route_id !== routeFilter) return false;
+      if (activeFilter === "active" && !a.is_active) return false;
+      if (activeFilter === "inactive" && a.is_active) return false;
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return (a.students?.full_name ?? "").toLowerCase().includes(s) || (a.students?.admission_no ?? "").toLowerCase().includes(s);
+    });
+  }, [assignments, routeFilter, activeFilter, search]);
+
+  const assignmentFilterCount = (routeFilter !== "all" ? 1 : 0) + (activeFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
 
   const del = useMutation({
     mutationFn: async (id: string) => {
@@ -402,20 +446,34 @@ function AssignmentsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <Select value={routeFilter} onValueChange={setRouteFilter}>
-          <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All routes</SelectItem>
-            {(routes ?? []).map((r) => <SelectItem key={r.id} value={r.id}>{r.code} · {r.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <div className="ml-auto flex items-center gap-3">
-          <div className="text-sm text-muted-foreground">{filtered.length} assigned</div>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus /> Assign student</Button></DialogTrigger>
-            <NewAssignmentDialog routes={routes ?? []} onDone={() => setOpen(false)} />
-          </Dialog>
+      <div className="mtis-card p-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <Input placeholder="Search student…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
+          <Select value={routeFilter} onValueChange={setRouteFilter}>
+            <SelectTrigger className="w-[220px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All routes</SelectItem>
+              {(routes ?? []).map((r) => <SelectItem key={r.id} value={r.id}>{r.code} · {r.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={activeFilter} onValueChange={setActiveFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Ended</SelectItem>
+            </SelectContent>
+          </Select>
+          {assignmentFilterCount > 1 && (
+            <Button variant="ghost" onClick={() => { setSearch(""); setRouteFilter("all"); setActiveFilter("all"); }}>Clear filters</Button>
+          )}
+          <div className="ml-auto flex items-center gap-3">
+            <div className="text-sm text-muted-foreground">{filtered.length} assigned</div>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild><Button><Plus /> Assign student</Button></DialogTrigger>
+              <NewAssignmentDialog routes={routes ?? []} onDone={() => setOpen(false)} />
+            </Dialog>
+          </div>
         </div>
       </div>
 
@@ -445,8 +503,8 @@ function AssignmentsTab() {
                     </div>
                   </Td>
                   <Td>{Number(a.monthly_fare).toLocaleString()}</Td>
-                  <Td className="text-muted-foreground">{a.start_date}</Td>
-                  <Td><Badge variant={a.is_active ? "success" : "default"}>{a.is_active ? "active" : "ended"}</Badge></Td>
+                  <Td className="text-muted-foreground">{formatDate(a.start_date)}</Td>
+                  <Td><Badge variant={a.is_active ? "success" : "default"}>{a.is_active ? "Active" : "Ended"}</Badge></Td>
                   <Td className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => confirm("Remove assignment?") && del.mutate(a.id)}>
                       <Trash2 className="size-4 text-danger" />

@@ -36,6 +36,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatDate, formatStatus } from "@/lib/format";
 
 
 export const Route = createFileRoute("/_authenticated/admin/fees")({
@@ -100,7 +101,7 @@ const money = (n: number) =>
 
 function classLabel(c?: { name: string; section: string | null } | null) {
   if (!c) return "—";
-  return c.section ? `${c.name} · ${c.section}` : c.name;
+  return formatClass(c.name, c.section);
 }
 
 function statusVariant(s: InvoiceStatus) {
@@ -155,6 +156,7 @@ function InvoicesTab() {
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
   const [classFilter, setClassFilter] = useState<string>("all");
+  const [monthFilter, setMonthFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [paymentInvoice, setPaymentInvoice] = useState<InvoiceRow | null>(null);
 
@@ -187,17 +189,31 @@ function InvoicesTab() {
     },
   });
 
+  const months = useMemo(() => {
+    const set = new Set<string>();
+    (invoices ?? []).forEach((i) => set.add(i.issue_date.slice(0, 7)));
+    return Array.from(set).sort().reverse();
+  }, [invoices]);
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return invoices ?? [];
-    return (invoices ?? []).filter(
-      (i) =>
+    return (invoices ?? []).filter((i) => {
+      if (monthFilter !== "all" && i.issue_date.slice(0, 7) !== monthFilter) return false;
+      if (!term) return true;
+      return (
         i.invoice_no.toLowerCase().includes(term) ||
         i.title.toLowerCase().includes(term) ||
         i.students?.full_name.toLowerCase().includes(term) ||
-        i.students?.admission_no.toLowerCase().includes(term),
-    );
-  }, [invoices, search]);
+        i.students?.admission_no.toLowerCase().includes(term)
+      );
+    });
+  }, [invoices, search, monthFilter]);
+
+  const filterCount =
+    (statusFilter !== "all" ? 1 : 0) + (classFilter !== "all" ? 1 : 0) + (monthFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
+  function clearFilters() {
+    setStatusFilter("all"); setClassFilter("all"); setMonthFilter("all"); setSearch("");
+  }
 
   const stats = useMemo(() => {
     const list = invoices ?? [];
@@ -259,11 +275,27 @@ function InvoicesTab() {
               <SelectItem value="all">All statuses</SelectItem>
               {INVOICE_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>
-                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                  {formatStatus(s)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All months" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All months</SelectItem>
+              {months.map((m) => (
+                <SelectItem key={m} value={m}>
+                  {formatDate(`${m}-01`).slice(3)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {filterCount > 1 && (
+            <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+          )}
           <div className="ml-auto flex gap-2">
             <BulkInvoiceDialog classes={classes ?? []} />
             <CreateInvoiceDialog classes={classes ?? []} />
@@ -313,9 +345,9 @@ function InvoicesTab() {
                       <div className="text-xs text-muted-foreground">{inv.students?.admission_no}</div>
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">
-                      <div>{new Date(inv.issue_date).toLocaleDateString()}</div>
+                      <div>{formatDate(inv.issue_date)}</div>
                       <div className={isOverdue ? "font-semibold text-destructive" : ""}>
-                        Due {new Date(inv.due_date).toLocaleDateString()}
+                        Due {formatDate(inv.due_date)}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -325,8 +357,8 @@ function InvoicesTab() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <Badge variant={statusVariant(inv.status)} className="capitalize">
-                        {inv.status}
+                      <Badge variant={statusVariant(inv.status)}>
+                        {formatStatus(inv.status)}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
@@ -914,7 +946,7 @@ function PaymentDialog({ invoice, onClose }: { invoice: InvoiceRow; onClose: () 
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {METHODS.map((m) => (
-                  <SelectItem key={m} value={m} className="capitalize">{m.replace("_", " ")}</SelectItem>
+                  <SelectItem key={m} value={m}>{formatStatus(m)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -941,8 +973,8 @@ function PaymentDialog({ invoice, onClose }: { invoice: InvoiceRow; onClose: () 
               {payments!.map((p) => (
                 <li key={p.id} className="flex items-center gap-3 px-3 py-2 text-sm">
                   <span className="font-semibold">{money(p.amount)}</span>
-                  <Badge variant="outline" className="capitalize">{p.method.replace("_", " ")}</Badge>
-                  <span className="text-xs text-muted-foreground">{new Date(p.paid_on).toLocaleDateString()}</span>
+                  <Badge variant="outline">{formatStatus(p.method)}</Badge>
+                  <span className="text-xs text-muted-foreground">{formatDate(p.paid_on)}</span>
                   {p.reference && <span className="text-xs text-muted-foreground">· {p.reference}</span>}
                   <Button
                     size="icon"
@@ -1061,7 +1093,7 @@ function StructuresTab() {
                   </td>
                   <td className="px-4 py-3">{classLabel(s.classes)}</td>
                   <td className="px-4 py-3 font-semibold">{money(s.amount)}</td>
-                  <td className="px-4 py-3 capitalize">{s.frequency.replace("_", " ")}</td>
+                  <td className="px-4 py-3">{formatStatus(s.frequency)}</td>
                   <td className="px-4 py-3">{s.due_day ?? "—"}</td>
                   <td className="px-4 py-3">
                     <Badge variant={s.is_active ? "success" : "secondary"}>
@@ -1169,7 +1201,7 @@ function AddStructureDialog({ classes }: { classes: ClassRow[] }) {
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {FREQUENCIES.map((f) => (
-                  <SelectItem key={f} value={f} className="capitalize">{f.replace("_", " ")}</SelectItem>
+                  <SelectItem key={f} value={f}>{formatStatus(f)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

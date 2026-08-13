@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/library")({
   head: () => ({
@@ -110,6 +111,8 @@ function LibraryPage() {
 function BooksTab() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [open, setOpen] = useState(false);
 
   const { data: books, isLoading } = useQuery({
@@ -124,18 +127,33 @@ function BooksTab() {
     },
   });
 
+  const categories = useMemo(
+    () => Array.from(new Set((books ?? []).map((b) => b.category).filter(Boolean))).sort() as string[],
+    [books],
+  );
+
   const filtered = useMemo(() => {
     if (!books) return [];
     const q = search.trim().toLowerCase();
-    if (!q) return books;
-    return books.filter(
-      (b) =>
+    return books.filter((b) => {
+      if (categoryFilter !== "all" && b.category !== categoryFilter) return false;
+      if (availabilityFilter === "available" && b.available_copies <= 0) return false;
+      if (availabilityFilter === "unavailable" && b.available_copies > 0) return false;
+      if (!q) return true;
+      return (
         b.title.toLowerCase().includes(q) ||
         b.author.toLowerCase().includes(q) ||
         (b.isbn ?? "").toLowerCase().includes(q) ||
-        (b.category ?? "").toLowerCase().includes(q),
-    );
-  }, [books, search]);
+        (b.category ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [books, search, categoryFilter, availabilityFilter]);
+
+  const bookFilterCount =
+    (categoryFilter !== "all" ? 1 : 0) + (availabilityFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
+  function clearBookFilters() {
+    setCategoryFilter("all"); setAvailabilityFilter("all"); setSearch("");
+  }
 
   const totalBooks = books?.length ?? 0;
   const totalCopies = books?.reduce((s, b) => s + b.total_copies, 0) ?? 0;
@@ -162,6 +180,24 @@ function BooksTab() {
               className="pl-9"
             />
           </div>
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder="All categories" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All categories</SelectItem>
+              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Availability" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All availability</SelectItem>
+              <SelectItem value="available">Available</SelectItem>
+              <SelectItem value="unavailable">Unavailable</SelectItem>
+            </SelectContent>
+          </Select>
+          {bookFilterCount > 1 && (
+            <Button variant="ghost" onClick={clearBookFilters}>Clear filters</Button>
+          )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -335,6 +371,11 @@ function IssuesTab() {
     });
   }, [issues, search, statusFilter, today]);
 
+  const issueFilterCount = (statusFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
+  function clearIssueFilters() {
+    setStatusFilter("all"); setSearch("");
+  }
+
   const active = issues?.filter((i) => i.status === "issued" || i.status === "overdue").length ?? 0;
   const overdue = issues?.filter((i) => (i.status === "overdue") || (i.status === "issued" && i.due_date < today)).length ?? 0;
   const returned = issues?.filter((i) => i.status === "returned").length ?? 0;
@@ -385,6 +426,9 @@ function IssuesTab() {
               <SelectItem value="lost">Lost</SelectItem>
             </SelectContent>
           </Select>
+          {issueFilterCount > 1 && (
+            <Button variant="ghost" onClick={clearIssueFilters}>Clear filters</Button>
+          )}
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -430,9 +474,9 @@ function IssuesTab() {
                         <div className="font-medium">{i.students?.full_name ?? "—"}</div>
                         <div className="text-xs text-muted-foreground">{i.students?.admission_no}</div>
                       </td>
-                      <td className="py-2 pr-3 text-muted-foreground">{i.issue_date}</td>
+                      <td className="py-2 pr-3 text-muted-foreground">{formatDate(i.issue_date)}</td>
                       <td className="py-2 pr-3 text-muted-foreground">
-                        {i.due_date}
+                        {formatDate(i.due_date)}
                         {isOverdue && (
                           <AlertTriangle className="inline size-3 ml-1 text-destructive" />
                         )}
@@ -449,7 +493,7 @@ function IssuesTab() {
                             <Undo2 className="size-3.5 mr-1" /> Return
                           </Button>
                         ) : (
-                          <span className="text-xs text-muted-foreground">{i.return_date ?? "—"}</span>
+                          <span className="text-xs text-muted-foreground">{i.return_date ? formatDate(i.return_date) : "—"}</span>
                         )}
                       </td>
                     </tr>

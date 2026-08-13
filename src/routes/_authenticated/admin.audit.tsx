@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { Search, Activity } from "lucide-react";
 
 import { AppShell } from "@/components/admin/app-shell";
+import { formatDateTime, formatStatus } from "@/lib/format";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,6 +44,7 @@ const ACTION_CLS: Record<string, string> = {
 function AuditPage() {
   const [search, setSearch] = useState("");
   const [entityFilter, setEntity] = useState("all");
+  const [actionFilter, setAction] = useState("all");
 
   const q = useQuery({
     queryKey: ["audit_logs"],
@@ -54,18 +57,27 @@ function AuditPage() {
 
   const rows = q.data ?? [];
   const entities = useMemo(() => Array.from(new Set(rows.map((r) => r.entity_type))).sort(), [rows]);
+  const actions = useMemo(() => Array.from(new Set(rows.map((r) => r.action))).sort(), [rows]);
 
-  const filtered = rows.filter((r) => {
-    if (entityFilter !== "all" && r.entity_type !== entityFilter) return false;
-    if (!search) return true;
-    const s = search.toLowerCase();
-    return (
-      (r.actor_email ?? "").toLowerCase().includes(s) ||
-      r.action.toLowerCase().includes(s) ||
-      r.entity_type.toLowerCase().includes(s) ||
-      (r.entity_id ?? "").toLowerCase().includes(s)
-    );
-  });
+  const filtered = useMemo(() => {
+    return rows.filter((r) => {
+      if (entityFilter !== "all" && r.entity_type !== entityFilter) return false;
+      if (actionFilter !== "all" && r.action !== actionFilter) return false;
+      if (!search) return true;
+      const s = search.toLowerCase();
+      return (
+        (r.actor_email ?? "").toLowerCase().includes(s) ||
+        r.action.toLowerCase().includes(s) ||
+        r.entity_type.toLowerCase().includes(s) ||
+        (r.entity_id ?? "").toLowerCase().includes(s)
+      );
+    });
+  }, [rows, entityFilter, actionFilter, search]);
+
+  const filterCount = (entityFilter !== "all" ? 1 : 0) + (actionFilter !== "all" ? 1 : 0) + (search ? 1 : 0);
+  function clearFilters() {
+    setEntity("all"); setAction("all"); setSearch("");
+  }
 
   return (
     <AppShell>
@@ -81,9 +93,19 @@ function AuditPage() {
             <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All entities</SelectItem>
-              {entities.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+              {entities.map((e) => <SelectItem key={e} value={e}>{formatStatus(e)}</SelectItem>)}
             </SelectContent>
           </Select>
+          <Select value={actionFilter} onValueChange={setAction}>
+            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All actions</SelectItem>
+              {actions.map((a) => <SelectItem key={a} value={a}>{formatStatus(a)}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {filterCount > 1 && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>Clear filters</Button>
+          )}
           <div className="ml-auto relative w-full max-w-xs">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search actor, action, entity…" className="pl-9" />
@@ -110,7 +132,7 @@ function AuditPage() {
               {filtered.map((r) => (
                 <tr key={r.id} className="border-t border-border hover:bg-primary-pale/20 align-top">
                   <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">
-                    {new Date(r.created_at).toLocaleString()}
+                    {formatDateTime(r.created_at)}
                   </td>
                   <td className="px-3 py-2">
                     <div className="text-foreground">{r.actor_email ?? "—"}</div>
@@ -118,11 +140,11 @@ function AuditPage() {
                   </td>
                   <td className="px-3 py-2">
                     <Badge variant="outline" className={ACTION_CLS[r.action.toLowerCase()] ?? "bg-muted text-muted-foreground"}>
-                      <Activity className="mr-1 size-3" />{r.action}
+                      <Activity className="mr-1 size-3" />{formatStatus(r.action)}
                     </Badge>
                   </td>
                   <td className="px-3 py-2">
-                    <div className="font-medium text-foreground">{r.entity_type}</div>
+                    <div className="font-medium text-foreground">{formatStatus(r.entity_type)}</div>
                     {r.entity_id && <div className="text-xs text-muted-foreground font-mono">{r.entity_id.slice(0, 8)}</div>}
                   </td>
                   <td className="px-3 py-2 text-xs text-muted-foreground max-w-md">

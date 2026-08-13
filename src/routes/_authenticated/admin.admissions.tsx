@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatDate, formatDateTime, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/admissions")({
   head: () => ({
@@ -102,6 +103,8 @@ function AdmissionsPage() {
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [interviewApp, setInterviewApp] = useState<Application | null>(null);
+  const [classFilter, setClassFilter] = useState("all");
+  const [feeFilter, setFeeFilter] = useState("all");
 
   const appsQ = useQuery({
     queryKey: ["admission_applications"],
@@ -148,6 +151,8 @@ function AdmissionsPage() {
 
   const filtered = apps.filter((a) => {
     if (tab !== "all" && a.status !== tab) return false;
+    if (classFilter !== "all" && a.applying_for_class_id !== classFilter) return false;
+    if (feeFilter !== "all" && (feeFilter === "paid") !== a.fee_paid) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -157,6 +162,9 @@ function AdmissionsPage() {
       a.guardian_phone.includes(q)
     );
   });
+
+  const activeFilterCount = [tab !== "all", classFilter !== "all", feeFilter !== "all", !!search].filter(Boolean).length;
+  const clearFilters = () => { setTab("all"); setClassFilter("all"); setFeeFilter("all"); setSearch(""); };
 
   const counts = useMemo(() => {
     const c: Record<string, number> = { total: apps.length };
@@ -244,6 +252,33 @@ function AdmissionsPage() {
           </div>
         </div>
 
+        <div className="mt-3 flex flex-wrap items-end gap-3">
+          <Select value={classFilter} onValueChange={setClassFilter}>
+            <SelectTrigger className="w-52">
+              <SelectValue placeholder="Applying for class" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All classes</SelectItem>
+              {classes.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{formatClass(c.name)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={feeFilter} onValueChange={setFeeFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Fee paid" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All fee status</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="unpaid">Unpaid</SelectItem>
+            </SelectContent>
+          </Select>
+          {activeFilterCount > 1 && (
+            <Button variant="ghost" onClick={clearFilters}>Clear filters</Button>
+          )}
+        </div>
+
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -276,11 +311,11 @@ function AdmissionsPage() {
                         {a.first_name} {a.last_name}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {a.gender ?? "—"} · {a.date_of_birth ?? "DOB —"}
+                        {a.gender ?? "—"} · {a.date_of_birth ? formatDate(a.date_of_birth) : "DOB —"}
                       </div>
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {a.applying_for_class_id ? classMap[a.applying_for_class_id] ?? "—" : "—"}
+                      {a.applying_for_class_id ? formatClass(classMap[a.applying_for_class_id]) : "—"}
                     </td>
                     <td className="px-3 py-2">
                       <div className="text-foreground">{a.guardian_name}</div>
@@ -311,7 +346,7 @@ function AdmissionsPage() {
                     </td>
                     <td className="px-3 py-2">
                       <Badge variant="outline" className={STATUS_BADGE[a.status].className}>
-                        {STATUS_BADGE[a.status].label}
+                        {formatStatus(a.status)}
                       </Badge>
                     </td>
                     <td className="px-3 py-2">
@@ -334,7 +369,7 @@ function AdmissionsPage() {
                           <SelectContent>
                             {(Object.keys(STATUS_BADGE) as Status[]).map((s) => (
                               <SelectItem key={s} value={s}>
-                                {STATUS_BADGE[s].label}
+                                {formatStatus(s)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -500,7 +535,7 @@ function AddApplicationDialog({
               <SelectContent>
                 {classes.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
-                    {c.name}
+                    {formatClass(c.name)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -731,10 +766,10 @@ function InterviewDialog({
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
                         <div className="font-medium text-foreground">
-                          {new Date(iv.scheduled_at).toLocaleString()}
+                          {formatDateTime(iv.scheduled_at)}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {iv.mode.replace("_", " ")} · {iv.interviewer_name ?? "Interviewer TBD"} ·
+                          {formatStatus(iv.mode)} · {iv.interviewer_name ?? "Interviewer TBD"} ·
                           {iv.score != null ? ` Score ${iv.score}` : " No score"}
                         </div>
                         {iv.remarks && (
@@ -754,7 +789,7 @@ function InterviewDialog({
                               : "bg-muted text-muted-foreground"
                           }
                         >
-                          {iv.outcome}
+                          {formatStatus(iv.outcome)}
                         </Badge>
                         <Button
                           size="sm"

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppShell, useSessionUser } from "@/components/admin/app-shell";
 import { supabase } from "@/integrations/supabase/client";
+import { formatClass, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
@@ -154,10 +155,10 @@ function AdminDashboard() {
                       </div>
                     </Td>
                     <Td className="text-muted-foreground">
-                      {r.classes ? `${r.classes.name}${r.classes.section ? ` — ${r.classes.section}` : ""}` : "—"}
+                      {r.classes ? formatClass(r.classes.name, r.classes.section) : "—"}
                     </Td>
                     <Td>
-                      <Badge variant={statusVariant(r.status)}>{r.status}</Badge>
+                      <Badge variant={statusVariant(r.status)}>{formatStatus(r.status)}</Badge>
                     </Td>
                   </tr>
                 ))}
