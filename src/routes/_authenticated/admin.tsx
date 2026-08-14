@@ -20,6 +20,7 @@ const TEACHER_PATHS = [
   "/admin/attendance",
   "/admin/timetable",
   "/admin/messaging",
+  "/admin/events",
 ];
 
 function AdminLayout() {

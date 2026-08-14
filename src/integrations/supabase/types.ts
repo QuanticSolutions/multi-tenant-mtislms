@@ -440,6 +440,150 @@ export type Database = {
           },
         ]
       }
+      donations: {
+        Row: {
+          amount: number
+          created_at: string
+          donation_date: string
+          donor_email: string | null
+          donor_name: string
+          donor_phone: string | null
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          purpose: string | null
+          reference: string | null
+          source: string
+          status: Database["public"]["Enums"]["donation_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          donation_date?: string
+          donor_email?: string | null
+          donor_name: string
+          donor_phone?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          purpose?: string | null
+          reference?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["donation_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          donation_date?: string
+          donor_email?: string | null
+          donor_name?: string
+          donor_phone?: string | null
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          purpose?: string | null
+          reference?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["donation_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      drivers: {
+        Row: {
+          cnic: string | null
+          created_at: string
+          full_name: string
+          id: string
+          is_active: boolean
+          licence_no: string | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          vehicle_model: string | null
+          vehicle_registration: string | null
+        }
+        Insert: {
+          cnic?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          is_active?: boolean
+          licence_no?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          vehicle_model?: string | null
+          vehicle_registration?: string | null
+        }
+        Update: {
+          cnic?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          licence_no?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          vehicle_model?: string | null
+          vehicle_registration?: string | null
+        }
+        Relationships: []
+      }
+      employment_applications: {
+        Row: {
+          created_at: string
+          cv_url: string | null
+          email: string | null
+          expected_salary: number | null
+          experience_years: number | null
+          full_name: string
+          id: string
+          notes: string | null
+          phone: string
+          position: string
+          qualification: string | null
+          source: string
+          status: Database["public"]["Enums"]["employment_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cv_url?: string | null
+          email?: string | null
+          expected_salary?: number | null
+          experience_years?: number | null
+          full_name: string
+          id?: string
+          notes?: string | null
+          phone: string
+          position: string
+          qualification?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["employment_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cv_url?: string | null
+          email?: string | null
+          expected_salary?: number | null
+          experience_years?: number | null
+          full_name?: string
+          id?: string
+          notes?: string | null
+          phone?: string
+          position?: string
+          qualification?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["employment_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           audience: Database["public"]["Enums"]["event_audience"]
@@ -1539,6 +1683,7 @@ export type Database = {
           class_id: string | null
           created_at: string
           date_of_birth: string | null
+          driver_id: string | null
           enrollment_date: string
           full_name: string
           gender: string | null
@@ -1558,6 +1703,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string
           date_of_birth?: string | null
+          driver_id?: string | null
           enrollment_date?: string
           full_name: string
           gender?: string | null
@@ -1577,6 +1723,7 @@ export type Database = {
           class_id?: string | null
           created_at?: string
           date_of_birth?: string | null
+          driver_id?: string | null
           enrollment_date?: string
           full_name?: string
           gender?: string | null
@@ -1596,6 +1743,13 @@ export type Database = {
             columns: ["class_id"]
             isOneToOne: false
             referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
             referencedColumns: ["id"]
           },
         ]
@@ -1973,6 +2127,14 @@ export type Database = {
         | "accountant"
       attendance_status: "present" | "absent" | "late" | "excused"
       book_issue_status: "issued" | "returned" | "overdue" | "lost"
+      donation_status: "pledged" | "received" | "cancelled"
+      employment_status:
+        | "new"
+        | "screening"
+        | "interview"
+        | "offered"
+        | "hired"
+        | "rejected"
       event_audience: "all" | "students" | "teachers" | "parents" | "staff"
       event_type:
         | "holiday"
@@ -2165,6 +2327,15 @@ export const Constants = {
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       book_issue_status: ["issued", "returned", "overdue", "lost"],
+      donation_status: ["pledged", "received", "cancelled"],
+      employment_status: [
+        "new",
+        "screening",
+        "interview",
+        "offered",
+        "hired",
+        "rejected",
+      ],
       event_audience: ["all", "students", "teachers", "parents", "staff"],
       event_type: [
         "holiday",
