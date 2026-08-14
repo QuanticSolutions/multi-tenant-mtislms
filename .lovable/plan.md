@@ -1,114 +1,88 @@
-# Madina Tul Ilm — Version 2 Roadmap
+# Transport rework, Donations & Employees modules, embeddable forms
 
-Version 1 delivered 18 modules (Dashboard, Students, Teachers, Classes, Attendance, Timetable, Exams, Fees, Library, Homework, Transport, Messaging, Reports, Events, Inventory, Staff & Payroll, Admissions, Notifications, Settings, Audit). V2 fills every gap in your original spec and adds cross-cutting infrastructure.
+## 1. Fix the "Supabase URL / key not published" error on the Users page
 
-## Coverage vs. the spec
+The Users page is the only screen that uses a privileged server key (it creates
+accounts and reads the auth user list). Every other page uses the public key
+that is baked into the build, which is why only this table fails on your
+Cloudflare deployment.
 
-| Area | V1 status | V2 additions |
-|---|---|---|
-| Admin Dashboard | Basic stat tiles | Event calendar widget, quick actions panel, weekly attendance bar chart, monthly fee collection line chart, "Today's summary" card |
-| Students | List + add + delete | Full admission form with sections, profile photos, bulk CSV import (Papa Parse), student profile page, promotion workflow, per-student ledger |
-| Teachers | List + add | Teacher profile page with subjects & classes taught, bulk import, resignation flow |
-| Parents | ❌ Missing | New Parents module: list, add, bulk import, link to students, parent portal seed |
-| Sections | Attribute on classes | Dedicated Sections tab, per-class section management, class teacher assignment |
-| Subjects | ❌ Missing | Subjects module: per-class subjects, teacher allocation, ties into exams & timetable |
-| Class Routine (Timetable) | Grid + slots | Subject-color coding, printable stylesheet, teacher-workload view |
-| Attendance | Daily marker | Monthly report grid (student × day), PDF/CSV export, attendance % analytics |
-| Exams | Schedule + marks | Grades tab (uses grading scales), tabulation sheet, marksheet PDF, question papers upload, SMS results |
-| Online Exams | ❌ Missing | Online exams module: MCQ builder, timed sittings, auto-grading, attempt log |
-| Study Material | ❌ Missing | Study material library per class/subject, file upload, download tracking |
-| Accounting | Invoices + payments | Fee heads catalog, scholarships (holder/create/assign), expenses + categories, mass invoice generation, invoice PDF |
-| Library | Catalog + issues | Book PDFs, fines on overdue returns, reservations queue |
-| Noticeboard | Announcements table | Cards/table view toggle, "Show on Website" flag, archive tab |
-| Messaging (chat) | Log table | Real-time thread UI with Supabase Realtime, group messages, unread badges |
-| Account / Profile | ❌ Missing | Profile page + change password tab for every signed-in user |
-| Notifications | Manual log | Email delivery via Lovable Emails, SMS via connector (Twilio/GatewayAPI), templated triggers (invoice, exam, absence), user preferences |
-| Settings | Profile/session/grading/roles | Fee heads, expense categories, dormitories, SMS templates, backup/export |
-| Audit | Table + viewer | Auto-log triggers on every table (create/update/delete), actor IP capture, filterable timeline |
-| Reports | Overview | Downloadable PDF/CSV reports per module, custom date-range builder |
-| Role portals | Admin only | Teacher portal (my classes, my attendance, homework), Student portal (my marks, timetable, materials), Parent portal (child overview, fees, messages), Librarian & Accountant scoped views |
+Fix:
+- Add a small server-only helper that builds the admin client, falling back to
+  the build-time public URL when `SUPABASE_URL` is not set on the host, so only
+  one value must be configured.
+- Replace the raw error with a clear, friendly message on the Users page
+  ("Account management needs the server key configured on this deployment")
+  instead of a red environment error.
+- The service key itself still has to exist as a Cloudflare secret named
+  `SUPABASE_SERVICE_ROLE_KEY` (worker secret, not a `VITE_` variable) — I'll
+  document exactly where to put it. Nothing else changes.
 
-## Sequenced phases
+## 2. Transport moves under Students, drivers only
 
-Modules move together so downstream dependencies always land after their inputs.
+- Remove Transport from the Operations group; it becomes a collapsible section
+  inside the Students group in the sidebar.
+- Transport page is reduced to **Drivers**: name, phone, CNIC/licence, vehicle
+  registration, notes, active flag. Routes, stops, fares and vehicle records are
+  retired from the UI.
+- Student create/edit form gets a "Transport driver" dropdown; the link is saved
+  with the student.
+- Students table gets a Driver column plus a driver filter.
 
-### Phase 1 — Academic Foundations *(unblocks exams, timetable, portals)*
-1. Sections tab on Classes + class-teacher assignment
-2. Subjects module tied to class + teacher
-3. Parents module (list, add, link to students) + parent contact merge
-4. Student promotion workflow (session-to-session bulk move)
+Database: new `drivers` table (with grants + admin/staff policies) and a
+`driver_id` column on `students`. Existing transport tables stay untouched in
+the database but are no longer surfaced.
 
-### Phase 2 — Data Import & Profiles
-5. Bulk CSV import for Students / Teachers / Parents (Papa Parse)
-6. Profile photos (Supabase Storage bucket) — students, teachers, parents
-7. Student / Teacher / Parent detail pages (tabs: overview, attendance, fees, results)
-8. Account / Profile route with change-password
+## 3. Admissions / Donations / Employees as three tabs
 
-### Phase 3 — Exam & Marks Depth
-9. Exam Grades tab pulling from `grading_scales`
-10. Marksheet PDF generator (jspdf/react-pdf) with MTIS header
-11. Tabulation sheet (class × subject × student ranking)
-12. Question papers upload + downloads
-13. Online Exams module: MCQ builder + timed attempts + auto-grade
+A single "Intake" area with three tabs:
+- **Admissions** — existing module, moved under the tab shell.
+- **Donations** — new: donor name, contact, email, amount, purpose, payment
+  method, reference, date, status (Pledged / Received / Cancelled), notes.
+  Full create / edit / delete, stats cards, filter bar.
+- **Employees** — new: job applications for staff (name, contact, email,
+  position applied for, qualification, experience, CV/portfolio link, expected
+  salary, status: New / Screening / Interview / Offered / Hired / Rejected),
+  full CRUD, stats, filter bar.
 
-### Phase 4 — Finance Expansion
-14. Fee Heads catalog + invoice line items
-15. Mass invoice generation (all students in class → same template)
-16. Scholarships (holders, types, discount rules)
-17. Expenses + Expense Categories
-18. Invoice / receipt PDFs
+Both new tables follow the existing pattern: timestamps, update trigger, grants,
+admin-managed policies, and an insert path for public form submissions.
 
-### Phase 5 — Delivery & Communication
-19. Wire real Email (Lovable Emails) into Notifications, with templates for: fee invoice created, attendance absence, exam result published, homework assigned, announcement broadcast
-20. SMS connector (Twilio or GatewayAPI) + `Send SMS` tabs on Exams and Noticeboard
-21. Realtime Messaging (Supabase Realtime channels + threaded UI)
-22. Noticeboard cards + website-visibility toggle
+## 4. Embeddable public forms + event calendar
 
-### Phase 6 — Insights & Ops
-23. Attendance monthly report grid + PDF/CSV export
-24. Dashboard calendar widget + attendance/fee charts (Recharts) + today's summary
-25. Study Material module (per class/subject, storage-backed)
-26. Reports upgrade — per-module PDF/CSV export
+Public, unauthenticated routes under `/embed`:
+- `/embed/admissions` — application form
+- `/embed/donations` — donation form
+- `/embed/employees` — job application form
+- `/embed/events` — read-only month calendar of published events
 
-### Phase 7 — Cross-cutting Hardening
-27. Auto audit-log triggers (Postgres triggers writing to `audit_logs` on every DML) — connects to Audit module built in V1
-28. Notification preference matrix per user (opt in/out per channel)
-29. Backup / data export in Settings
-30. Role-scoped portals: Teacher, Student, Parent, Librarian, Accountant dashboards (all reuse the existing shell but with role gates)
+Each writes through a public server endpoint that validates input, rate-limits
+per submission, and never reads existing records — so an embed can only add a
+record (or, for events, only read).
 
-## How the phases link together
+Each admin tab shows a "Copy embed code" button producing:
 
 ```text
-Phase 1 (Sections, Subjects, Parents)
-        │
-        ├─► Phase 2 (Profiles, Imports)  ─┐
-        │                                 │
-        └─► Phase 3 (Exam depth)          ├─► Phase 6 (Reports, Dashboard, Study Material)
-                                          │
-Phase 4 (Finance) ─────────────► Phase 5 (Notifications & SMS delivery)
-                                          │
-                                          └─► Phase 7 (Audit auto-log, Portals, Backups)
+<iframe src="https://your-site/embed/donations" width="100%" height="720"
+        style="border:0" title="Donation form"></iframe>
 ```
 
-Every phase closes with a security-linter run and a quick end-to-end smoke test so later phases start on a green baseline.
+The link matches whichever tab is open.
 
-## Technical details
+## 5. Events visibility
 
-- Storage buckets to provision in Phase 2: `avatars` (public read, admin write), `study-material`, `question-papers`, `books-pdf` (signed URLs), `invoices` (signed).
-- PDF generation: `jspdf` + `jspdf-autotable` server-side inside `createServerFn` handlers to keep the client bundle small.
-- CSV parsing: `papaparse` client-side with a validation preview step before insert.
-- Email: use Lovable Emails scaffolder (`scaffold_transactional_email_templates`) — no third-party keys.
-- SMS: prefer Twilio via `standard_connectors--connect`; GatewayAPI as alt. Wire through the connector gateway from a server function.
-- Realtime chat: single `messages` channel subscription keyed by conversation id; add `conversations` table.
-- Audit auto-log: one PL/pgSQL trigger function `public.log_audit()` attached via `AFTER INSERT OR UPDATE OR DELETE` on every user-facing table.
-- Role portals: reuse `AppShell`, gate at `_authenticated` layout with role-specific redirects (teacher → `/teacher`, student → `/student`, parent → `/parent`).
+- Teachers and students get a read-only Events page (calendar + list), no create,
+  edit or delete controls.
+- The events embed is read-only by database policy, not just by UI.
 
-## Deliverable per phase
+## Technical notes
 
-Each phase ends with:
-- Database migrations for its new tables/triggers
-- Route files under `/admin/*` and, in Phase 7, `/teacher/*` `/student/*` `/parent/*`
-- Sidebar entries and any nav restructuring
-- Short progress summary + what's next
-
-Estimated size: ~30 sub-modules across 7 phases. Start with Phase 1 when ready.
+- New tables: `drivers`, `donations`, `employee_applications`; new column
+  `students.driver_id`.
+- Public write access is granted only through narrow insert policies scoped to
+  the three intake tables; public read is granted only to published events.
+- Embed routes render outside the app shell with their own minimal layout so
+  they look correct inside an iframe on any site, and set
+  `X-Frame-Options`-free headers to allow embedding.
+- All new tables use the shared date/status formatting helpers so casing and
+  day-month-year dates match the rest of the app.
