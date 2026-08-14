@@ -30,7 +30,8 @@ export const listUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<ManagedUser[]> => {
     await assertAdmin(context as Ctx);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getAdminClient } = await import("@/lib/api/admin.server");
+    const supabaseAdmin = getAdminClient();
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers({
       page: 1,
@@ -76,7 +77,8 @@ export const createUser = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context as Ctx);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getAdminClient } = await import("@/lib/api/admin.server");
+    const supabaseAdmin = getAdminClient();
 
     const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
       email: data.email,
@@ -119,7 +121,8 @@ export const setUserRole = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }) => {
     await assertAdmin(context as Ctx);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getAdminClient } = await import("@/lib/api/admin.server");
+    const supabaseAdmin = getAdminClient();
 
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.user_id);
     const { error } = await supabaseAdmin
@@ -137,7 +140,8 @@ export const deleteUser = createServerFn({ method: "POST" })
     await assertAdmin(ctx);
     if (ctx.userId === data.user_id) throw new Error("You cannot delete your own account");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { getAdminClient } = await import("@/lib/api/admin.server");
+    const supabaseAdmin = getAdminClient();
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.user_id);
     if (error) throw new Error(error.message);
     return { ok: true };

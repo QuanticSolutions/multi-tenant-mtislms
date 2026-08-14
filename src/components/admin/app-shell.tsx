@@ -28,6 +28,8 @@ import {
   Layers,
   ArrowUpRight,
   UserCog,
+  HeartHandshake,
+  BriefcaseBusiness,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -59,6 +61,9 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: Users, label: "Students", to: "/admin/students", teacher: true },
       { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
+      { icon: HeartHandshake, label: "Donations", to: "/admin/donations" },
+      { icon: BriefcaseBusiness, label: "Employees", to: "/admin/employees" },
+      { icon: Bus, label: "Transport drivers", to: "/admin/drivers" },
       { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
       { icon: UserCheck, label: "Parents", to: "/admin/parents" },
     ],
@@ -85,7 +90,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: Wallet, label: "Fees", to: "/admin/fees" },
       { icon: BookOpen, label: "Library", to: "/admin/library" },
-      { icon: Bus, label: "Transport", to: "/admin/transport" },
       { icon: Package, label: "Inventory", to: "/admin/inventory" },
     ],
   },
@@ -94,7 +98,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true },
       { icon: Bell, label: "Notifications", to: "/admin/notifications" },
-      { icon: CalendarRange, label: "Events", to: "/admin/events" },
+      { icon: CalendarRange, label: "Events", to: "/admin/events", teacher: true },
     ],
   },
   {

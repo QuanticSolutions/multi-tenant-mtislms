@@ -12,11 +12,14 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EmbedEventsRouteImport } from './routes/embed.events'
+import { Route as EmbedEmployeesRouteImport } from './routes/embed.employees'
+import { Route as EmbedDonationsRouteImport } from './routes/embed.donations'
+import { Route as EmbedAdmissionsRouteImport } from './routes/embed.admissions'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
-import { Route as AuthenticatedAdminTransportRouteImport } from './routes/_authenticated/admin.transport'
 import { Route as AuthenticatedAdminTimetableRouteImport } from './routes/_authenticated/admin.timetable'
 import { Route as AuthenticatedAdminTeachersRouteImport } from './routes/_authenticated/admin.teachers'
 import { Route as AuthenticatedAdminSubjectsRouteImport } from './routes/_authenticated/admin.subjects'
@@ -34,6 +37,9 @@ import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
+import { Route as AuthenticatedAdminEmployeesRouteImport } from './routes/_authenticated/admin.employees'
+import { Route as AuthenticatedAdminDriversRouteImport } from './routes/_authenticated/admin.drivers'
+import { Route as AuthenticatedAdminDonationsRouteImport } from './routes/_authenticated/admin.donations'
 import { Route as AuthenticatedAdminClassesRouteImport } from './routes/_authenticated/admin.classes'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin.attendance'
@@ -51,6 +57,26 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedEventsRoute = EmbedEventsRouteImport.update({
+  id: '/embed/events',
+  path: '/embed/events',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedEmployeesRoute = EmbedEmployeesRouteImport.update({
+  id: '/embed/employees',
+  path: '/embed/employees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedDonationsRoute = EmbedDonationsRouteImport.update({
+  id: '/embed/donations',
+  path: '/embed/donations',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmbedAdmissionsRoute = EmbedAdmissionsRouteImport.update({
+  id: '/embed/admissions',
+  path: '/embed/admissions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
@@ -73,12 +99,6 @@ const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
-const AuthenticatedAdminTransportRoute =
-  AuthenticatedAdminTransportRouteImport.update({
-    id: '/transport',
-    path: '/transport',
-    getParentRoute: () => AuthenticatedAdminRoute,
-  } as any)
 const AuthenticatedAdminTimetableRoute =
   AuthenticatedAdminTimetableRouteImport.update({
     id: '/timetable',
@@ -178,6 +198,24 @@ const AuthenticatedAdminEventsRoute =
     path: '/events',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminEmployeesRoute =
+  AuthenticatedAdminEmployeesRouteImport.update({
+    id: '/employees',
+    path: '/employees',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminDriversRoute =
+  AuthenticatedAdminDriversRouteImport.update({
+    id: '/drivers',
+    path: '/drivers',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
+const AuthenticatedAdminDonationsRoute =
+  AuthenticatedAdminDonationsRouteImport.update({
+    id: '/donations',
+    path: '/donations',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminClassesRoute =
   AuthenticatedAdminClassesRouteImport.update({
     id: '/classes',
@@ -207,10 +245,17 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/portal': typeof AuthenticatedPortalRoute
+  '/embed/admissions': typeof EmbedAdmissionsRoute
+  '/embed/donations': typeof EmbedDonationsRoute
+  '/embed/employees': typeof EmbedEmployeesRoute
+  '/embed/events': typeof EmbedEventsRoute
   '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/classes': typeof AuthenticatedAdminClassesRoute
+  '/admin/donations': typeof AuthenticatedAdminDonationsRoute
+  '/admin/drivers': typeof AuthenticatedAdminDriversRoute
+  '/admin/employees': typeof AuthenticatedAdminEmployeesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -228,7 +273,6 @@ export interface FileRoutesByFullPath {
   '/admin/subjects': typeof AuthenticatedAdminSubjectsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/timetable': typeof AuthenticatedAdminTimetableRoute
-  '/admin/transport': typeof AuthenticatedAdminTransportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -236,10 +280,17 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/embed/admissions': typeof EmbedAdmissionsRoute
+  '/embed/donations': typeof EmbedDonationsRoute
+  '/embed/employees': typeof EmbedEmployeesRoute
+  '/embed/events': typeof EmbedEventsRoute
   '/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/classes': typeof AuthenticatedAdminClassesRoute
+  '/admin/donations': typeof AuthenticatedAdminDonationsRoute
+  '/admin/drivers': typeof AuthenticatedAdminDriversRoute
+  '/admin/employees': typeof AuthenticatedAdminEmployeesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -257,7 +308,6 @@ export interface FileRoutesByTo {
   '/admin/subjects': typeof AuthenticatedAdminSubjectsRoute
   '/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/admin/timetable': typeof AuthenticatedAdminTimetableRoute
-  '/admin/transport': typeof AuthenticatedAdminTransportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
@@ -268,10 +318,17 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/embed/admissions': typeof EmbedAdmissionsRoute
+  '/embed/donations': typeof EmbedDonationsRoute
+  '/embed/employees': typeof EmbedEmployeesRoute
+  '/embed/events': typeof EmbedEventsRoute
   '/_authenticated/admin/admissions': typeof AuthenticatedAdminAdmissionsRoute
   '/_authenticated/admin/attendance': typeof AuthenticatedAdminAttendanceRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/classes': typeof AuthenticatedAdminClassesRoute
+  '/_authenticated/admin/donations': typeof AuthenticatedAdminDonationsRoute
+  '/_authenticated/admin/drivers': typeof AuthenticatedAdminDriversRoute
+  '/_authenticated/admin/employees': typeof AuthenticatedAdminEmployeesRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
@@ -289,7 +346,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/subjects': typeof AuthenticatedAdminSubjectsRoute
   '/_authenticated/admin/teachers': typeof AuthenticatedAdminTeachersRoute
   '/_authenticated/admin/timetable': typeof AuthenticatedAdminTimetableRoute
-  '/_authenticated/admin/transport': typeof AuthenticatedAdminTransportRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
@@ -300,10 +356,17 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/portal'
+    | '/embed/admissions'
+    | '/embed/donations'
+    | '/embed/employees'
+    | '/embed/events'
     | '/admin/admissions'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/classes'
+    | '/admin/donations'
+    | '/admin/drivers'
+    | '/admin/employees'
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
@@ -321,7 +384,6 @@ export interface FileRouteTypes {
     | '/admin/subjects'
     | '/admin/teachers'
     | '/admin/timetable'
-    | '/admin/transport'
     | '/admin/users'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -329,10 +391,17 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/portal'
+    | '/embed/admissions'
+    | '/embed/donations'
+    | '/embed/employees'
+    | '/embed/events'
     | '/admin/admissions'
     | '/admin/attendance'
     | '/admin/audit'
     | '/admin/classes'
+    | '/admin/donations'
+    | '/admin/drivers'
+    | '/admin/employees'
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
@@ -350,7 +419,6 @@ export interface FileRouteTypes {
     | '/admin/subjects'
     | '/admin/teachers'
     | '/admin/timetable'
-    | '/admin/transport'
     | '/admin/users'
     | '/admin'
   id:
@@ -360,10 +428,17 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/portal'
+    | '/embed/admissions'
+    | '/embed/donations'
+    | '/embed/employees'
+    | '/embed/events'
     | '/_authenticated/admin/admissions'
     | '/_authenticated/admin/attendance'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/classes'
+    | '/_authenticated/admin/donations'
+    | '/_authenticated/admin/drivers'
+    | '/_authenticated/admin/employees'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
     | '/_authenticated/admin/fees'
@@ -381,7 +456,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/subjects'
     | '/_authenticated/admin/teachers'
     | '/_authenticated/admin/timetable'
-    | '/_authenticated/admin/transport'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
@@ -390,6 +464,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  EmbedAdmissionsRoute: typeof EmbedAdmissionsRoute
+  EmbedDonationsRoute: typeof EmbedDonationsRoute
+  EmbedEmployeesRoute: typeof EmbedEmployeesRoute
+  EmbedEventsRoute: typeof EmbedEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -413,6 +491,34 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/events': {
+      id: '/embed/events'
+      path: '/embed/events'
+      fullPath: '/embed/events'
+      preLoaderRoute: typeof EmbedEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/employees': {
+      id: '/embed/employees'
+      path: '/embed/employees'
+      fullPath: '/embed/employees'
+      preLoaderRoute: typeof EmbedEmployeesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/donations': {
+      id: '/embed/donations'
+      path: '/embed/donations'
+      fullPath: '/embed/donations'
+      preLoaderRoute: typeof EmbedDonationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/embed/admissions': {
+      id: '/embed/admissions'
+      path: '/embed/admissions'
+      fullPath: '/embed/admissions'
+      preLoaderRoute: typeof EmbedAdmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/portal': {
@@ -441,13 +547,6 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AuthenticatedAdminUsersRouteImport
-      parentRoute: typeof AuthenticatedAdminRoute
-    }
-    '/_authenticated/admin/transport': {
-      id: '/_authenticated/admin/transport'
-      path: '/transport'
-      fullPath: '/admin/transport'
-      preLoaderRoute: typeof AuthenticatedAdminTransportRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
     '/_authenticated/admin/timetable': {
@@ -569,6 +668,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminEventsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/employees': {
+      id: '/_authenticated/admin/employees'
+      path: '/employees'
+      fullPath: '/admin/employees'
+      preLoaderRoute: typeof AuthenticatedAdminEmployeesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/drivers': {
+      id: '/_authenticated/admin/drivers'
+      path: '/drivers'
+      fullPath: '/admin/drivers'
+      preLoaderRoute: typeof AuthenticatedAdminDriversRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/admin/donations': {
+      id: '/_authenticated/admin/donations'
+      path: '/donations'
+      fullPath: '/admin/donations'
+      preLoaderRoute: typeof AuthenticatedAdminDonationsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/classes': {
       id: '/_authenticated/admin/classes'
       path: '/classes'
@@ -605,6 +725,9 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAttendanceRoute: typeof AuthenticatedAdminAttendanceRoute
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminClassesRoute: typeof AuthenticatedAdminClassesRoute
+  AuthenticatedAdminDonationsRoute: typeof AuthenticatedAdminDonationsRoute
+  AuthenticatedAdminDriversRoute: typeof AuthenticatedAdminDriversRoute
+  AuthenticatedAdminEmployeesRoute: typeof AuthenticatedAdminEmployeesRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
@@ -622,7 +745,6 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSubjectsRoute: typeof AuthenticatedAdminSubjectsRoute
   AuthenticatedAdminTeachersRoute: typeof AuthenticatedAdminTeachersRoute
   AuthenticatedAdminTimetableRoute: typeof AuthenticatedAdminTimetableRoute
-  AuthenticatedAdminTransportRoute: typeof AuthenticatedAdminTransportRoute
   AuthenticatedAdminUsersRoute: typeof AuthenticatedAdminUsersRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -632,6 +754,9 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAttendanceRoute: AuthenticatedAdminAttendanceRoute,
   AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
   AuthenticatedAdminClassesRoute: AuthenticatedAdminClassesRoute,
+  AuthenticatedAdminDonationsRoute: AuthenticatedAdminDonationsRoute,
+  AuthenticatedAdminDriversRoute: AuthenticatedAdminDriversRoute,
+  AuthenticatedAdminEmployeesRoute: AuthenticatedAdminEmployeesRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
@@ -649,7 +774,6 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminSubjectsRoute: AuthenticatedAdminSubjectsRoute,
   AuthenticatedAdminTeachersRoute: AuthenticatedAdminTeachersRoute,
   AuthenticatedAdminTimetableRoute: AuthenticatedAdminTimetableRoute,
-  AuthenticatedAdminTransportRoute: AuthenticatedAdminTransportRoute,
   AuthenticatedAdminUsersRoute: AuthenticatedAdminUsersRoute,
   AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
 }
@@ -674,6 +798,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  EmbedAdmissionsRoute: EmbedAdmissionsRoute,
+  EmbedDonationsRoute: EmbedDonationsRoute,
+  EmbedEmployeesRoute: EmbedEmployeesRoute,
+  EmbedEventsRoute: EmbedEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
