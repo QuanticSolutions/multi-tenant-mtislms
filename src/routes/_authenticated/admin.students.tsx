@@ -50,6 +50,8 @@ type StudentRow = {
   guardian_phone: string | null;
   enrollment_date: string;
   class_id: string | null;
+  driver_id: string | null;
+  drivers: { full_name: string } | null;
   classes: { name: string; section: string | null } | null;
 };
 
@@ -61,6 +63,7 @@ function StudentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [classFilter, setClassFilter] = useState<string>("all");
   const [genderFilter, setGenderFilter] = useState<string>("all");
+  const [driverFilter, setDriverFilter] = useState<string>("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<StudentRow | null>(null);
 
@@ -77,13 +80,25 @@ function StudentsPage() {
     },
   });
 
+  const { data: drivers } = useQuery({
+    queryKey: ["drivers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("drivers")
+        .select("id, full_name, phone, is_active")
+        .order("full_name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: students, isLoading } = useQuery({
     queryKey: ["students"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
         .select(
-          "id, admission_no, full_name, gender, status, guardian_name, guardian_phone, enrollment_date, class_id, classes(name, section)",
+          "id, admission_no, full_name, gender, status, guardian_name, guardian_phone, enrollment_date, class_id, driver_id, classes(name, section), drivers(full_name)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -91,7 +106,7 @@ function StudentsPage() {
     },
   });
 
-  const activeFilterCount = [statusFilter, classFilter, genderFilter].filter((v) => v !== "all").length + (search.trim() ? 1 : 0);
+  const activeFilterCount = [statusFilter, classFilter, genderFilter, driverFilter].filter((v) => v !== "all").length + (search.trim() ? 1 : 0);
 
   const filtered = useMemo(() => {
     if (!students) return [];
@@ -105,15 +120,17 @@ function StudentsPage() {
       const matchesStatus = statusFilter === "all" || s.status === statusFilter;
       const matchesClass = classFilter === "all" || s.class_id === classFilter;
       const matchesGender = genderFilter === "all" || s.gender === genderFilter;
-      return matchesQ && matchesStatus && matchesClass && matchesGender;
+      const matchesDriver = driverFilter === "all" || s.driver_id === driverFilter;
+      return matchesQ && matchesStatus && matchesClass && matchesGender && matchesDriver;
     });
-  }, [students, search, statusFilter, classFilter, genderFilter]);
+  }, [students, search, statusFilter, classFilter, genderFilter, driverFilter]);
 
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("all");
     setClassFilter("all");
     setGenderFilter("all");
+    setDriverFilter("all");
   };
 
   const deleteMut = useMutation({
@@ -145,7 +162,7 @@ function StudentsPage() {
               <Plus /> Add student
             </Button>
           </DialogTrigger>
-          <StudentDialog existing={editing} classes={classes ?? []} onDone={() => { setOpen(false); setEditing(null); }} />
+          <StudentDialog existing={editing} classes={classes ?? []} drivers={drivers ?? []} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
       </div>
 
@@ -194,6 +211,17 @@ function StudentsPage() {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={driverFilter} onValueChange={setDriverFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Driver" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All drivers</SelectItem>
+              {(drivers ?? []).map((d) => (
+                <SelectItem key={d.id} value={d.id}>{d.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           {activeFilterCount > 1 && (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
               <X className="size-4" /> Clear filters
@@ -228,6 +256,7 @@ function StudentsPage() {
                 <Th>Student</Th>
                 <Th>Class</Th>
                 <Th>Guardian</Th>
+                <Th>Driver</Th>
                 <Th>Status</Th>
                 <Th>Enrolled</Th>
                 <Th className="text-right">Actions</Th>
@@ -254,6 +283,7 @@ function StudentsPage() {
                     <div className="text-foreground">{s.guardian_name ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">{s.guardian_phone ?? ""}</div>
                   </Td>
+                  <Td className="text-muted-foreground">{s.drivers?.full_name ?? "—"}</Td>
                   <Td>
                     <Badge variant={statusVariant(s.status)}>{formatStatus(s.status)}</Badge>
                   </Td>
@@ -287,12 +317,15 @@ function StudentsPage() {
 function StudentDialog({
   existing,
   classes,
+  drivers,
   onDone,
 }: {
   existing: StudentRow | null;
   classes: Array<{ id: string; name: string; section: string | null }>;
+  drivers: Array<{ id: string; full_name: string; phone: string | null }>;
   onDone: () => void;
 }) {
+  const [transportOpen, setTransportOpen] = useState(Boolean(existing?.driver_id));
   const qc = useQueryClient();
   const [form, setForm] = useState(() => ({
     admission_no: existing?.admission_no ?? "",
@@ -305,6 +338,7 @@ function StudentDialog({
     address: "",
     class_id: existing?.class_id ?? "",
     status: (existing?.status ?? "active") as StudentStatus,
+    driver_id: existing?.driver_id ?? "",
   }));
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -325,6 +359,7 @@ function StudentDialog({
         address: form.address || null,
         class_id: form.class_id || null,
         status: form.status,
+        driver_id: form.driver_id || null,
       };
       if (existing) {
         // Only send fields user could edit; keep nulls out for blank optionals
@@ -449,6 +484,38 @@ function StudentDialog({
             placeholder="House #, Street, City"
           />
         </Field>
+      </div>
+
+      <div className="rounded-md border border-border">
+        <button
+          type="button"
+          onClick={() => setTransportOpen((o) => !o)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold"
+        >
+          <span>Transport</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {transportOpen ? "Hide" : "Show"}
+          </span>
+        </button>
+        {transportOpen && (
+          <div className="border-t border-border p-4">
+            <Field label="Assigned driver">
+              <Select value={form.driver_id} onValueChange={(v) => set("driver_id", v === "none" ? "" : v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="No transport" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No transport</SelectItem>
+                  {drivers.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.full_name}{d.phone ? ` — ${d.phone}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+        )}
       </div>
 
       <DialogFooter>
