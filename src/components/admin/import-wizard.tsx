@@ -115,8 +115,8 @@ export function ImportWizard({
   const commit = useMutation({
     mutationFn: async () => {
       const payload = validated
+        .filter((row) => row.errors.length === 0)
         .map((row) => {
-          if (row.errors.length > 0) return { index: row.index, values: {}, action: "skip" as const, existingId: null };
           if (row.duplicateId) {
             const action = rowActions[row.index] ?? "skip";
             return {
@@ -127,8 +127,7 @@ export function ImportWizard({
             };
           }
           return { index: row.index, values: row.values, action: "insert" as const, existingId: null };
-        })
-        .filter((r) => !(r.action === "skip" && !skipInvalid && false));
+        });
       return runCommit({ data: { entityKey: selected!, rows: payload } });
     },
     onSuccess: (res) => {
