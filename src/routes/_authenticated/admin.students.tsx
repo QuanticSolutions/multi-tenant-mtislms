@@ -5,6 +5,7 @@ import { Plus, Search, Users, Trash2, Pencil, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
+import { ImportButton } from "@/components/admin/import-wizard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -156,6 +157,8 @@ function StudentsPage() {
             Admissions, profiles, and class assignments.
           </p>
         </div>
+        <div className="flex gap-2">
+        <ImportButton entityKey="students" label="Import students" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditing(null)}>
@@ -164,6 +167,7 @@ function StudentsPage() {
           </DialogTrigger>
           <StudentDialog existing={editing} classes={classes ?? []} drivers={drivers ?? []} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
+        </div>
       </div>
 
 
