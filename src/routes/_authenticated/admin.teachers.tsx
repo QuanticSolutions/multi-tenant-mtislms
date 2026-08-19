@@ -5,6 +5,7 @@ import { Plus, Search, GraduationCap, Trash2, Pencil, Mail, Phone, X } from "luc
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
+import { ImportButton } from "@/components/admin/import-wizard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -131,6 +132,8 @@ function TeachersPage() {
             Faculty directory, qualifications, and employment status.
           </p>
         </div>
+        <div className="flex gap-2">
+        <ImportButton entityKey="teachers" label="Import teachers" />
         <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) setEditing(null); }}>
           <DialogTrigger asChild>
             <Button onClick={() => setEditing(null)}>
@@ -139,6 +142,7 @@ function TeachersPage() {
           </DialogTrigger>
           <TeacherDialog existing={editing} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
+        </div>
       </div>
 
 

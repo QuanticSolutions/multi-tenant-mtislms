@@ -943,6 +943,36 @@ export type Database = {
           },
         ]
       }
+      import_profiles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          entity_key: string
+          id: string
+          mapping: Json
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          entity_key: string
+          id?: string
+          mapping?: Json
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          entity_key?: string
+          id?: string
+          mapping?: Json
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory_categories: {
         Row: {
           created_at: string

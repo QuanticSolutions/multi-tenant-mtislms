@@ -30,6 +30,7 @@ import {
   UserCog,
   HeartHandshake,
   BriefcaseBusiness,
+  Upload,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -105,6 +106,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "General",
     items: [
       { icon: UserCog, label: "Users", to: "/admin/users" },
+      { icon: Upload, label: "Import Data", to: "/admin/import" },
       { icon: Settings, label: "Settings", to: "/admin/settings" },
       { icon: Activity, label: "Audit Log", to: "/admin/audit" },
     ],
