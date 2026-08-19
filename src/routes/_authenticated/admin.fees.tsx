@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
+import { ImportButton } from "@/components/admin/import-wizard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -122,12 +123,15 @@ function statusVariant(s: InvoiceStatus) {
 function FeesPage() {
   return (
     <AppShell>
-      <div className="flex flex-col gap-1">
-        <p className="mtis-eyebrow">Finance</p>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Fees</h1>
-        <p className="text-sm text-muted-foreground">
-          Build class fee structures, issue invoices, and record payments — overdue is tracked automatically.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-1">
+          <p className="mtis-eyebrow">Finance</p>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Fees</h1>
+          <p className="text-sm text-muted-foreground">
+            Build class fee structures, issue invoices, and record payments — overdue is tracked automatically.
+          </p>
+        </div>
+        <ImportButton entityKey="fee_structures" label="Import fee structures" />
       </div>
 
       <Tabs defaultValue="invoices" className="space-y-6">
