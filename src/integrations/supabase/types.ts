@@ -252,6 +252,39 @@ export type Database = {
           },
         ]
       }
+      attendance_deduction_rules: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          per_n_absences: number
+          step_type: Database["public"]["Enums"]["calc_type"]
+          step_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          per_n_absences?: number
+          step_type?: Database["public"]["Enums"]["calc_type"]
+          step_value?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          per_n_absences?: number
+          step_type?: Database["public"]["Enums"]["calc_type"]
+          step_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -439,6 +472,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      deduction_components: {
+        Row: {
+          calc_type: Database["public"]["Enums"]["calc_type"]
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          calc_type?: Database["public"]["Enums"]["calc_type"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          calc_type?: Database["public"]["Enums"]["calc_type"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: []
+      }
+      departments: {
+        Row: {
+          created_at: string
+          id: string
+          is_teaching: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_teaching?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_teaching?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       donations: {
         Row: {
@@ -758,6 +845,168 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      fee_challans: {
+        Row: {
+          constituent_breakdown: Json
+          created_at: string
+          discount_applied: number
+          group_id: string | null
+          id: string
+          period: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["challan_status"]
+          student_id: string
+          subtotal: number
+          total_due: number
+          updated_at: string
+          uploaded_proof_url: string | null
+        }
+        Insert: {
+          constituent_breakdown?: Json
+          created_at?: string
+          discount_applied?: number
+          group_id?: string | null
+          id?: string
+          period: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["challan_status"]
+          student_id: string
+          subtotal?: number
+          total_due?: number
+          updated_at?: string
+          uploaded_proof_url?: string | null
+        }
+        Update: {
+          constituent_breakdown?: Json
+          created_at?: string
+          discount_applied?: number
+          group_id?: string | null
+          id?: string
+          period?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["challan_status"]
+          student_id?: string
+          subtotal?: number
+          total_due?: number
+          updated_at?: string
+          uploaded_proof_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_challans_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "fee_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_challans_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_constituents: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fee_group_constituents: {
+        Row: {
+          amount: number
+          constituent_id: string
+          created_at: string
+          group_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          constituent_id: string
+          created_at?: string
+          group_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          constituent_id?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fee_group_constituents_constituent_id_fkey"
+            columns: ["constituent_id"]
+            isOneToOne: false
+            referencedRelation: "fee_constituents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fee_group_constituents_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "fee_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fee_groups: {
+        Row: {
+          class_ids: string[]
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          class_ids?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          class_ids?: string[]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       fee_structures: {
         Row: {
@@ -1425,6 +1674,47 @@ export type Database = {
           },
         ]
       }
+      payroll_item_lines: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          label: string
+          payroll_item_id: string
+          source: string | null
+          type: Database["public"]["Enums"]["payroll_line_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          label: string
+          payroll_item_id: string
+          source?: string | null
+          type: Database["public"]["Enums"]["payroll_line_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          label?: string
+          payroll_item_id?: string
+          source?: string | null
+          type?: Database["public"]["Enums"]["payroll_line_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_item_lines_payroll_item_id_fkey"
+            columns: ["payroll_item_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_items: {
         Row: {
           allowances: number
@@ -1488,6 +1778,54 @@ export type Database = {
           },
         ]
       }
+      payroll_run_bonus_lines: {
+        Row: {
+          calc_type: Database["public"]["Enums"]["calc_type"]
+          created_at: string
+          employee_id: string | null
+          id: string
+          name: string
+          payroll_run_id: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          calc_type?: Database["public"]["Enums"]["calc_type"]
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          name: string
+          payroll_run_id: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          calc_type?: Database["public"]["Enums"]["calc_type"]
+          created_at?: string
+          employee_id?: string | null
+          id?: string
+          name?: string
+          payroll_run_id?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_run_bonus_lines_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_run_bonus_lines_payroll_run_id_fkey"
+            columns: ["payroll_run_id"]
+            isOneToOne: false
+            referencedRelation: "payroll_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payroll_runs: {
         Row: {
           created_at: string
@@ -1531,6 +1869,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          role_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1539,6 +1878,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          role_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1547,6 +1887,83 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          role_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          can_delete: boolean
+          can_read: boolean
+          can_update: boolean
+          can_write: boolean
+          created_at: string
+          id: string
+          module: string
+          role_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_delete?: boolean
+          can_read?: boolean
+          can_update?: boolean
+          can_write?: boolean
+          created_at?: string
+          id?: string
+          module: string
+          role_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_delete?: boolean
+          can_read?: boolean
+          can_update?: boolean
+          can_write?: boolean
+          created_at?: string
+          id?: string
+          module?: string
+          role_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
           updated_at?: string
         }
         Relationships: []
@@ -1713,6 +2130,9 @@ export type Database = {
           class_id: string | null
           created_at: string
           date_of_birth: string | null
+          discount_reason: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"] | null
+          discount_value: number
           driver_id: string | null
           enrollment_date: string
           full_name: string
@@ -1733,6 +2153,9 @@ export type Database = {
           class_id?: string | null
           created_at?: string
           date_of_birth?: string | null
+          discount_reason?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"] | null
+          discount_value?: number
           driver_id?: string | null
           enrollment_date?: string
           full_name: string
@@ -1753,6 +2176,9 @@ export type Database = {
           class_id?: string | null
           created_at?: string
           date_of_birth?: string | null
+          discount_reason?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"] | null
+          discount_value?: number
           driver_id?: string | null
           enrollment_date?: string
           full_name?: string
@@ -1838,11 +2264,15 @@ export type Database = {
       teachers: {
         Row: {
           address: string | null
+          base_salary: number
           created_at: string
           date_of_birth: string | null
           date_of_joining: string
+          department_id: string | null
+          designation: string | null
           email: string | null
           employee_no: string
+          fee_group_id: string | null
           full_name: string
           gender: string | null
           id: string
@@ -1852,16 +2282,21 @@ export type Database = {
           qualification: string | null
           specialization: string | null
           status: Database["public"]["Enums"]["teacher_status"]
+          subject_id: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           address?: string | null
+          base_salary?: number
           created_at?: string
           date_of_birth?: string | null
           date_of_joining?: string
+          department_id?: string | null
+          designation?: string | null
           email?: string | null
           employee_no: string
+          fee_group_id?: string | null
           full_name: string
           gender?: string | null
           id?: string
@@ -1871,16 +2306,21 @@ export type Database = {
           qualification?: string | null
           specialization?: string | null
           status?: Database["public"]["Enums"]["teacher_status"]
+          subject_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           address?: string | null
+          base_salary?: number
           created_at?: string
           date_of_birth?: string | null
           date_of_joining?: string
+          department_id?: string | null
+          designation?: string | null
           email?: string | null
           employee_no?: string
+          fee_group_id?: string | null
           full_name?: string
           gender?: string | null
           id?: string
@@ -1890,10 +2330,33 @@ export type Database = {
           qualification?: string | null
           specialization?: string | null
           status?: Database["public"]["Enums"]["teacher_status"]
+          subject_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teachers_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teachers_fee_group_id_fkey"
+            columns: ["fee_group_id"]
+            isOneToOne: false
+            referencedRelation: "fee_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teachers_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       timetable_slots: {
         Row: {
@@ -2157,6 +2620,9 @@ export type Database = {
         | "accountant"
       attendance_status: "present" | "absent" | "late" | "excused"
       book_issue_status: "issued" | "returned" | "overdue" | "lost"
+      calc_type: "flat" | "percent"
+      challan_status: "unpaid" | "pending_review" | "approved" | "rejected"
+      discount_type: "flat" | "percent"
       donation_status: "pledged" | "received" | "cancelled"
       employment_status:
         | "new"
@@ -2190,6 +2656,7 @@ export type Database = {
         | "cheque"
         | "online"
         | "other"
+      payroll_line_type: "earning" | "deduction" | "bonus"
       payroll_run_status: "draft" | "finalized" | "paid"
       staff_attendance_status:
         | "present"
@@ -2357,6 +2824,9 @@ export const Constants = {
       ],
       attendance_status: ["present", "absent", "late", "excused"],
       book_issue_status: ["issued", "returned", "overdue", "lost"],
+      calc_type: ["flat", "percent"],
+      challan_status: ["unpaid", "pending_review", "approved", "rejected"],
+      discount_type: ["flat", "percent"],
       donation_status: ["pledged", "received", "cancelled"],
       employment_status: [
         "new",
@@ -2393,6 +2863,7 @@ export const Constants = {
         "online",
         "other",
       ],
+      payroll_line_type: ["earning", "deduction", "bonus"],
       payroll_run_status: ["draft", "finalized", "paid"],
       staff_attendance_status: [
         "present",
