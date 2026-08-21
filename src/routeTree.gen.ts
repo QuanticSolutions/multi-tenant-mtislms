@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminLibraryRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminInventoryRouteImport } from './routes/_authenticated/admin.inventory'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
 import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authenticated/admin.homework'
+import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
@@ -193,6 +194,12 @@ const AuthenticatedAdminHomeworkRoute =
     path: '/homework',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFinanceRoute =
+  AuthenticatedAdminFinanceRouteImport.update({
+    id: '/finance',
+    path: '/finance',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminFeesRoute = AuthenticatedAdminFeesRouteImport.update({
   id: '/fees',
   path: '/fees',
@@ -294,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
+  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/inventory': typeof AuthenticatedAdminInventoryRoute
@@ -334,6 +342,7 @@ export interface FileRoutesByTo {
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
+  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/inventory': typeof AuthenticatedAdminInventoryRoute
@@ -377,6 +386,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
+  '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
   '/_authenticated/admin/inventory': typeof AuthenticatedAdminInventoryRoute
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
+    | '/admin/finance'
     | '/admin/homework'
     | '/admin/import'
     | '/admin/inventory'
@@ -460,6 +471,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
+    | '/admin/finance'
     | '/admin/homework'
     | '/admin/import'
     | '/admin/inventory'
@@ -502,6 +514,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
     | '/_authenticated/admin/fees'
+    | '/_authenticated/admin/finance'
     | '/_authenticated/admin/homework'
     | '/_authenticated/admin/import'
     | '/_authenticated/admin/inventory'
@@ -719,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHomeworkRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/finance': {
+      id: '/_authenticated/admin/finance'
+      path: '/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/fees': {
       id: '/_authenticated/admin/fees'
       path: '/fees'
@@ -831,6 +851,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
+  AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminHomeworkRoute: typeof AuthenticatedAdminHomeworkRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
   AuthenticatedAdminInventoryRoute: typeof AuthenticatedAdminInventoryRoute
@@ -865,6 +886,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
+  AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
   AuthenticatedAdminHomeworkRoute: AuthenticatedAdminHomeworkRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
   AuthenticatedAdminInventoryRoute: AuthenticatedAdminInventoryRoute,
