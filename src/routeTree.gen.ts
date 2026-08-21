@@ -35,6 +35,7 @@ import { Route as AuthenticatedAdminLibraryRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminInventoryRouteImport } from './routes/_authenticated/admin.inventory'
 import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenticated/admin.import'
 import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authenticated/admin.homework'
+import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
@@ -45,6 +46,7 @@ import { Route as AuthenticatedAdminClassesRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin.audit'
 import { Route as AuthenticatedAdminAttendanceRouteImport } from './routes/_authenticated/admin.attendance'
 import { Route as AuthenticatedAdminAdmissionsRouteImport } from './routes/_authenticated/admin.admissions'
+import { Route as AuthenticatedAdminSetupRolesRouteImport } from './routes/_authenticated/admin.setup.roles'
 import { Route as AuthenticatedAdminSetupPayrollRouteImport } from './routes/_authenticated/admin.setup.payroll'
 import { Route as AuthenticatedAdminSetupFeesRouteImport } from './routes/_authenticated/admin.setup.fees'
 import { Route as AuthenticatedAdminSetupDepartmentsRouteImport } from './routes/_authenticated/admin.setup.departments'
@@ -192,6 +194,12 @@ const AuthenticatedAdminHomeworkRoute =
     path: '/homework',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminFinanceRoute =
+  AuthenticatedAdminFinanceRouteImport.update({
+    id: '/finance',
+    path: '/finance',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminFeesRoute = AuthenticatedAdminFeesRouteImport.update({
   id: '/fees',
   path: '/fees',
@@ -249,6 +257,12 @@ const AuthenticatedAdminAdmissionsRoute =
     path: '/admissions',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminSetupRolesRoute =
+  AuthenticatedAdminSetupRolesRouteImport.update({
+    id: '/setup/roles',
+    path: '/setup/roles',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminSetupPayrollRoute =
   AuthenticatedAdminSetupPayrollRouteImport.update({
     id: '/setup/payroll',
@@ -287,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
+  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/inventory': typeof AuthenticatedAdminInventoryRoute
@@ -307,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/admin/setup/departments': typeof AuthenticatedAdminSetupDepartmentsRoute
   '/admin/setup/fees': typeof AuthenticatedAdminSetupFeesRoute
   '/admin/setup/payroll': typeof AuthenticatedAdminSetupPayrollRoute
+  '/admin/setup/roles': typeof AuthenticatedAdminSetupRolesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -326,6 +342,7 @@ export interface FileRoutesByTo {
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
+  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/admin/import': typeof AuthenticatedAdminImportRoute
   '/admin/inventory': typeof AuthenticatedAdminInventoryRoute
@@ -346,6 +363,7 @@ export interface FileRoutesByTo {
   '/admin/setup/departments': typeof AuthenticatedAdminSetupDepartmentsRoute
   '/admin/setup/fees': typeof AuthenticatedAdminSetupFeesRoute
   '/admin/setup/payroll': typeof AuthenticatedAdminSetupPayrollRoute
+  '/admin/setup/roles': typeof AuthenticatedAdminSetupRolesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -368,6 +386,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
+  '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/homework': typeof AuthenticatedAdminHomeworkRoute
   '/_authenticated/admin/import': typeof AuthenticatedAdminImportRoute
   '/_authenticated/admin/inventory': typeof AuthenticatedAdminInventoryRoute
@@ -388,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/setup/departments': typeof AuthenticatedAdminSetupDepartmentsRoute
   '/_authenticated/admin/setup/fees': typeof AuthenticatedAdminSetupFeesRoute
   '/_authenticated/admin/setup/payroll': typeof AuthenticatedAdminSetupPayrollRoute
+  '/_authenticated/admin/setup/roles': typeof AuthenticatedAdminSetupRolesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -410,6 +430,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
+    | '/admin/finance'
     | '/admin/homework'
     | '/admin/import'
     | '/admin/inventory'
@@ -430,6 +451,7 @@ export interface FileRouteTypes {
     | '/admin/setup/departments'
     | '/admin/setup/fees'
     | '/admin/setup/payroll'
+    | '/admin/setup/roles'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -449,6 +471,7 @@ export interface FileRouteTypes {
     | '/admin/events'
     | '/admin/exams'
     | '/admin/fees'
+    | '/admin/finance'
     | '/admin/homework'
     | '/admin/import'
     | '/admin/inventory'
@@ -469,6 +492,7 @@ export interface FileRouteTypes {
     | '/admin/setup/departments'
     | '/admin/setup/fees'
     | '/admin/setup/payroll'
+    | '/admin/setup/roles'
   id:
     | '__root__'
     | '/'
@@ -490,6 +514,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
     | '/_authenticated/admin/fees'
+    | '/_authenticated/admin/finance'
     | '/_authenticated/admin/homework'
     | '/_authenticated/admin/import'
     | '/_authenticated/admin/inventory'
@@ -510,6 +535,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/setup/departments'
     | '/_authenticated/admin/setup/fees'
     | '/_authenticated/admin/setup/payroll'
+    | '/_authenticated/admin/setup/roles'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -706,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminHomeworkRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/finance': {
+      id: '/_authenticated/admin/finance'
+      path: '/finance'
+      fullPath: '/admin/finance'
+      preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/fees': {
       id: '/_authenticated/admin/fees'
       path: '/fees'
@@ -776,6 +809,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAdmissionsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/setup/roles': {
+      id: '/_authenticated/admin/setup/roles'
+      path: '/setup/roles'
+      fullPath: '/admin/setup/roles'
+      preLoaderRoute: typeof AuthenticatedAdminSetupRolesRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/setup/payroll': {
       id: '/_authenticated/admin/setup/payroll'
       path: '/setup/payroll'
@@ -811,6 +851,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
+  AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminHomeworkRoute: typeof AuthenticatedAdminHomeworkRoute
   AuthenticatedAdminImportRoute: typeof AuthenticatedAdminImportRoute
   AuthenticatedAdminInventoryRoute: typeof AuthenticatedAdminInventoryRoute
@@ -831,6 +872,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminSetupDepartmentsRoute: typeof AuthenticatedAdminSetupDepartmentsRoute
   AuthenticatedAdminSetupFeesRoute: typeof AuthenticatedAdminSetupFeesRoute
   AuthenticatedAdminSetupPayrollRoute: typeof AuthenticatedAdminSetupPayrollRoute
+  AuthenticatedAdminSetupRolesRoute: typeof AuthenticatedAdminSetupRolesRoute
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
@@ -844,6 +886,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
+  AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
   AuthenticatedAdminHomeworkRoute: AuthenticatedAdminHomeworkRoute,
   AuthenticatedAdminImportRoute: AuthenticatedAdminImportRoute,
   AuthenticatedAdminInventoryRoute: AuthenticatedAdminInventoryRoute,
@@ -865,6 +908,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminSetupDepartmentsRoute,
   AuthenticatedAdminSetupFeesRoute: AuthenticatedAdminSetupFeesRoute,
   AuthenticatedAdminSetupPayrollRoute: AuthenticatedAdminSetupPayrollRoute,
+  AuthenticatedAdminSetupRolesRoute: AuthenticatedAdminSetupRolesRoute,
 }
 
 const AuthenticatedAdminRouteWithChildren =
