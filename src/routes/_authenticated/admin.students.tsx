@@ -52,9 +52,13 @@ type StudentRow = {
   enrollment_date: string;
   class_id: string | null;
   driver_id: string | null;
+  discount_type: "flat" | "percent" | null;
+  discount_value: number;
+  discount_reason: string | null;
   drivers: { full_name: string } | null;
   classes: { name: string; section: string | null } | null;
 };
+
 
 const STATUS_OPTIONS: StudentStatus[] = ["active", "inactive", "graduated", "transferred", "terminated"];
 
