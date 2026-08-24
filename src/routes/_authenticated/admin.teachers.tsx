@@ -304,6 +304,8 @@ function TeachersPage() {
   );
 }
 
+type DepartmentOpt = { id: string; name: string; is_teaching: boolean };
+
 function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDone: () => void }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(() => ({
@@ -318,13 +320,67 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
     date_of_joining: existing?.date_of_joining ?? new Date().toISOString().slice(0, 10),
     status: (existing?.status ?? "active") as TeacherStatus,
     address: "",
+    department_id: existing?.department_id ?? "",
+    subject_id: existing?.subject_id ?? "",
+    fee_group_id: existing?.fee_group_id ?? "",
+    designation: existing?.designation ?? "",
+    base_salary: existing?.base_salary != null ? String(existing.base_salary) : "",
   }));
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const { data: departments } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name, is_teaching")
+        .order("name");
+      if (error) throw error;
+      return data as DepartmentOpt[];
+    },
+  });
+
+  const selectedDept = (departments ?? []).find((d) => d.id === form.department_id) ?? null;
+  const isTeaching = selectedDept?.is_teaching ?? false;
+
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects-options"],
+    enabled: isTeaching,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("id, name, classes(name, section)")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as unknown as Array<{
+        id: string;
+        name: string;
+        classes: { name: string; section: string | null } | null;
+      }>;
+    },
+  });
+
+  const { data: feeGroups } = useQuery({
+    queryKey: ["fee-groups-options"],
+    enabled: isTeaching,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_groups")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; name: string }>;
+    },
+  });
 
   const saveMut = useMutation({
     mutationFn: async () => {
       if (!form.employee_no.trim() || !form.full_name.trim()) {
         throw new Error("Employee number and full name are required");
+      }
+      if (!form.department_id) {
+        throw new Error("Department is required — every employee must belong to one");
       }
       const payload: any = {
         employee_no: form.employee_no.trim(),
@@ -335,6 +391,13 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
         specialization: form.specialization || null,
         date_of_joining: form.date_of_joining,
         status: form.status,
+        department_id: form.department_id,
+        base_salary: Number(form.base_salary || 0),
+        // Conditional fields: teaching departments carry subject + fee group,
+        // non-teaching departments carry a designation.
+        subject_id: isTeaching ? form.subject_id || null : null,
+        fee_group_id: isTeaching ? form.fee_group_id || null : null,
+        designation: isTeaching ? null : form.designation || null,
       };
       if (form.gender) payload.gender = form.gender;
       if (form.date_of_birth) payload.date_of_birth = form.date_of_birth;
@@ -347,6 +410,7 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
         if (error) throw error;
       }
     },
+
     onSuccess: () => {
       toast.success(existing ? "Teacher updated" : "Teacher added");
       qc.invalidateQueries({ queryKey: ["teachers"] });
