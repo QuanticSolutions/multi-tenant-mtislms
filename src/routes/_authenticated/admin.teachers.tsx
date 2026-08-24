@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatStatus } from "@/lib/format";
+import { money } from "@/lib/finance";
 
 export const Route = createFileRoute("/_authenticated/admin/teachers")({
   head: () => ({
