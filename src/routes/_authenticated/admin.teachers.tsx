@@ -511,6 +511,78 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
             </SelectContent>
           </Select>
         </Field>
+        <Field label="Department *">
+          <Select value={form.department_id} onValueChange={(v) => set("department_id", v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select department" />
+            </SelectTrigger>
+            <SelectContent>
+              {(departments ?? []).map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name} {d.is_teaching ? "· Teaching" : "· Non-teaching"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Base salary">
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.base_salary}
+            onChange={(e) => set("base_salary", e.target.value)}
+            placeholder="0"
+          />
+        </Field>
+        {isTeaching ? (
+          <>
+            <Field label="Subject">
+              <Select
+                value={form.subject_id}
+                onValueChange={(v) => set("subject_id", v === "none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No subject</SelectItem>
+                  {(subjects ?? []).map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                      {s.classes ? ` — ${s.classes.name}${s.classes.section ? ` ${s.classes.section}` : ""}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Fee group">
+              <Select
+                value={form.fee_group_id}
+                onValueChange={(v) => set("fee_group_id", v === "none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No fee group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No fee group</SelectItem>
+                  {(feeGroups ?? []).map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </>
+        ) : (
+          <Field label="Designation">
+            <Input
+              value={form.designation}
+              onChange={(e) => set("designation", e.target.value)}
+              placeholder="Front Desk Officer"
+              disabled={!form.department_id}
+            />
+          </Field>
+        )}
         <Field label="Address" className="sm:col-span-2">
           <Input
             value={form.address}
