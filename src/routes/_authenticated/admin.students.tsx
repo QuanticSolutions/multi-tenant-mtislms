@@ -52,9 +52,13 @@ type StudentRow = {
   enrollment_date: string;
   class_id: string | null;
   driver_id: string | null;
+  discount_type: "flat" | "percent" | null;
+  discount_value: number;
+  discount_reason: string | null;
   drivers: { full_name: string } | null;
   classes: { name: string; section: string | null } | null;
 };
+
 
 const STATUS_OPTIONS: StudentStatus[] = ["active", "inactive", "graduated", "transferred", "terminated"];
 
@@ -99,7 +103,7 @@ function StudentsPage() {
       const { data, error } = await supabase
         .from("students")
         .select(
-          "id, admission_no, full_name, gender, status, guardian_name, guardian_phone, enrollment_date, class_id, driver_id, classes(name, section), drivers(full_name)",
+          "id, admission_no, full_name, gender, status, guardian_name, guardian_phone, enrollment_date, class_id, driver_id, discount_type, discount_value, discount_reason, classes(name, section), drivers(full_name)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -343,6 +347,9 @@ function StudentDialog({
     class_id: existing?.class_id ?? "",
     status: (existing?.status ?? "active") as StudentStatus,
     driver_id: existing?.driver_id ?? "",
+    discount_type: existing?.discount_type ?? "",
+    discount_value: existing?.discount_value ? String(existing.discount_value) : "",
+    discount_reason: existing?.discount_reason ?? "",
   }));
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
@@ -364,6 +371,9 @@ function StudentDialog({
         class_id: form.class_id || null,
         status: form.status,
         driver_id: form.driver_id || null,
+        discount_type: form.discount_type || null,
+        discount_value: form.discount_type ? Number(form.discount_value || 0) : 0,
+        discount_reason: form.discount_type ? form.discount_reason || null : null,
       };
       if (existing) {
         // Only send fields user could edit; keep nulls out for blank optionals

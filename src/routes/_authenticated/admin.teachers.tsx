@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatStatus } from "@/lib/format";
+import { money } from "@/lib/finance";
 
 export const Route = createFileRoute("/_authenticated/admin/teachers")({
   head: () => ({
@@ -52,6 +53,12 @@ type TeacherRow = {
   specialization: string | null;
   status: TeacherStatus;
   date_of_joining: string;
+  department_id: string | null;
+  subject_id: string | null;
+  fee_group_id: string | null;
+  designation: string | null;
+  base_salary: number;
+  departments: { name: string; is_teaching: boolean } | null;
 };
 
 function TeachersPage() {
@@ -69,13 +76,14 @@ function TeachersPage() {
       const { data, error } = await supabase
         .from("teachers")
         .select(
-          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining",
+          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, designation, base_salary, departments(name, is_teaching)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as TeacherRow[];
+      return data as unknown as TeacherRow[];
     },
   });
+
 
   const specializations = useMemo(() => {
     const set = new Set<string>();
@@ -212,7 +220,10 @@ function TeachersPage() {
               <tr className="bg-background">
                 <Th>Teacher</Th>
                 <Th>Contact</Th>
+                <Th>Department</Th>
+                <Th>Salary</Th>
                 <Th>Qualification</Th>
+
                 <Th>Status</Th>
                 <Th>Joined</Th>
                 <Th className="text-right">Actions</Th>
@@ -246,9 +257,23 @@ function TeachersPage() {
                     {!t.email && !t.phone && <span className="text-muted-foreground">—</span>}
                   </Td>
                   <Td>
+                    <div className="text-foreground">{t.departments?.name ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.departments
+                        ? t.departments.is_teaching
+                          ? "Teaching"
+                          : (t.designation ?? "Non-teaching")
+                        : ""}
+                    </div>
+                  </Td>
+                  <Td className="text-muted-foreground">
+                    {t.base_salary ? money(t.base_salary) : "—"}
+                  </Td>
+                  <Td>
                     <div className="text-foreground">{t.qualification ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">{t.specialization ?? ""}</div>
                   </Td>
+
                   <Td>
                     <Badge variant={statusVariant(t.status)}>{formatStatus(t.status)}</Badge>
                   </Td>
@@ -279,6 +304,8 @@ function TeachersPage() {
   );
 }
 
+type DepartmentOpt = { id: string; name: string; is_teaching: boolean };
+
 function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDone: () => void }) {
   const qc = useQueryClient();
   const [form, setForm] = useState(() => ({
@@ -293,13 +320,67 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
     date_of_joining: existing?.date_of_joining ?? new Date().toISOString().slice(0, 10),
     status: (existing?.status ?? "active") as TeacherStatus,
     address: "",
+    department_id: existing?.department_id ?? "",
+    subject_id: existing?.subject_id ?? "",
+    fee_group_id: existing?.fee_group_id ?? "",
+    designation: existing?.designation ?? "",
+    base_salary: existing?.base_salary != null ? String(existing.base_salary) : "",
   }));
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const { data: departments } = useQuery({
+    queryKey: ["departments"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("departments")
+        .select("id, name, is_teaching")
+        .order("name");
+      if (error) throw error;
+      return data as DepartmentOpt[];
+    },
+  });
+
+  const selectedDept = (departments ?? []).find((d) => d.id === form.department_id) ?? null;
+  const isTeaching = selectedDept?.is_teaching ?? false;
+
+  const { data: subjects } = useQuery({
+    queryKey: ["subjects-options"],
+    enabled: isTeaching,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subjects")
+        .select("id, name, classes(name, section)")
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as unknown as Array<{
+        id: string;
+        name: string;
+        classes: { name: string; section: string | null } | null;
+      }>;
+    },
+  });
+
+  const { data: feeGroups } = useQuery({
+    queryKey: ["fee-groups-options"],
+    enabled: isTeaching,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_groups")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+      if (error) throw error;
+      return (data ?? []) as Array<{ id: string; name: string }>;
+    },
+  });
 
   const saveMut = useMutation({
     mutationFn: async () => {
       if (!form.employee_no.trim() || !form.full_name.trim()) {
         throw new Error("Employee number and full name are required");
+      }
+      if (!form.department_id) {
+        throw new Error("Department is required — every employee must belong to one");
       }
       const payload: any = {
         employee_no: form.employee_no.trim(),
@@ -310,6 +391,13 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
         specialization: form.specialization || null,
         date_of_joining: form.date_of_joining,
         status: form.status,
+        department_id: form.department_id,
+        base_salary: Number(form.base_salary || 0),
+        // Conditional fields: teaching departments carry subject + fee group,
+        // non-teaching departments carry a designation.
+        subject_id: isTeaching ? form.subject_id || null : null,
+        fee_group_id: isTeaching ? form.fee_group_id || null : null,
+        designation: isTeaching ? null : form.designation || null,
       };
       if (form.gender) payload.gender = form.gender;
       if (form.date_of_birth) payload.date_of_birth = form.date_of_birth;
@@ -322,6 +410,7 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
         if (error) throw error;
       }
     },
+
     onSuccess: () => {
       toast.success(existing ? "Teacher updated" : "Teacher added");
       qc.invalidateQueries({ queryKey: ["teachers"] });
@@ -422,6 +511,78 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
             </SelectContent>
           </Select>
         </Field>
+        <Field label="Department *">
+          <Select value={form.department_id} onValueChange={(v) => set("department_id", v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select department" />
+            </SelectTrigger>
+            <SelectContent>
+              {(departments ?? []).map((d) => (
+                <SelectItem key={d.id} value={d.id}>
+                  {d.name} {d.is_teaching ? "· Teaching" : "· Non-teaching"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field label="Base salary">
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={form.base_salary}
+            onChange={(e) => set("base_salary", e.target.value)}
+            placeholder="0"
+          />
+        </Field>
+        {isTeaching ? (
+          <>
+            <Field label="Subject">
+              <Select
+                value={form.subject_id}
+                onValueChange={(v) => set("subject_id", v === "none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No subject" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No subject</SelectItem>
+                  {(subjects ?? []).map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                      {s.classes ? ` — ${s.classes.name}${s.classes.section ? ` ${s.classes.section}` : ""}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Fee group">
+              <Select
+                value={form.fee_group_id}
+                onValueChange={(v) => set("fee_group_id", v === "none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="No fee group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No fee group</SelectItem>
+                  {(feeGroups ?? []).map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          </>
+        ) : (
+          <Field label="Designation">
+            <Input
+              value={form.designation}
+              onChange={(e) => set("designation", e.target.value)}
+              placeholder="Front Desk Officer"
+              disabled={!form.department_id}
+            />
+          </Field>
+        )}
         <Field label="Address" className="sm:col-span-2">
           <Input
             value={form.address}
