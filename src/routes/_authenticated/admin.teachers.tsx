@@ -256,9 +256,23 @@ function TeachersPage() {
                     {!t.email && !t.phone && <span className="text-muted-foreground">—</span>}
                   </Td>
                   <Td>
+                    <div className="text-foreground">{t.departments?.name ?? "—"}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.departments
+                        ? t.departments.is_teaching
+                          ? "Teaching"
+                          : (t.designation ?? "Non-teaching")
+                        : ""}
+                    </div>
+                  </Td>
+                  <Td className="text-muted-foreground">
+                    {t.base_salary ? money(t.base_salary) : "—"}
+                  </Td>
+                  <Td>
                     <div className="text-foreground">{t.qualification ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">{t.specialization ?? ""}</div>
                   </Td>
+
                   <Td>
                     <Badge variant={statusVariant(t.status)}>{formatStatus(t.status)}</Badge>
                   </Td>
