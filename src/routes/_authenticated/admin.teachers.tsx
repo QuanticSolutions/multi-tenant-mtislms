@@ -52,6 +52,12 @@ type TeacherRow = {
   specialization: string | null;
   status: TeacherStatus;
   date_of_joining: string;
+  department_id: string | null;
+  subject_id: string | null;
+  fee_group_id: string | null;
+  designation: string | null;
+  base_salary: number;
+  departments: { name: string; is_teaching: boolean } | null;
 };
 
 function TeachersPage() {
@@ -69,13 +75,14 @@ function TeachersPage() {
       const { data, error } = await supabase
         .from("teachers")
         .select(
-          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining",
+          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, designation, base_salary, departments(name, is_teaching)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as TeacherRow[];
+      return data as unknown as TeacherRow[];
     },
   });
+
 
   const specializations = useMemo(() => {
     const set = new Set<string>();
