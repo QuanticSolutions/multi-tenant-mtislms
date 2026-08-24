@@ -103,7 +103,7 @@ function StudentsPage() {
       const { data, error } = await supabase
         .from("students")
         .select(
-          "id, admission_no, full_name, gender, status, guardian_name, guardian_phone, enrollment_date, class_id, driver_id, classes(name, section), drivers(full_name)",
+          "id, admission_no, full_name, gender, status, guardian_name, guardian_phone, enrollment_date, class_id, driver_id, discount_type, discount_value, discount_reason, classes(name, section), drivers(full_name)",
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
