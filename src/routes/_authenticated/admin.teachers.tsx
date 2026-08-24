@@ -219,7 +219,10 @@ function TeachersPage() {
               <tr className="bg-background">
                 <Th>Teacher</Th>
                 <Th>Contact</Th>
+                <Th>Department</Th>
+                <Th>Salary</Th>
                 <Th>Qualification</Th>
+
                 <Th>Status</Th>
                 <Th>Joined</Th>
                 <Th className="text-right">Actions</Th>
