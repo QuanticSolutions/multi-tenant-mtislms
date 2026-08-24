@@ -371,6 +371,9 @@ function StudentDialog({
         class_id: form.class_id || null,
         status: form.status,
         driver_id: form.driver_id || null,
+        discount_type: form.discount_type || null,
+        discount_value: form.discount_type ? Number(form.discount_value || 0) : 0,
+        discount_reason: form.discount_type ? form.discount_reason || null : null,
       };
       if (existing) {
         // Only send fields user could edit; keep nulls out for blank optionals
