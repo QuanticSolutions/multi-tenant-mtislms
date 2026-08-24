@@ -347,6 +347,9 @@ function StudentDialog({
     class_id: existing?.class_id ?? "",
     status: (existing?.status ?? "active") as StudentStatus,
     driver_id: existing?.driver_id ?? "",
+    discount_type: existing?.discount_type ?? "",
+    discount_value: existing?.discount_value ? String(existing.discount_value) : "",
+    discount_reason: existing?.discount_reason ?? "",
   }));
 
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
