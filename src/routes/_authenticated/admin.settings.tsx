@@ -62,6 +62,33 @@ const ROLES: Role[] = ["admin", "teacher", "student", "parent", "librarian", "ac
 const TABS = ["profile", "session", "grading", "roles"] as const;
 type Tab = (typeof TABS)[number];
 
+const SETUP_LINKS = [
+  {
+    to: "/admin/setup/departments",
+    icon: Building2,
+    title: "Departments",
+    description: "Teaching and non-teaching departments for employee records.",
+  },
+  {
+    to: "/admin/setup/fees",
+    icon: Wallet,
+    title: "Fee groups & constituents",
+    description: "Global fee heads and per-class group amounts.",
+  },
+  {
+    to: "/admin/setup/payroll",
+    icon: Banknote,
+    title: "Payroll deductions",
+    description: "Persistent deductions and stepped attendance rules.",
+  },
+  {
+    to: "/admin/setup/roles",
+    icon: UserCog,
+    title: "Roles & permissions",
+    description: "Module permission matrix and user role assignment.",
+  },
+] as const;
+
 function SettingsPage() {
   const [tab, setTab] = useState<Tab>("profile");
   return (
