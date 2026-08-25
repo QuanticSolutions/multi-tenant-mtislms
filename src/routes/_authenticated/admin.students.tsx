@@ -532,6 +532,58 @@ function StudentDialog({
         )}
       </div>
 
+      <div className="rounded-md border border-border">
+        <button
+          type="button"
+          onClick={() => setDiscountOpen((o) => !o)}
+          className="flex w-full items-center justify-between px-4 py-3 text-sm font-semibold"
+        >
+          <span>Discount</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {discountOpen ? "Hide" : "Show"}
+          </span>
+        </button>
+        {discountOpen && (
+          <div className="border-t border-border p-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Discount type" className="sm:col-span-2">
+              <Select
+                value={form.discount_type || "none"}
+                onValueChange={(v) => set("discount_type", v === "none" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select discount type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No discount</SelectItem>
+                  <SelectItem value="flat">Flat amount</SelectItem>
+                  <SelectItem value="percent">Percentage</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field label="Discount value">
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.discount_value}
+                onChange={(e) => set("discount_value", e.target.value)}
+                placeholder={form.discount_type === "percent" ? "20" : "5000"}
+                disabled={!form.discount_type}
+              />
+            </Field>
+            <Field label="Discount reason">
+              <Input
+                value={form.discount_reason}
+                onChange={(e) => set("discount_reason", e.target.value)}
+                placeholder="Sibling concession, staff child…"
+                disabled={!form.discount_type}
+              />
+            </Field>
+          </div>
+        )}
+      </div>
+
+
       <DialogFooter>
         <Button variant="outline" onClick={onDone} disabled={saveMut.isPending}>
           Cancel
