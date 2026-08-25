@@ -107,6 +107,9 @@ function PortalPage() {
             <TabsTrigger value="announcements">
               <Megaphone className="mr-2 size-4" /> Announcements
             </TabsTrigger>
+            <TabsTrigger value="books">
+              <Wallet className="mr-2 size-4" /> Account Books
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="timetable">
@@ -114,6 +117,9 @@ function PortalPage() {
           </TabsContent>
           <TabsContent value="announcements">
             <AnnouncementsTab classId={student?.class_id ?? null} />
+          </TabsContent>
+          <TabsContent value="books">
+            <AccountBooksTab student={student ?? null} />
           </TabsContent>
         </Tabs>
       </main>
