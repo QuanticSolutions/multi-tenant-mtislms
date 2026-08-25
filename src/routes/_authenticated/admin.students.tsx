@@ -334,6 +334,7 @@ function StudentDialog({
   onDone: () => void;
 }) {
   const [transportOpen, setTransportOpen] = useState(Boolean(existing?.driver_id));
+  const [discountOpen, setDiscountOpen] = useState(Boolean(existing?.discount_type));
   const qc = useQueryClient();
   const [form, setForm] = useState(() => ({
     admission_no: existing?.admission_no ?? "",
