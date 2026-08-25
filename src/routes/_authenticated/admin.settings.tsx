@@ -69,6 +69,21 @@ function SettingsPage() {
         <p className="mt-1 text-sm text-muted-foreground">School profile, academic session, grading scales and role assignments.</p>
       </div>
 
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {SETUP_LINKS.map((l) => (
+          <Link key={l.to} to={l.to} className="mtis-card group p-4 transition-colors hover:border-primary">
+            <div className="flex items-center gap-2">
+              <l.icon className="size-4 text-primary" />
+              <p className="font-display text-sm font-semibold">{l.title}</p>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{l.description}</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+              Configure <ChevronRight className="size-3.5" />
+            </span>
+          </Link>
+        ))}
+      </div>
+
       <div className="mtis-card p-4">
         <div className="flex flex-wrap gap-2 border-b border-border pb-3">
           {TABS.map((t) => (
