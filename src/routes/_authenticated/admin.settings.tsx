@@ -1,7 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Settings, Save, Plus, Trash2, Shield, GraduationCap } from "lucide-react";
+import {
+  Settings, Save, Plus, Trash2, Shield, GraduationCap,
+  ChevronRight, Building2, Wallet, Banknote, UserCog,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -59,6 +62,33 @@ const ROLES: Role[] = ["admin", "teacher", "student", "parent", "librarian", "ac
 const TABS = ["profile", "session", "grading", "roles"] as const;
 type Tab = (typeof TABS)[number];
 
+const SETUP_LINKS = [
+  {
+    to: "/admin/setup/departments",
+    icon: Building2,
+    title: "Departments",
+    description: "Teaching and non-teaching departments for employee records.",
+  },
+  {
+    to: "/admin/setup/fees",
+    icon: Wallet,
+    title: "Fee groups & constituents",
+    description: "Global fee heads and per-class group amounts.",
+  },
+  {
+    to: "/admin/setup/payroll",
+    icon: Banknote,
+    title: "Payroll deductions",
+    description: "Persistent deductions and stepped attendance rules.",
+  },
+  {
+    to: "/admin/setup/roles",
+    icon: UserCog,
+    title: "Roles & permissions",
+    description: "Module permission matrix and user role assignment.",
+  },
+] as const;
+
 function SettingsPage() {
   const [tab, setTab] = useState<Tab>("profile");
   return (
@@ -67,6 +97,21 @@ function SettingsPage() {
         <p className="mtis-eyebrow">Configuration</p>
         <h1 className="mtis-section-title mt-1">Settings</h1>
         <p className="mt-1 text-sm text-muted-foreground">School profile, academic session, grading scales and role assignments.</p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {SETUP_LINKS.map((l) => (
+          <Link key={l.to} to={l.to} className="mtis-card group p-4 transition-colors hover:border-primary">
+            <div className="flex items-center gap-2">
+              <l.icon className="size-4 text-primary" />
+              <p className="font-display text-sm font-semibold">{l.title}</p>
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">{l.description}</p>
+            <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
+              Configure <ChevronRight className="size-3.5" />
+            </span>
+          </Link>
+        ))}
       </div>
 
       <div className="mtis-card p-4">
