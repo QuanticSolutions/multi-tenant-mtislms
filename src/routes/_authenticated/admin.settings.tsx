@@ -1,7 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Settings, Save, Plus, Trash2, Shield, GraduationCap } from "lucide-react";
+import {
+  Settings, Save, Plus, Trash2, Shield, GraduationCap,
+  ChevronRight, Building2, Wallet, Banknote, UserCog,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
