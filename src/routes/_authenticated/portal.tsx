@@ -261,3 +261,219 @@ function AnnouncementsTab({ classId }: { classId: string | null }) {
     </div>
   );
 }
+
+type ChallanLine = { name: string; amount: number };
+type PortalChallan = {
+  id: string;
+  period: string;
+  constituent_breakdown: ChallanLine[];
+  subtotal: number;
+  discount_applied: number;
+  total_due: number;
+  status: "unpaid" | "pending_review" | "approved" | "rejected";
+  uploaded_proof_url: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+};
+
+function statusTone(s: PortalChallan["status"]) {
+  if (s === "approved") return "default" as const;
+  if (s === "rejected") return "destructive" as const;
+  if (s === "pending_review") return "secondary" as const;
+  return "outline" as const;
+}
+
+function AccountBooksTab({ student }: { student: any | null }) {
+  const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [target, setTarget] = useState<PortalChallan | null>(null);
+
+  const { data: settings } = useQuery({
+    queryKey: ["portal-school-settings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("school_settings")
+        .select("school_name, currency")
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const schoolName = settings?.school_name ?? "Madina Tul Ilm";
+  const currency = settings?.currency ?? "PKR";
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["portal-challans", student?.id],
+    enabled: !!student?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("fee_challans")
+        .select(
+          "id, period, constituent_breakdown, subtotal, discount_applied, total_due, status, uploaded_proof_url, rejection_reason, created_at",
+        )
+        .eq("student_id", student.id)
+        .order("period", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as PortalChallan[];
+    },
+  });
+
+  const upload = useMutation({
+    mutationFn: async ({ challan, file }: { challan: PortalChallan; file: File }) => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Not signed in");
+      const ext = file.name.split(".").pop() ?? "jpg";
+      const path = `${u.user.id}/${challan.id}-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("payment-proofs")
+        .upload(path, file, { upsert: false });
+      if (upErr) throw upErr;
+      const { error } = await supabase
+        .from("fee_challans")
+        .update({ uploaded_proof_url: path, status: "pending_review", rejection_reason: null })
+        .eq("id", challan.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Payment proof uploaded — awaiting review");
+      qc.invalidateQueries({ queryKey: ["portal-challans"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function download(c: PortalChallan) {
+    const html = buildDocument({
+      title: "Fee Challan",
+      schoolName,
+      subtitle: `Billing period ${formatPeriod(c.period)}`,
+      meta: [
+        { label: "Student", value: student?.full_name ?? "—" },
+        { label: "Admission no", value: student?.admission_no ?? "—" },
+        {
+          label: "Class",
+          value: student?.classes
+            ? formatClass(student.classes.name, student.classes.section)
+            : "—",
+        },
+        { label: "Status", value: formatStatus(c.status) },
+      ],
+      tableHead: ["Fee constituent", "Amount"],
+      tableRows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
+      totals: [
+        { label: "Subtotal", value: money(c.subtotal, currency) },
+        { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
+        { label: "Total payable", value: money(c.total_due, currency), strong: true },
+      ],
+      footnote: "Please attach the deposit slip when uploading your payment proof.",
+    });
+    try {
+      printDocument(html);
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  if (!student?.id) {
+    return (
+      <div className="mtis-card p-8 text-center text-sm text-muted-foreground">
+        Your account isn't linked to a student record yet. Please ask the school office.
+      </div>
+    );
+  }
+  if (isLoading) {
+    return <div className="mtis-card p-8 text-center text-sm text-muted-foreground">Loading…</div>;
+  }
+
+  const rows = data ?? [];
+  const outstanding = rows
+    .filter((r) => r.status !== "approved")
+    .reduce((sum, r) => sum + Number(r.total_due), 0);
+
+  if (rows.length === 0) {
+    return (
+      <div className="mtis-card p-8 text-center text-sm text-muted-foreground">
+        No fee challans issued yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file && target) upload.mutate({ challan: target, file });
+          setTarget(null);
+        }}
+      />
+
+      <div className="mtis-card flex items-center justify-between p-4">
+        <div>
+          <p className="mtis-eyebrow">Outstanding balance</p>
+          <p className="mt-1 font-display text-xl font-bold">{money(outstanding, currency)}</p>
+        </div>
+        <p className="text-xs text-muted-foreground">{rows.length} challan(s)</p>
+      </div>
+
+      <ul className="space-y-3">
+        {rows.map((c) => (
+          <li key={c.id} className="mtis-card p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-base font-semibold">{formatPeriod(c.period)}</h2>
+                  <Badge variant={statusTone(c.status)}>{formatStatus(c.status)}</Badge>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {money(c.total_due, currency)} payable
+                  {Number(c.discount_applied) > 0
+                    ? ` · ${money(c.discount_applied, currency)} discount applied`
+                    : ""}
+                </p>
+                {c.status === "rejected" && c.rejection_reason && (
+                  <p className="mt-1 text-sm text-destructive">Rejected: {c.rejection_reason}</p>
+                )}
+                {c.status === "pending_review" && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Proof uploaded — waiting for the school office to verify.
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => download(c)}>
+                  <Download className="mr-2 size-4" /> Challan
+                </Button>
+                {c.status !== "approved" && (
+                  <Button
+                    size="sm"
+                    disabled={upload.isPending}
+                    onClick={() => {
+                      setTarget(c);
+                      fileRef.current?.click();
+                    }}
+                  >
+                    <Upload className="mr-2 size-4" />
+                    {c.uploaded_proof_url ? "Replace proof" : "Upload proof"}
+                  </Button>
+                )}
+              </div>
+            </div>
+            <ul className="mt-3 space-y-1 border-t border-border pt-3 text-sm text-muted-foreground">
+              {(c.constituent_breakdown ?? []).map((l, i) => (
+                <li key={i} className="flex justify-between">
+                  <span>{l.name}</span>
+                  <span>{money(l.amount, currency)}</span>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
