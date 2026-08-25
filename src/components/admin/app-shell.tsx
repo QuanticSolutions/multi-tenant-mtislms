@@ -31,6 +31,7 @@ import {
   HeartHandshake,
   BriefcaseBusiness,
   Upload,
+  Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
 
