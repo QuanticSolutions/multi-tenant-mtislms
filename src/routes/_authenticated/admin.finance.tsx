@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
@@ -54,6 +54,9 @@ import {
 } from "@/lib/finance";
 
 export const Route = createFileRoute("/_authenticated/admin/finance")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: search["tab"] === "outgoing" ? ("outgoing" as const) : ("income" as const),
+  }),
   head: () => ({
     meta: [
       { title: "Finance — Madina Tul Ilm" },
@@ -114,6 +117,8 @@ function challanTone(s: ChallanStatus) {
 /* ------------------------------------------------------------------- page */
 
 function FinancePage() {
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   return (
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -126,7 +131,11 @@ function FinancePage() {
         </div>
       </div>
 
-      <Tabs defaultValue="income" className="space-y-4">
+      <Tabs
+        value={tab}
+        onValueChange={(v) => navigate({ search: { tab: v as "income" | "outgoing" } })}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="income">
             <ArrowDownCircle className="mr-2 size-4" /> Income — student fees
