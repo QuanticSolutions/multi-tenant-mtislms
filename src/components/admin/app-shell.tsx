@@ -271,6 +271,9 @@ function Header({
 
 function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const searchTab = useRouterState({
+    select: (s) => (s.location.search as { tab?: string })?.tab,
+  });
   const { isAdmin, loaded } = useMyRoles();
   const { can, permissions, loaded: permsLoaded } = usePermissions();
   const restrict = loaded && !isAdmin;
@@ -286,48 +289,77 @@ function Sidebar() {
     }),
   })).filter((g) => g.items.length > 0);
 
+  const isItemActive = (it: NavItem) => {
+    if (!it.to) return false;
+    const pathMatch =
+      it.to === "/admin" ? pathname === "/admin" : pathname.startsWith(it.to);
+    if (!pathMatch) return false;
+    if (it.search?.["tab"]) return (searchTab ?? defaultTabFor(it.to)) === it.search["tab"];
+    return true;
+  };
+
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100vh-104px)] w-60 shrink-0 lg:block">
       <div className="mtis-card flex h-full min-h-0 flex-col overflow-hidden p-3">
         <p className="mtis-eyebrow shrink-0 px-3 pb-2 pt-1">Workspace</p>
         <nav className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1">
-          <div className="space-y-4">
-            {groups.map((group) => (
-              <div key={group.label}>
-                <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
-                  {group.label}
-                </p>
-                <ul className="space-y-1">
-                  {group.items.map((it) => {
-                    const active =
-                      it.to &&
-                      (it.to === "/admin" ? pathname === "/admin" : pathname.startsWith(it.to));
-                    const cls = `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                      active
-                        ? "bg-primary-pale text-primary"
-                        : "text-muted-foreground hover:bg-primary-pale/60 hover:text-primary"
-                    }`;
-                    return (
-                      <li key={it.label} className="min-w-0">
-                        {it.to && !it.comingSoon ? (
-                          <Link to={it.to} className={cls}>
-                            <it.icon className="size-4 shrink-0" />
-                            <span className="truncate">{it.label}</span>
-                          </Link>
-                        ) : (
-                          <button
-                            onClick={() => toast(`${it.label} — coming soon`)}
-                            className={cls}
-                          >
-                            <it.icon className="size-4 shrink-0" />
-                            <span className="truncate">{it.label}</span>
-                          </button>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+          <div className="space-y-2">
+            {groups.map((group) => {
+              const hasActive = group.items.some(isItemActive);
+              const open = collapsed[group.label] === undefined ? true : !collapsed[group.label];
+              const expanded = open || hasActive;
+              return (
+                <div key={group.label}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCollapsed((c) => ({ ...c, [group.label]: !(c[group.label] ?? false) }))
+                    }
+                    aria-expanded={expanded}
+                    className="flex w-full items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 transition-colors hover:text-primary"
+                  >
+                    <ChevronRight
+                      className={`size-3 shrink-0 transition-transform ${expanded ? "rotate-90" : ""}`}
+                    />
+                    <span className="truncate">{group.label}</span>
+                  </button>
+                  {expanded && (
+                    <ul className="space-y-1">
+                      {group.items.map((it) => {
+                        const active = isItemActive(it);
+                        const cls = `flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-primary-pale text-primary"
+                            : "text-muted-foreground hover:bg-primary-pale/60 hover:text-primary"
+                        }`;
+                        return (
+                          <li key={it.label} className="min-w-0">
+                            {it.to && !it.comingSoon ? (
+                              <Link to={it.to} search={it.search as never} className={cls}>
+                                <it.icon className="size-4 shrink-0" />
+                                <span className="truncate">{it.label}</span>
+                              </Link>
+                            ) : (
+                              <button
+                                onClick={() => toast(`${it.label} — coming soon`)}
+                                className={cls}
+                              >
+                                <it.icon className="size-4 shrink-0" />
+                                <span className="truncate">{it.label}</span>
+                              </button>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
             ))}
           </div>
         </nav>
