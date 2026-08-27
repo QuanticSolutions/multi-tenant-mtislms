@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { Calculator, CheckCircle2, Trash2, Plus } from "lucide-react";
@@ -21,6 +21,9 @@ import { formatDate, formatStatus } from "@/lib/format";
 import { StaffAttendancePanel } from "@/components/admin/staff-attendance-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/staff")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab: search["tab"] === "payroll" ? ("payroll" as const) : ("attendance" as const),
+  }),
   head: () => ({
     meta: [
       { title: "Staff Attendance & Payroll — Madina Tul Ilm" },
@@ -36,6 +39,8 @@ const MONTHS = [
 ];
 
 function StaffPage() {
+  const { tab } = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   return (
     <AppShell>
       <div>
@@ -46,7 +51,11 @@ function StaffPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="attendance" className="w-full">
+      <Tabs
+        value={tab}
+        onValueChange={(v) => navigate({ search: { tab: v as "attendance" | "payroll" } })}
+        className="w-full"
+      >
         <TabsList>
           <TabsTrigger value="attendance">Attendance</TabsTrigger>
           <TabsTrigger value="payroll">Payroll</TabsTrigger>
