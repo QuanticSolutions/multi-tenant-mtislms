@@ -359,9 +359,6 @@ function Sidebar() {
               );
             })}
           </div>
-
-            ))}
-          </div>
         </nav>
         <div className="mt-3 shrink-0 rounded-md border border-border bg-background p-3">
           <p className="text-xs font-semibold text-foreground">Need help?</p>
