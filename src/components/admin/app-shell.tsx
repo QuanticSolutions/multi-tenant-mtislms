@@ -269,6 +269,13 @@ function Header({
   );
 }
 
+/** Tab a page shows when no ?tab= param is present. */
+function defaultTabFor(path: string) {
+  if (path === "/admin/finance") return "income";
+  if (path === "/admin/staff") return "attendance";
+  return undefined;
+}
+
 function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const searchTab = useRouterState({
