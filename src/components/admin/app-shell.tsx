@@ -39,6 +39,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyRoles } from "@/hooks/use-role";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { ModuleKey } from "@/lib/modules";
 
 type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
@@ -46,6 +48,7 @@ type NavItem = {
   to?: string;
   comingSoon?: boolean;
   teacher?: boolean;
+  module?: ModuleKey;
 };
 
 type NavGroup = { label: string; items: NavItem[] };
@@ -55,62 +58,62 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Overview",
     items: [
       { icon: TrendingUp, label: "Dashboard", to: "/admin", teacher: true },
-      { icon: BarChart3, label: "Reports", to: "/admin/reports" },
+      { icon: BarChart3, label: "Reports", to: "/admin/reports" , module: "reports" },
     ],
   },
   {
     label: "Students",
     items: [
-      { icon: Users, label: "Students", to: "/admin/students", teacher: true },
-      { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" },
-      { icon: HeartHandshake, label: "Donations", to: "/admin/donations" },
-      { icon: BriefcaseBusiness, label: "Employees", to: "/admin/employees" },
-      { icon: Bus, label: "Transport drivers", to: "/admin/drivers" },
-      { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" },
-      { icon: UserCheck, label: "Parents", to: "/admin/parents" },
+      { icon: Users, label: "Students", to: "/admin/students", teacher: true , module: "students" },
+      { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" , module: "admissions" },
+      { icon: HeartHandshake, label: "Donations", to: "/admin/donations" , module: "donations" },
+      { icon: BriefcaseBusiness, label: "Employees", to: "/admin/employees" , module: "employees" },
+      { icon: Bus, label: "Transport drivers", to: "/admin/drivers" , module: "transport" },
+      { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" , module: "students" },
+      { icon: UserCheck, label: "Parents", to: "/admin/parents" , module: "parents" },
     ],
   },
   {
     label: "Teachers & Staff",
     items: [
-      { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" },
-      { icon: ClipboardList, label: "Staff & Payroll", to: "/admin/staff" },
+      { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" , module: "teachers" },
+      { icon: ClipboardList, label: "Staff & Payroll", to: "/admin/staff" , module: "payroll" },
     ],
   },
   {
     label: "Academics",
     items: [
-      { icon: School, label: "Classes", to: "/admin/classes", teacher: true },
-      { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true },
-      { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true },
-      { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true },
-      { icon: FileText, label: "Exams", to: "/admin/exams" },
+      { icon: School, label: "Classes", to: "/admin/classes", teacher: true , module: "classes" },
+      { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true , module: "subjects" },
+      { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true , module: "attendance" },
+      { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true , module: "timetable" },
+      { icon: FileText, label: "Exams", to: "/admin/exams" , module: "exams" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { icon: Wallet, label: "Fees", to: "/admin/fees" },
-      { icon: Banknote, label: "Finance", to: "/admin/finance" },
-      { icon: BookOpen, label: "Library", to: "/admin/library" },
-      { icon: Package, label: "Inventory", to: "/admin/inventory" },
+      { icon: Wallet, label: "Fees", to: "/admin/fees" , module: "fees" },
+      { icon: Banknote, label: "Finance", to: "/admin/finance" , module: "finance" },
+      { icon: BookOpen, label: "Library", to: "/admin/library" , module: "library" },
+      { icon: Package, label: "Inventory", to: "/admin/inventory" , module: "inventory" },
     ],
   },
   {
     label: "Communication",
     items: [
-      { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true },
-      { icon: Bell, label: "Notifications", to: "/admin/notifications" },
-      { icon: CalendarRange, label: "Events", to: "/admin/events", teacher: true },
+      { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true , module: "messaging" },
+      { icon: Bell, label: "Notifications", to: "/admin/notifications" , module: "notifications" },
+      { icon: CalendarRange, label: "Events", to: "/admin/events", teacher: true , module: "events" },
     ],
   },
   {
     label: "General",
     items: [
-      { icon: UserCog, label: "Users", to: "/admin/users" },
-      { icon: Upload, label: "Import Data", to: "/admin/import" },
-      { icon: Settings, label: "Settings", to: "/admin/settings" },
-      { icon: Activity, label: "Audit Log", to: "/admin/audit" },
+      { icon: UserCog, label: "Users", to: "/admin/users" , module: "users" },
+      { icon: Upload, label: "Import Data", to: "/admin/import" , module: "import" },
+      { icon: Settings, label: "Settings", to: "/admin/settings" , module: "settings" },
+      { icon: Activity, label: "Audit Log", to: "/admin/audit" , module: "audit" },
     ],
   },
 ];
@@ -230,11 +233,18 @@ function Header({
 function Sidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin, loaded } = useMyRoles();
+  const { can, permissions, loaded: permsLoaded } = usePermissions();
   const restrict = loaded && !isAdmin;
+  // Only apply the permission matrix when the user actually has one assigned;
+  // otherwise fall back to the role-based (teacher) filtering.
+  const usePermissionMatrix = permsLoaded && !isAdmin && permissions.length > 0;
 
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
-    items: restrict ? g.items.filter((it) => it.teacher) : g.items,
+    items: g.items.filter((it) => {
+      if (usePermissionMatrix) return !it.module || can(it.module, "read");
+      return restrict ? Boolean(it.teacher) : true;
+    }),
   })).filter((g) => g.items.length > 0);
 
   return (
