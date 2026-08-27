@@ -32,6 +32,9 @@ import {
   BriefcaseBusiness,
   Upload,
   Banknote,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 
