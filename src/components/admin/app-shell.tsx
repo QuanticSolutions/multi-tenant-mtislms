@@ -46,6 +46,7 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   to?: string;
+  search?: Record<string, string>;
   comingSoon?: boolean;
   teacher?: boolean;
   module?: ModuleKey;
@@ -77,7 +78,44 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Teachers & Staff",
     items: [
       { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" , module: "teachers" },
-      { icon: ClipboardList, label: "Staff & Payroll", to: "/admin/staff" , module: "payroll" },
+    ],
+  },
+  {
+    label: "Attendance",
+    items: [
+      {
+        icon: CalendarCheck,
+        label: "Student attendance",
+        to: "/admin/attendance",
+        teacher: true,
+        module: "attendance",
+      },
+      {
+        icon: ClipboardList,
+        label: "Staff attendance",
+        to: "/admin/staff",
+        search: { tab: "attendance" },
+        module: "attendance",
+      },
+    ],
+  },
+  {
+    label: "Finance",
+    items: [
+      {
+        icon: ArrowDownCircle,
+        label: "Income — student fees",
+        to: "/admin/finance",
+        search: { tab: "income" },
+        module: "finance",
+      },
+      {
+        icon: ArrowUpCircle,
+        label: "Outgoing — staff payroll",
+        to: "/admin/finance",
+        search: { tab: "outgoing" },
+        module: "payroll",
+      },
     ],
   },
   {
@@ -85,7 +123,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: School, label: "Classes", to: "/admin/classes", teacher: true , module: "classes" },
       { icon: Layers, label: "Subjects", to: "/admin/subjects", teacher: true , module: "subjects" },
-      { icon: CalendarCheck, label: "Attendance", to: "/admin/attendance", teacher: true , module: "attendance" },
       { icon: CalendarDays, label: "Timetable", to: "/admin/timetable", teacher: true , module: "timetable" },
       { icon: FileText, label: "Exams", to: "/admin/exams" , module: "exams" },
     ],
@@ -93,8 +130,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     label: "Operations",
     items: [
-      { icon: Wallet, label: "Fees", to: "/admin/fees" , module: "fees" },
-      { icon: Banknote, label: "Finance", to: "/admin/finance" , module: "finance" },
       { icon: BookOpen, label: "Library", to: "/admin/library" , module: "library" },
       { icon: Package, label: "Inventory", to: "/admin/inventory" , module: "inventory" },
     ],
@@ -117,6 +152,7 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
 
 
 export interface SessionUser {
