@@ -86,9 +86,11 @@ export function ImportWizard({
   });
 
   const validated: ValidatedRow[] = useMemo(() => {
-    if (!entity || !file || !contextQuery.data) return [];
-    return validateRows(entity, mapping, file.rows, contextQuery.data.lookups, contextQuery.data.existing);
+    if (!entity || !file) return [];
+    const ctx = contextQuery.data ?? { lookups: {}, existing: {} };
+    return validateRows(entity, mapping, file.rows, ctx.lookups, ctx.existing);
   }, [entity, file, mapping, contextQuery.data]);
+
 
   const invalid = validated.filter((r) => r.errors.length > 0);
   const duplicates = validated.filter((r) => r.errors.length === 0 && r.duplicateId);
@@ -279,19 +281,31 @@ export function ImportWizard({
         )}
 
         {step === "preview" && entity && (
-          <PreviewStep
-            rows={validated}
-            invalidCount={invalid.length}
-            duplicates={duplicates}
-            rowActions={rowActions}
-            setRowActions={setRowActions}
-            skipInvalid={skipInvalid}
-            setSkipInvalid={setSkipInvalid}
-            onBack={() => setStep("mapping")}
-            onCommit={() => commit.mutate()}
-            committing={commit.isPending}
-          />
+          <>
+            {contextQuery.isError && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm">
+                <p className="font-medium text-destructive">Could not load existing records for matching</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {(contextQuery.error as Error)?.message ?? "Unknown error"} — rows below are still validated, but
+                  linked fields (like Class) and duplicate detection may be unavailable.
+                </p>
+              </div>
+            )}
+            <PreviewStep
+              rows={validated}
+              invalidCount={invalid.length}
+              duplicates={duplicates}
+              rowActions={rowActions}
+              setRowActions={setRowActions}
+              skipInvalid={skipInvalid}
+              setSkipInvalid={setSkipInvalid}
+              onBack={() => setStep("mapping")}
+              onCommit={() => commit.mutate()}
+              committing={commit.isPending}
+            />
+          </>
         )}
+
 
         {step === "done" && results && entity && (
           <DoneStep
