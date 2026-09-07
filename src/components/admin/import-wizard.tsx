@@ -86,9 +86,11 @@ export function ImportWizard({
   });
 
   const validated: ValidatedRow[] = useMemo(() => {
-    if (!entity || !file || !contextQuery.data) return [];
-    return validateRows(entity, mapping, file.rows, contextQuery.data.lookups, contextQuery.data.existing);
+    if (!entity || !file) return [];
+    const ctx = contextQuery.data ?? { lookups: {}, existing: {} };
+    return validateRows(entity, mapping, file.rows, ctx.lookups, ctx.existing);
   }, [entity, file, mapping, contextQuery.data]);
+
 
   const invalid = validated.filter((r) => r.errors.length > 0);
   const duplicates = validated.filter((r) => r.errors.length === 0 && r.duplicateId);
