@@ -7,6 +7,10 @@
 
 BEGIN;
 
+-- Functions are declared before their tables in this dump, so skip body
+-- validation while the script runs (bodies are re-checked at execution time).
+SET LOCAL check_function_bodies = false;
+
 --
 -- PostgreSQL database dump
 --
