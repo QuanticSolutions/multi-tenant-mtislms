@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import {
   Upload, FileSpreadsheet, FileDown, CheckCircle2, AlertTriangle, ArrowLeft, ArrowRight, Save, Database,
 } from "lucide-react";
@@ -17,7 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { IMPORT_ENTITIES, getEntity, type ImportEntity } from "@/lib/import/registry";
 import { downloadCsv, downloadTemplate, parseImportFile, type ParsedFile } from "@/lib/import/io";
 import { guessMapping, validateRows, type ValidatedRow } from "@/lib/import/validate";
-import { commitImport, getImportContext, type CommitResult } from "@/lib/api/import.functions";
+import type { CommitResult } from "@/lib/api/import.functions";
+import { commitImportRows, loadImportContext } from "@/lib/import/client";
 
 type Step = "entity" | "upload" | "mapping" | "preview" | "done";
 type DuplicateAction = "skip" | "update" | "create";
@@ -45,8 +45,6 @@ export function ImportWizard({
 
   const entity = selected ? getEntity(selected) : undefined;
   const qc = useQueryClient();
-  const loadContext = useServerFn(getImportContext);
-  const runCommit = useServerFn(commitImport);
 
   function reset() {
     setStep(entityKey ? "upload" : "entity");
@@ -68,7 +66,7 @@ export function ImportWizard({
   const contextQuery = useQuery({
     queryKey: ["import-context", selected],
     enabled: open && !!selected,
-    queryFn: () => loadContext({ data: { entityKey: selected! } }),
+    queryFn: () => loadImportContext(selected!),
   });
 
   const profilesQuery = useQuery({
@@ -130,7 +128,7 @@ export function ImportWizard({
           }
           return { index: row.index, values: row.values, action: "insert" as const, existingId: null };
         });
-      return runCommit({ data: { entityKey: selected!, rows: payload } });
+      return commitImportRows(selected!, payload);
     },
     onSuccess: (res) => {
       setResults(res);
