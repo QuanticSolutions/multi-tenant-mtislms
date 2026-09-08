@@ -29,14 +29,16 @@ export const getImportContext = createServerFn({ method: "POST" })
     const entity = getEntity(data.entityKey);
     if (!entity) throw new Error(`Unknown import entity: ${data.entityKey}`);
 
-    const { getAdminClient } = await import("@/lib/api/admin.server");
-    const admin = getAdminClient() as any;
+    // Use the authenticated request client. Lovable Cloud supplies this client
+    // through the auth middleware, so imports do not depend on separately
+    // configured server environment variables.
+    const db = (context as Ctx).supabase;
 
     const lookups: Record<string, Record<string, string>> = {};
     for (const field of entity.fields) {
       if (field.type !== "uuid-lookup" || !field.lookupTable) continue;
       const cols = field.lookupMatchField ?? ["name"];
-      const { data: rows, error } = await admin.from(field.lookupTable).select(["id", ...cols].join(","));
+      const { data: rows, error } = await db.from(field.lookupTable).select(["id", ...cols].join(","));
       if (error) throw new Error(error.message);
       const index: Record<string, string> = {};
       for (const row of rows ?? []) {
@@ -49,7 +51,7 @@ export const getImportContext = createServerFn({ method: "POST" })
 
     const existing: Record<string, Record<string, string>> = {};
     if (entity.dedupeFields.length) {
-      const { data: rows, error } = await admin
+      const { data: rows, error } = await db
         .from(entity.table)
         .select(["id", ...entity.dedupeFields].join(","));
       if (error) throw new Error(error.message);
@@ -73,8 +75,8 @@ export type CommitResult = {
   reason?: string;
 };
 
-/** Commits validated rows server-side with the service role so bulk admin
- *  imports are not blocked by RLS. Rows are written in batches. */
+/** Commits validated rows as the authenticated admin. RLS remains enforced,
+ *  and rows are written in batches. */
 export const commitImport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
@@ -100,8 +102,7 @@ export const commitImport = createServerFn({ method: "POST" })
     if (!entity) throw new Error(`Unknown import entity: ${data.entityKey}`);
     const allowed = new Set(entity.fields.map((f) => f.key));
 
-    const { getAdminClient } = await import("@/lib/api/admin.server");
-    const admin = getAdminClient() as any;
+    const db = (context as Ctx).supabase;
 
     const results: CommitResult[] = [];
     const inserts: { index: number; payload: Record<string, unknown> }[] = [];
@@ -120,7 +121,7 @@ export const commitImport = createServerFn({ method: "POST" })
           results.push({ index: row.index, status: "failed", reason: "No matching record to update" });
           continue;
         }
-        const { error } = await admin.from(entity.table).update(payload).eq("id", row.existingId);
+        const { error } = await db.from(entity.table).update(payload).eq("id", row.existingId);
         results.push(
           error
             ? { index: row.index, status: "failed", reason: error.message }
@@ -134,14 +135,14 @@ export const commitImport = createServerFn({ method: "POST" })
     const BATCH = 100;
     for (let i = 0; i < inserts.length; i += BATCH) {
       const batch = inserts.slice(i, i + BATCH);
-      const { error } = await admin.from(entity.table).insert(batch.map((b) => b.payload));
+      const { error } = await db.from(entity.table).insert(batch.map((b) => b.payload));
       if (!error) {
         for (const b of batch) results.push({ index: b.index, status: "inserted" });
         continue;
       }
       // Batch failed: retry row-by-row so one bad row doesn't lose the rest.
       for (const b of batch) {
-        const { error: rowError } = await admin.from(entity.table).insert(b.payload);
+        const { error: rowError } = await db.from(entity.table).insert(b.payload);
         results.push(
           rowError
             ? { index: b.index, status: "failed", reason: rowError.message }
