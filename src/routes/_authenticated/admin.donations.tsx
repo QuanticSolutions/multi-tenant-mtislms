@@ -157,6 +157,7 @@ function DonationsPage() {
             </Button>
           </DialogTrigger>
           <DonationDialog
+            key={editing?.id ?? "new"}
             existing={editing}
             onDone={() => {
               setOpen(false);

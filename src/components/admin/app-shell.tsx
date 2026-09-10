@@ -305,9 +305,8 @@ function Sidebar() {
     return true;
   };
 
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(
-    Object.fromEntries(groups.map((g) => [g.label, true]))
-  );
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
+
 
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100vh-104px)] w-60 shrink-0 lg:block">
