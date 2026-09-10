@@ -315,7 +315,7 @@ function Sidebar() {
           <div className="space-y-2">
             {groups.map((group) => {
               const hasActive = group.items.some(isItemActive);
-              const open = collapsed[group.label] === undefined ? true : !collapsed[group.label];
+              const open = collapsed[group.label] === undefined ? false : !collapsed[group.label];
               const expanded = open || hasActive;
               return (
                 <div key={group.label}>
