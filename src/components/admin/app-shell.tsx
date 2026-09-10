@@ -305,7 +305,9 @@ function Sidebar() {
     return true;
   };
 
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(
+    Object.fromEntries(groups.map((g) => [g.label, true]))
+  );
 
   return (
     <aside className="sticky top-[88px] hidden h-[calc(100vh-104px)] w-60 shrink-0 lg:block">
@@ -315,14 +317,22 @@ function Sidebar() {
           <div className="space-y-2">
             {groups.map((group) => {
               const hasActive = group.items.some(isItemActive);
-              const open = collapsed[group.label] === undefined ? false : !collapsed[group.label];
+              const open = !(collapsed[group.label] ?? true);
               const expanded = open || hasActive;
               return (
                 <div key={group.label}>
                   <button
                     type="button"
                     onClick={() =>
-                      setCollapsed((c) => ({ ...c, [group.label]: !(c[group.label] ?? false) }))
+                      setCollapsed((c) => {
+                        const currentlyCollapsed = c[group.label] ?? true;
+                        const next: Record<string, boolean> = {};
+                        groups.forEach((g) => {
+                          next[g.label] = true;
+                        });
+                        next[group.label] = !currentlyCollapsed;
+                        return next;
+                      })
                     }
                     aria-expanded={expanded}
                     className="flex w-full items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 transition-colors hover:text-primary"
