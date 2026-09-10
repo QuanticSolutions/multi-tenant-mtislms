@@ -169,7 +169,7 @@ function StudentsPage() {
               <Plus /> Add student
             </Button>
           </DialogTrigger>
-          <StudentDialog existing={editing} classes={classes ?? []} drivers={drivers ?? []} onDone={() => { setOpen(false); setEditing(null); }} />
+          <StudentDialog key={editing?.id ?? "new"} existing={editing} classes={classes ?? []} drivers={drivers ?? []} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
         </div>
       </div>

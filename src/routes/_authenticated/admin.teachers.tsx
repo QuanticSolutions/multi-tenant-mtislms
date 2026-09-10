@@ -148,7 +148,7 @@ function TeachersPage() {
               <Plus /> Add teacher
             </Button>
           </DialogTrigger>
-          <TeacherDialog existing={editing} onDone={() => { setOpen(false); setEditing(null); }} />
+          <TeacherDialog key={editing?.id ?? "new"} existing={editing} onDone={() => { setOpen(false); setEditing(null); }} />
         </Dialog>
         </div>
       </div>

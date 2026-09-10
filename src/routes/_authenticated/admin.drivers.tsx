@@ -146,6 +146,7 @@ function DriversPage() {
             </Button>
           </DialogTrigger>
           <DriverDialog
+            key={editing?.id ?? "new"}
             existing={editing}
             onDone={() => {
               setOpen(false);

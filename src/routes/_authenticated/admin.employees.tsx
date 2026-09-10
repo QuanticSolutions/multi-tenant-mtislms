@@ -155,6 +155,7 @@ function EmployeesPage() {
             </Button>
           </DialogTrigger>
           <ApplicationDialog
+            key={editing?.id ?? "new"}
             existing={editing}
             onDone={() => {
               setOpen(false);
