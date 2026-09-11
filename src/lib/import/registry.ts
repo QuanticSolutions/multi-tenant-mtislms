@@ -1,13 +1,16 @@
 // Central registry of importable entities. The import wizard is fully driven by
 // this config — adding a new importable entity means adding an entry here only.
 
-export type FieldType = "text" | "number" | "date" | "enum" | "uuid-lookup";
+export type FieldType = "text" | "number" | "boolean" | "date" | "enum" | "uuid-lookup";
 
 export type ImportField = {
   key: string;
   label: string;
   type: FieldType;
   required?: boolean;
+  requiredOnInsert?: boolean;
+  min?: number;
+  lookupFilter?: { column: string; value: boolean | string };
   enumValues?: readonly string[];
   /** For uuid-lookup: table to resolve against. */
   lookupTable?: string;
@@ -25,6 +28,9 @@ export type ImportEntity = {
   /** Columns used to detect an existing record (duplicate handling). */
   dedupeFields: string[];
   fields: ImportField[];
+  /** Shared records are enriched, never replaced or duplicated. */
+  mergeMode?: "fill-missing";
+  matchCaseSensitive?: boolean;
 };
 
 export const IMPORT_ENTITIES: ImportEntity[] = [
@@ -87,21 +93,62 @@ export const IMPORT_ENTITIES: ImportEntity[] = [
     ],
   },
   {
-    key: "teachers",
-    label: "Teachers",
-    description: "Teaching staff records.",
+    key: "departments",
+    label: "Departments",
+    description: "Teaching and non-teaching departments. Import these before employees.",
+    table: "departments",
+    dedupeFields: ["name"],
+    mergeMode: "fill-missing",
+    matchCaseSensitive: true,
+    fields: [
+      { key: "name", label: "Department Name", type: "text", required: true, example: "Teaching Staff" },
+      { key: "is_teaching", label: "Teaching Department", type: "boolean", requiredOnInsert: true, example: "yes" },
+    ],
+  },
+  {
+    key: "employees",
+    label: "Employees",
+    description: "All staff, matched by Employee No. Teaching departments also appear in Teachers.",
     table: "teachers",
-    dedupeFields: ["employee_no", "email"],
+    dedupeFields: ["employee_no"],
+    mergeMode: "fill-missing",
+    matchCaseSensitive: true,
     fields: [
       { key: "employee_no", label: "Employee No", type: "text", required: true, example: "EMP-201" },
-      { key: "full_name", label: "Full Name", type: "text", required: true, example: "Sana Malik" },
+      { key: "full_name", label: "Full Name", type: "text", requiredOnInsert: true, example: "Sana Malik" },
+      { key: "department_id", label: "Department", type: "uuid-lookup", requiredOnInsert: true, lookupTable: "departments", lookupMatchField: ["name"], example: "Teaching Staff" },
+      { key: "email", label: "Email", type: "text", example: "sana@example.com" },
+      { key: "phone", label: "Phone", type: "text", example: "03007654321" },
+      { key: "designation", label: "Designation", type: "text" },
+      { key: "base_salary", label: "Base Salary", type: "number", min: 0, example: 40000 },
+      { key: "date_of_joining", label: "Date of Joining", type: "date", requiredOnInsert: true, example: "2022-08-15" },
+      { key: "status", label: "Status", type: "enum", enumValues: ["active", "on_leave", "inactive", "resigned", "probation"], example: "active" },
+      { key: "gender", label: "Gender", type: "enum", enumValues: ["male", "female", "other"] },
+      { key: "date_of_birth", label: "Date of Birth", type: "date" },
+      { key: "address", label: "Address", type: "text" },
+    ],
+  },
+  {
+    key: "teachers",
+    label: "Teachers",
+    description: "Teaching details matched to employees by Employee No; only empty fields are completed.",
+    table: "teachers",
+    dedupeFields: ["employee_no"],
+    mergeMode: "fill-missing",
+    matchCaseSensitive: true,
+    fields: [
+      { key: "employee_no", label: "Employee No", type: "text", required: true, example: "EMP-201" },
+      { key: "full_name", label: "Full Name", type: "text", requiredOnInsert: true, example: "Sana Malik" },
+      { key: "department_id", label: "Department", type: "uuid-lookup", requiredOnInsert: true, lookupTable: "departments", lookupMatchField: ["name"], lookupFilter: { column: "is_teaching", value: true }, example: "Teaching Staff" },
+      { key: "subject_id", label: "Subject", type: "uuid-lookup", lookupTable: "subjects", lookupMatchField: ["code", "name"], help: "Use a unique subject code or subject UUID; ambiguous names are rejected." },
+      { key: "fee_group_id", label: "Fee Group", type: "uuid-lookup", lookupTable: "fee_groups", lookupMatchField: ["name"] },
       { key: "email", label: "Email", type: "text", example: "sana@example.com" },
       { key: "phone", label: "Phone", type: "text", example: "03007654321" },
       { key: "gender", label: "Gender", type: "enum", enumValues: ["male", "female", "other"], example: "female" },
       { key: "date_of_birth", label: "Date of Birth", type: "date", example: "1990-06-12" },
       { key: "qualification", label: "Qualification", type: "text", example: "M.Ed" },
       { key: "specialization", label: "Specialization", type: "text", example: "Mathematics" },
-      { key: "date_of_joining", label: "Date of Joining", type: "date", required: true, example: "2022-08-15" },
+      { key: "date_of_joining", label: "Date of Joining", type: "date", requiredOnInsert: true, example: "2022-08-15" },
       {
         key: "status",
         label: "Status",
