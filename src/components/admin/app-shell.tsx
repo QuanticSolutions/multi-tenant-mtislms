@@ -71,7 +71,7 @@ const NAV_GROUPS: NavGroup[] = [
       { icon: Users, label: "Students", to: "/admin/students", teacher: true , module: "students" },
       { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" , module: "admissions" },
       { icon: HeartHandshake, label: "Donations", to: "/admin/donations" , module: "donations" },
-      { icon: BriefcaseBusiness, label: "Employees", to: "/admin/employees" , module: "employees" },
+      { icon: BriefcaseBusiness, label: "Employment applications", to: "/admin/employees" , module: "employees" },
       { icon: Bus, label: "Transport drivers", to: "/admin/drivers" , module: "transport" },
       { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" , module: "students" },
       { icon: UserCheck, label: "Parents", to: "/admin/parents" , module: "parents" },
@@ -81,6 +81,8 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Teachers & Staff",
     items: [
       { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" , module: "teachers" },
+      { icon: Users, label: "Employees", to: "/admin/staff-directory", module: "employees" },
+      { icon: Layers, label: "Departments", to: "/admin/setup/departments", module: "departments" },
     ],
   },
   {
