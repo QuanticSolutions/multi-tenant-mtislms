@@ -2600,6 +2600,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      merge_staff_import: {
+        Args: { _entity: string; _values: Json }
+        Returns: Json
+      }
     }
     Enums: {
       admission_status:
