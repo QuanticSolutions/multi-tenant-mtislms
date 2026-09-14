@@ -28,7 +28,6 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate, formatStatus } from "@/lib/format";
-import { money } from "@/lib/finance";
 
 export const Route = createFileRoute("/_authenticated/admin/teachers")({
   head: () => ({
@@ -56,9 +55,8 @@ type TeacherRow = {
   department_id: string | null;
   subject_id: string | null;
   fee_group_id: string | null;
-  designation: string | null;
-  base_salary: number;
   departments: { name: string; is_teaching: boolean } | null;
+  subjects: { name: string; classes: { name: string; section: string | null } | null } | null;
 };
 
 function TeachersPage() {
@@ -76,8 +74,9 @@ function TeachersPage() {
       const { data, error } = await supabase
         .from("teachers")
         .select(
-          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, designation, base_salary, departments(name, is_teaching)",
+          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, departments!inner(name, is_teaching), subjects(name, classes(name, section))",
         )
+        .eq("departments.is_teaching", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as TeacherRow[];
@@ -137,7 +136,7 @@ function TeachersPage() {
           <p className="mtis-eyebrow">Module</p>
           <h1 className="mt-1 font-display text-2xl font-bold">Teachers</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Faculty directory, qualifications, and employment status.
+            Teaching staff only — subjects, classes and qualifications. Employment details live in Employees.
           </p>
         </div>
         <div className="flex gap-2">
@@ -208,7 +207,7 @@ function TeachersPage() {
             </div>
             <h3 className="mt-3 font-display text-base font-semibold">No teachers yet</h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Add your first faculty member to start building the directory.
+              Add a teaching staff member, or check that their department is marked as teaching.
             </p>
             <Button className="mt-4" onClick={() => setOpen(true)}>
               <Plus /> Add teacher
@@ -220,8 +219,7 @@ function TeachersPage() {
               <tr className="bg-background">
                 <Th>Teacher</Th>
                 <Th>Contact</Th>
-                <Th>Department</Th>
-                <Th>Salary</Th>
+                <Th>Subject &amp; class</Th>
                 <Th>Qualification</Th>
 
                 <Th>Status</Th>
@@ -257,17 +255,12 @@ function TeachersPage() {
                     {!t.email && !t.phone && <span className="text-muted-foreground">—</span>}
                   </Td>
                   <Td>
-                    <div className="text-foreground">{t.departments?.name ?? "—"}</div>
+                    <div className="text-foreground">{t.subjects?.name ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">
-                      {t.departments
-                        ? t.departments.is_teaching
-                          ? "Teaching"
-                          : (t.designation ?? "Non-teaching")
-                        : ""}
+                      {t.subjects?.classes
+                        ? `${t.subjects.classes.name}${t.subjects.classes.section ? ` ${t.subjects.classes.section}` : ""}`
+                        : (t.departments?.name ?? "")}
                     </div>
-                  </Td>
-                  <Td className="text-muted-foreground">
-                    {t.base_salary ? money(t.base_salary) : "—"}
                   </Td>
                   <Td>
                     <div className="text-foreground">{t.qualification ?? "—"}</div>
@@ -323,29 +316,27 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
     department_id: existing?.department_id ?? "",
     subject_id: existing?.subject_id ?? "",
     fee_group_id: existing?.fee_group_id ?? "",
-    designation: existing?.designation ?? "",
-    base_salary: existing?.base_salary != null ? String(existing.base_salary) : "",
   }));
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const { data: departments } = useQuery({
-    queryKey: ["departments"],
+    queryKey: ["departments", "teaching"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("departments")
         .select("id, name, is_teaching")
+        .eq("is_teaching", true)
         .order("name");
       if (error) throw error;
       return data as DepartmentOpt[];
     },
   });
 
-  const selectedDept = (departments ?? []).find((d) => d.id === form.department_id) ?? null;
-  const isTeaching = selectedDept?.is_teaching ?? false;
+  // Teachers always belong to a teaching department; subject and fee group apply.
+  const isTeaching = true;
 
   const { data: subjects } = useQuery({
     queryKey: ["subjects-options"],
-    enabled: isTeaching,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("subjects")
@@ -362,7 +353,6 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
 
   const { data: feeGroups } = useQuery({
     queryKey: ["fee-groups-options"],
-    enabled: isTeaching,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("fee_groups")
@@ -380,7 +370,7 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
         throw new Error("Employee number and full name are required");
       }
       if (!form.department_id) {
-        throw new Error("Department is required — every employee must belong to one");
+        throw new Error("Teaching department is required");
       }
       const payload: any = {
         employee_no: form.employee_no.trim(),
@@ -392,12 +382,8 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
         date_of_joining: form.date_of_joining,
         status: form.status,
         department_id: form.department_id,
-        base_salary: Number(form.base_salary || 0),
-        // Conditional fields: teaching departments carry subject + fee group,
-        // non-teaching departments carry a designation.
-        subject_id: isTeaching ? form.subject_id || null : null,
-        fee_group_id: isTeaching ? form.fee_group_id || null : null,
-        designation: isTeaching ? null : form.designation || null,
+        subject_id: form.subject_id || null,
+        fee_group_id: form.fee_group_id || null,
       };
       if (form.gender) payload.gender = form.gender;
       if (form.date_of_birth) payload.date_of_birth = form.date_of_birth;
@@ -511,33 +497,19 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Department *">
+        <Field label="Teaching department *">
           <Select value={form.department_id} onValueChange={(v) => set("department_id", v)}>
             <SelectTrigger>
               <SelectValue placeholder="Select department" />
             </SelectTrigger>
             <SelectContent>
               {(departments ?? []).map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.name} {d.is_teaching ? "· Teaching" : "· Non-teaching"}
-                </SelectItem>
+                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
-        <Field label="Base salary">
-          <Input
-            type="number"
-            min="0"
-            step="0.01"
-            value={form.base_salary}
-            onChange={(e) => set("base_salary", e.target.value)}
-            placeholder="0"
-          />
-        </Field>
-        {isTeaching ? (
-          <>
-            <Field label="Subject">
+        <Field label="Subject">
               <Select
                 value={form.subject_id}
                 onValueChange={(v) => set("subject_id", v === "none" ? "" : v)}
