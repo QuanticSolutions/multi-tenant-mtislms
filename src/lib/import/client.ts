@@ -4,7 +4,7 @@ import type { ImportContext, CommitResult } from "@/lib/api/import.functions";
 
 type ImportRow = {
   index: number;
-  values: Record<string, string | number | null>;
+  values: Record<string, string | number | boolean | null>;
   action: "insert" | "update" | "skip";
   existingId?: string | null;
 };

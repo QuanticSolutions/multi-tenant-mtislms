@@ -8,7 +8,7 @@ export type CellError = { field: string; message: string };
 export type ValidatedRow = {
   index: number; // 1-based row number in the source file
   raw: Record<string, string>;
-  values: Record<string, string | number | null>;
+  values: Record<string, string | number | boolean | null>;
   errors: CellError[];
   duplicateId: string | null;
   duplicateField: string | null;
@@ -33,7 +33,7 @@ function validateCell(
   field: ImportField,
   rawValue: string,
   lookups: LookupIndex,
-): { value: string | number | null; error?: string } {
+): { value: string | number | boolean | null; error?: string } {
   const value = (rawValue ?? "").trim();
   if (!value) {
     if (field.required) return { value: null, error: `${field.label} is required` };
@@ -43,7 +43,15 @@ function validateCell(
     case "number": {
       const num = Number(value.replace(/,/g, ""));
       if (Number.isNaN(num)) return { value: null, error: `${field.label} must be a number (got “${value}”)` };
+      if (field.min !== undefined && num < field.min)
+        return { value: null, error: `${field.label} cannot be less than ${field.min} (got “${value}”)` };
       return { value: num };
+    }
+    case "boolean": {
+      const normalized = normalizeKey(value);
+      if (["yes", "y", "true", "1", "teaching"].includes(normalized)) return { value: true };
+      if (["no", "n", "false", "0", "nonteaching"].includes(normalized)) return { value: false };
+      return { value: null, error: `${field.label} must be yes or no (got “${value}”)` };
     }
     case "date": {
       const iso = toIsoDate(value);
@@ -81,7 +89,7 @@ export function validateRows(
   existing: ExistingIndex,
 ): ValidatedRow[] {
   return rows.map((raw, i) => {
-    const values: Record<string, string | number | null> = {};
+    const values: Record<string, string | number | boolean | null> = {};
     const errors: CellError[] = [];
 
     for (const field of entity.fields) {
