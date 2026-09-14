@@ -97,7 +97,8 @@ export function validateRows(
     for (const dedupe of entity.dedupeFields) {
       const value = values[dedupe];
       if (value === undefined || value === null || value === "") continue;
-      const hit = existing[dedupe]?.[normalizeKey(value)];
+      const hit =
+        existing[dedupe]?.[entity.matchCaseSensitive ? String(value).trim() : normalizeKey(value)];
       if (hit) {
         duplicateId = hit;
         duplicateField = dedupe;
