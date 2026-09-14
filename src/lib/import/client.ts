@@ -19,7 +19,9 @@ export async function loadImportContext(entityKey: string): Promise<ImportContex
   for (const field of entity.fields) {
     if (field.type !== "uuid-lookup" || !field.lookupTable) continue;
     const cols = field.lookupMatchField ?? ["name"];
-    const { data: rows, error } = await db.from(field.lookupTable).select(["id", ...cols].join(","));
+    let query = db.from(field.lookupTable).select(["id", ...cols].join(","));
+    if (field.lookupFilter) query = query.eq(field.lookupFilter.column, field.lookupFilter.value);
+    const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
     const index: Record<string, string> = {};
     for (const row of rows ?? []) {
