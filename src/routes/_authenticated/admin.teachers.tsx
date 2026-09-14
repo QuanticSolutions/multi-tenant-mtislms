@@ -77,6 +77,7 @@ function TeachersPage() {
           "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, departments!inner(name, is_teaching), subjects(name, classes(name, section))",
         )
         .order("created_at", { ascending: false });
+      console.log(data, error);
       if (error) throw error;
       return data as unknown as TeacherRow[];
     },
