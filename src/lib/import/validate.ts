@@ -106,6 +106,17 @@ export function validateRows(
       }
     }
 
+    // Fields only needed when the record does not exist yet: an existing staff
+    // record can be enriched without repeating the details already stored.
+    if (!duplicateId) {
+      for (const field of entity.fields) {
+        const value = values[field.key];
+        if (field.requiredOnInsert && (value === undefined || value === null || value === "")) {
+          errors.push({ field: field.key, message: `${field.label} is required for new records` });
+        }
+      }
+    }
+
     return { index: i + 1, raw, values, errors, duplicateId, duplicateField };
   });
 }
