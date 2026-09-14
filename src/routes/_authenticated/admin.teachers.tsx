@@ -528,7 +528,7 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
                 </SelectContent>
               </Select>
             </Field>
-            <Field label="Fee group">
+        <Field label="Fee group">
               <Select
                 value={form.fee_group_id}
                 onValueChange={(v) => set("fee_group_id", v === "none" ? "" : v)}
@@ -542,19 +542,8 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
                     <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                   ))}
                 </SelectContent>
-              </Select>
-            </Field>
-          </>
-        ) : (
-          <Field label="Designation">
-            <Input
-              value={form.designation}
-              onChange={(e) => set("designation", e.target.value)}
-              placeholder="Front Desk Officer"
-              disabled={!form.department_id}
-            />
-          </Field>
-        )}
+          </Select>
+        </Field>
         <Field label="Address" className="sm:col-span-2">
           <Input
             value={form.address}
