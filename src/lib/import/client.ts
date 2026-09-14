@@ -4,7 +4,7 @@ import type { ImportContext, CommitResult } from "@/lib/api/import.functions";
 
 type ImportRow = {
   index: number;
-  values: Record<string, string | number | null>;
+  values: Record<string, string | number | boolean | null>;
   action: "insert" | "update" | "skip";
   existingId?: string | null;
 };
@@ -19,7 +19,9 @@ export async function loadImportContext(entityKey: string): Promise<ImportContex
   for (const field of entity.fields) {
     if (field.type !== "uuid-lookup" || !field.lookupTable) continue;
     const cols = field.lookupMatchField ?? ["name"];
-    const { data: rows, error } = await db.from(field.lookupTable).select(["id", ...cols].join(","));
+    let query = db.from(field.lookupTable).select(["id", ...cols].join(","));
+    if (field.lookupFilter) query = query.eq(field.lookupFilter.column, field.lookupFilter.value);
+    const { data: rows, error } = await query;
     if (error) throw new Error(error.message);
     const index: Record<string, string> = {};
     for (const row of rows ?? []) {
@@ -40,7 +42,8 @@ export async function loadImportContext(entityKey: string): Promise<ImportContex
       const index: Record<string, string> = {};
       for (const row of rows ?? []) {
         const value = row[field];
-        if (value !== null && value !== undefined && value !== "") index[normalizeKey(value)] = row.id;
+        if (value === null || value === undefined || value === "") continue;
+        index[entity.matchCaseSensitive ? String(value).trim() : normalizeKey(value)] = row.id;
       }
       existing[field] = index;
     }
@@ -64,6 +67,32 @@ export async function commitImportRows(entityKey: string, rows: ImportRow[]): Pr
     for (const [key, value] of Object.entries(row.values)) {
       if (allowed.has(key) && value !== null && value !== "") payload[key] = value;
     }
+
+    // Shared staff records (departments, employees, teachers) are merged inside a
+    // single database transaction that only fills empty fields — existing data is
+    // never overwritten and duplicate staff rows cannot be created.
+    if (entity.mergeMode === "fill-missing") {
+      if (row.action === "skip") {
+        results.push({ index: row.index, status: "skipped", reason: "Skipped by user" });
+        continue;
+      }
+      const { data, error } = await db.rpc("merge_staff_import", {
+        _entity: entity.key,
+        _values: payload,
+      });
+      if (error) {
+        results.push({ index: row.index, status: "failed", reason: error.message });
+        continue;
+      }
+      const outcome = (data ?? {}) as { status?: string; reason?: string };
+      const status =
+        outcome.status === "inserted" || outcome.status === "updated" || outcome.status === "skipped"
+          ? outcome.status
+          : "failed";
+      results.push({ index: row.index, status, reason: outcome.reason });
+      continue;
+    }
+
     if (row.action === "skip") {
       results.push({ index: row.index, status: "skipped", reason: "Skipped by user" });
     } else if (row.action === "update") {
