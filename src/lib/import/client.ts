@@ -67,6 +67,32 @@ export async function commitImportRows(entityKey: string, rows: ImportRow[]): Pr
     for (const [key, value] of Object.entries(row.values)) {
       if (allowed.has(key) && value !== null && value !== "") payload[key] = value;
     }
+
+    // Shared staff records (departments, employees, teachers) are merged inside a
+    // single database transaction that only fills empty fields — existing data is
+    // never overwritten and duplicate staff rows cannot be created.
+    if (entity.mergeMode === "fill-missing") {
+      if (row.action === "skip") {
+        results.push({ index: row.index, status: "skipped", reason: "Skipped by user" });
+        continue;
+      }
+      const { data, error } = await db.rpc("merge_staff_import", {
+        _entity: entity.key,
+        _values: payload,
+      });
+      if (error) {
+        results.push({ index: row.index, status: "failed", reason: error.message });
+        continue;
+      }
+      const outcome = (data ?? {}) as { status?: string; reason?: string };
+      const status =
+        outcome.status === "inserted" || outcome.status === "updated" || outcome.status === "skipped"
+          ? outcome.status
+          : "failed";
+      results.push({ index: row.index, status, reason: outcome.reason });
+      continue;
+    }
+
     if (row.action === "skip") {
       results.push({ index: row.index, status: "skipped", reason: "Skipped by user" });
     } else if (row.action === "update") {
