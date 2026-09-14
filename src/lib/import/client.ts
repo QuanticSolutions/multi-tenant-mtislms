@@ -42,7 +42,8 @@ export async function loadImportContext(entityKey: string): Promise<ImportContex
       const index: Record<string, string> = {};
       for (const row of rows ?? []) {
         const value = row[field];
-        if (value !== null && value !== undefined && value !== "") index[normalizeKey(value)] = row.id;
+        if (value === null || value === undefined || value === "") continue;
+        index[entity.matchCaseSensitive ? String(value).trim() : normalizeKey(value)] = row.id;
       }
       existing[field] = index;
     }
