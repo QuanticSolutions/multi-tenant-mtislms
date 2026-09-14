@@ -78,6 +78,7 @@ function TeachersPage() {
         )
         .eq("departments.is_teaching", true)
         .order("created_at", { ascending: false });
+      console.log(data, error);
       if (error) throw error;
       return data as unknown as TeacherRow[];
     },
