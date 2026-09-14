@@ -74,11 +74,10 @@ function TeachersPage() {
       const { data, error } = await supabase
         .from("teachers")
         .select(
-          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, departments!inner(name, is_teaching), subjects(name, classes(name, section))",
+          "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, fee_group_id, departments!inner(name, is_teaching), subjects(name, classes(name, section))",
         )
         .eq("departments.is_teaching", true)
         .order("created_at", { ascending: false });
-      console.log(data, error);
       if (error) throw error;
       return data as unknown as TeacherRow[];
     },
@@ -256,10 +255,17 @@ function TeachersPage() {
                     {!t.email && !t.phone && <span className="text-muted-foreground">—</span>}
                   </Td>
                   <Td>
-                    <div className="text-foreground">{t.subjects?.name ?? "—"}</div>
+                    <div className="text-foreground">
+                      {t.subjects && t.subjects.length > 0 
+                        ? t.subjects.map((s) => s.name).join(", ") 
+                        : "—"}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {t.subjects?.classes
-                        ? `${t.subjects.classes.name}${t.subjects.classes.section ? ` ${t.subjects.classes.section}` : ""}`
+                      {t.subjects && t.subjects.length > 0
+                        ? t.subjects
+                            .map((s) => s.classes ? `${s.classes.name}${s.classes.section ? ` ${s.classes.section}` : ""}` : null)
+                            .filter(Boolean)
+                            .join(", ") || (t.departments?.name ?? "")
                         : (t.departments?.name ?? "")}
                     </div>
                   </Td>
