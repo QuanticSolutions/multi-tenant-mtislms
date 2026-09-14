@@ -332,8 +332,6 @@ function TeacherDialog({ existing, onDone }: { existing: TeacherRow | null; onDo
     },
   });
 
-  // Teachers always belong to a teaching department; subject and fee group apply.
-  const isTeaching = true;
 
   const { data: subjects } = useQuery({
     queryKey: ["subjects-options"],
