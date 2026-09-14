@@ -76,7 +76,6 @@ function TeachersPage() {
         .select(
           "id, employee_no, full_name, email, phone, qualification, specialization, status, date_of_joining, department_id, subject_id, fee_group_id, departments!inner(name, is_teaching), subjects(name, classes(name, section))",
         )
-        .eq("departments.is_teaching", true)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data as unknown as TeacherRow[];
