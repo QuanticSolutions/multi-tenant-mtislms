@@ -2282,7 +2282,6 @@ export type Database = {
           qualification: string | null
           specialization: string | null
           status: Database["public"]["Enums"]["teacher_status"]
-          subject_id: string | null
           updated_at: string
           user_id: string | null
         }
@@ -2306,7 +2305,6 @@ export type Database = {
           qualification?: string | null
           specialization?: string | null
           status?: Database["public"]["Enums"]["teacher_status"]
-          subject_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2330,7 +2328,6 @@ export type Database = {
           qualification?: string | null
           specialization?: string | null
           status?: Database["public"]["Enums"]["teacher_status"]
-          subject_id?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2347,13 +2344,6 @@ export type Database = {
             columns: ["fee_group_id"]
             isOneToOne: false
             referencedRelation: "fee_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "teachers_subject_id_fkey"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
