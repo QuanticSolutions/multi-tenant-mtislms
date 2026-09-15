@@ -133,7 +133,7 @@ function FinancePage() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => navigate({ search: { tab: v as "income" | "outgoing" } })}
+        onValueChange={(v) => navigate({ search: { tab: v as FinanceTab } })}
         className="space-y-4"
       >
         <TabsList>
@@ -143,12 +143,24 @@ function FinancePage() {
           <TabsTrigger value="outgoing">
             <ArrowUpCircle className="mr-2 size-4" /> Outgoing — payroll
           </TabsTrigger>
+          <TabsTrigger value="ledger">
+            <BookOpen className="mr-2 size-4" /> Income & expenses
+          </TabsTrigger>
+          <TabsTrigger value="scholarships">
+            <GraduationCap className="mr-2 size-4" /> Scholarships
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="income">
           <IncomeTab />
         </TabsContent>
         <TabsContent value="outgoing">
           <OutgoingTab />
+        </TabsContent>
+        <TabsContent value="ledger">
+          <LedgerTab currency={ledgerCurrency} />
+        </TabsContent>
+        <TabsContent value="scholarships">
+          <ScholarshipsTab currency={ledgerCurrency} />
         </TabsContent>
       </Tabs>
     </AppShell>
