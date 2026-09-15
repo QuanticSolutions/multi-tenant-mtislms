@@ -56,7 +56,7 @@ type TeacherRow = {
   subject_id: string | null;
   fee_group_id: string | null;
   departments: { name: string; is_teaching: boolean } | null;
-  subjects: { name: string; classes: { name: string; section: string | null } | null } | null;
+  subjects: { name: string; classes: { name: string; section: string | null } | null }[] | null;
 };
 
 function TeachersPage() {
