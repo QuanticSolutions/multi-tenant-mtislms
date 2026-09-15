@@ -128,6 +128,7 @@ function challanTone(s: ChallanStatus) {
 function FinancePage() {
   const { tab } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+  const { currency: ledgerCurrency } = useSchoolName();
   return (
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
