@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
+  BookOpen,
+  GraduationCap,
   Check,
   Download,
   FileSpreadsheet,
