@@ -70,8 +70,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: Users, label: "Students", to: "/admin/students", teacher: true , module: "students" },
       { icon: ClipboardCheck, label: "Admissions", to: "/admin/admissions" , module: "admissions" },
-      { icon: HeartHandshake, label: "Donations", to: "/admin/donations" , module: "donations" },
-      { icon: BriefcaseBusiness, label: "Employment applications", to: "/admin/employees" , module: "employees" },
       { icon: Bus, label: "Transport drivers", to: "/admin/drivers" , module: "transport" },
       { icon: ArrowUpRight, label: "Promotion", to: "/admin/promotion" , module: "students" },
       { icon: UserCheck, label: "Parents", to: "/admin/parents" , module: "parents" },
