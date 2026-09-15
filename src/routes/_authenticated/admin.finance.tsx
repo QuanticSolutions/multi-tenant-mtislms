@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
+  BookOpen,
+  GraduationCap,
   Check,
   Download,
   FileSpreadsheet,
@@ -52,10 +54,17 @@ import {
   type CalcType,
   type ChallanBreakdownLine,
 } from "@/lib/finance";
+import { LedgerTab } from "@/components/admin/finance-ledger-tab";
+import { ScholarshipsTab } from "@/components/admin/finance-scholarships-tab";
+
+const FINANCE_TABS = ["income", "outgoing", "ledger", "scholarships"] as const;
+type FinanceTab = (typeof FINANCE_TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/admin/finance")({
   validateSearch: (search: Record<string, unknown>) => ({
-    tab: search["tab"] === "outgoing" ? ("outgoing" as const) : ("income" as const),
+    tab: FINANCE_TABS.includes(search["tab"] as FinanceTab)
+      ? (search["tab"] as FinanceTab)
+      : ("income" as FinanceTab),
   }),
   head: () => ({
     meta: [
@@ -119,6 +128,7 @@ function challanTone(s: ChallanStatus) {
 function FinancePage() {
   const { tab } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
+  const { currency: ledgerCurrency } = useSchoolName();
   return (
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -133,7 +143,7 @@ function FinancePage() {
 
       <Tabs
         value={tab}
-        onValueChange={(v) => navigate({ search: { tab: v as "income" | "outgoing" } })}
+        onValueChange={(v) => navigate({ search: { tab: v as FinanceTab } })}
         className="space-y-4"
       >
         <TabsList>
@@ -143,12 +153,24 @@ function FinancePage() {
           <TabsTrigger value="outgoing">
             <ArrowUpCircle className="mr-2 size-4" /> Outgoing — payroll
           </TabsTrigger>
+          <TabsTrigger value="ledger">
+            <BookOpen className="mr-2 size-4" /> Income & expenses
+          </TabsTrigger>
+          <TabsTrigger value="scholarships">
+            <GraduationCap className="mr-2 size-4" /> Scholarships
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="income">
           <IncomeTab />
         </TabsContent>
         <TabsContent value="outgoing">
           <OutgoingTab />
+        </TabsContent>
+        <TabsContent value="ledger">
+          <LedgerTab currency={ledgerCurrency} />
+        </TabsContent>
+        <TabsContent value="scholarships">
+          <ScholarshipsTab currency={ledgerCurrency} />
         </TabsContent>
       </Tabs>
     </AppShell>
