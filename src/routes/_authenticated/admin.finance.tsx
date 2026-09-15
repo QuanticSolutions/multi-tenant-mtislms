@@ -54,10 +54,17 @@ import {
   type CalcType,
   type ChallanBreakdownLine,
 } from "@/lib/finance";
+import { LedgerTab } from "@/components/admin/finance-ledger-tab";
+import { ScholarshipsTab } from "@/components/admin/finance-scholarships-tab";
+
+const FINANCE_TABS = ["income", "outgoing", "ledger", "scholarships"] as const;
+type FinanceTab = (typeof FINANCE_TABS)[number];
 
 export const Route = createFileRoute("/_authenticated/admin/finance")({
   validateSearch: (search: Record<string, unknown>) => ({
-    tab: search["tab"] === "outgoing" ? ("outgoing" as const) : ("income" as const),
+    tab: FINANCE_TABS.includes(search["tab"] as FinanceTab)
+      ? (search["tab"] as FinanceTab)
+      : ("income" as FinanceTab),
   }),
   head: () => ({
     meta: [
