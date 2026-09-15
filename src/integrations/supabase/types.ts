@@ -1058,6 +1058,42 @@ export type Database = {
           },
         ]
       }
+      finance_entries: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          entry_date: string
+          entry_type: Database["public"]["Enums"]["finance_entry_type"]
+          id: string
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          entry_type: Database["public"]["Enums"]["finance_entry_type"]
+          id?: string
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          entry_date?: string
+          entry_type?: Database["public"]["Enums"]["finance_entry_type"]
+          id?: string
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       grading_scales: {
         Row: {
           bands: Json
@@ -2635,6 +2671,7 @@ export type Database = {
         | "other"
       exam_status: "scheduled" | "ongoing" | "completed" | "cancelled"
       fee_frequency: "one_time" | "monthly" | "quarterly" | "annual"
+      finance_entry_type: "income" | "expense"
       homework_status: "draft" | "assigned" | "closed"
       interview_mode: "in_person" | "online" | "phone"
       interview_outcome: "pending" | "pass" | "fail" | "hold"
@@ -2841,6 +2878,7 @@ export const Constants = {
       ],
       exam_status: ["scheduled", "ongoing", "completed", "cancelled"],
       fee_frequency: ["one_time", "monthly", "quarterly", "annual"],
+      finance_entry_type: ["income", "expense"],
       homework_status: ["draft", "assigned", "closed"],
       interview_mode: ["in_person", "online", "phone"],
       interview_outcome: ["pending", "pass", "fail", "hold"],
