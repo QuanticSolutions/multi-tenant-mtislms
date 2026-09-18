@@ -45,7 +45,7 @@ import { useMyRoles } from "@/hooks/use-role";
 export const Route = createFileRoute("/_authenticated/admin/messaging")({
   head: () => ({
     meta: [
-      { title: "Messaging — Madina Tul Ilm" },
+      { title: "Messaging — School LMS" },
       {
         name: "description",
         content: "Send announcements and manage parent contacts and messages.",

@@ -12,15 +12,15 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/embed/employees")({
   head: () => ({
     meta: [
-      { title: "Careers — Madina Tul Ilm" },
+      { title: "Careers — School LMS" },
       {
         name: "description",
-        content: "Apply for a teaching or support role at Madina Tul Ilm.",
+        content: "Apply for a teaching or support role at School LMS.",
       },
-      { property: "og:title", content: "Careers — Madina Tul Ilm" },
+      { property: "og:title", content: "Careers — School LMS" },
       {
         property: "og:description",
-        content: "Apply for a teaching or support role at Madina Tul Ilm.",
+        content: "Apply for a teaching or support role at School LMS.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

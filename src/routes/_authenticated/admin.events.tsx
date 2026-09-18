@@ -40,7 +40,7 @@ import { formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/events")({
   head: () => ({
     meta: [
-      { title: "Events & Calendar — Madina Tul Ilm" },
+      { title: "Events & Calendar — School LMS" },
       { name: "description", content: "Academic calendar with holidays, exams, PTMs and school events." },
     ],
   }),

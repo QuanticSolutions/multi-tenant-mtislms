@@ -232,7 +232,7 @@ function Header({
             M
           </div>
           <div className="leading-tight">
-            <div className="font-display text-lg font-bold tracking-tight text-primary">Madina Tul Ilm</div>
+            <div className="font-display text-lg font-bold tracking-tight text-primary">School LMS</div>
             <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Admin Panel
             </div>
@@ -372,7 +372,7 @@ function Sidebar() {
         <div className="mt-3 shrink-0 rounded-md border border-border bg-background p-3">
           <p className="text-xs font-semibold text-foreground">Need help?</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Check the Madina Tul Ilm handbook for setup steps.
+            Check the School LMS handbook for setup steps.
           </p>
         </div>
       </div>

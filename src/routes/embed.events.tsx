@@ -10,15 +10,15 @@ import { formatDate } from "@/lib/format";
 export const Route = createFileRoute("/embed/events")({
   head: () => ({
     meta: [
-      { title: "School Calendar — Madina Tul Ilm" },
+      { title: "School Calendar — School LMS" },
       {
         name: "description",
-        content: "Holidays, exams, parent meetings and activities at Madina Tul Ilm.",
+        content: "Holidays, exams, parent meetings and activities at School LMS.",
       },
-      { property: "og:title", content: "School Calendar — Madina Tul Ilm" },
+      { property: "og:title", content: "School Calendar — School LMS" },
       {
         property: "og:description",
-        content: "Holidays, exams, parent meetings and activities at Madina Tul Ilm.",
+        content: "Holidays, exams, parent meetings and activities at School LMS.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -105,7 +105,7 @@ function EventsEmbed() {
       <div className="mx-auto w-full max-w-4xl space-y-4">
         <div className="mtis-card flex items-center justify-between p-4">
           <div>
-            <p className="mtis-eyebrow">Madina Tul Ilm</p>
+            <p className="mtis-eyebrow">School LMS</p>
             <h1 className="mt-1 font-display text-xl font-bold">{monthLabel}</h1>
           </div>
           <div className="flex gap-2">

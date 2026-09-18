@@ -26,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/admin/staff")({
   }),
   head: () => ({
     meta: [
-      { title: "Staff Attendance & Payroll — Madina Tul Ilm" },
+      { title: "Staff Attendance & Payroll — School LMS" },
       { name: "description", content: "Track staff attendance and process monthly payroll runs." },
     ],
   }),

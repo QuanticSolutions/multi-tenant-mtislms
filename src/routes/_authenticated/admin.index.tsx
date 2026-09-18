@@ -21,8 +21,8 @@ import { formatClass, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin Dashboard — Madina Tul Ilm" },
-      { name: "description", content: "Madina Tul Ilm administration overview." },
+      { title: "Admin Dashboard — School LMS" },
+      { name: "description", content: "School LMS administration overview." },
     ],
   }),
   component: AdminDashboard,

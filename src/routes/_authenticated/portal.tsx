@@ -17,12 +17,12 @@ import { useMemo, useRef, useState } from "react";
 export const Route = createFileRoute("/_authenticated/portal")({
   head: () => ({
     meta: [
-      { title: "Student Portal — Madina Tul Ilm" },
+      { title: "Student Portal — School LMS" },
       {
         name: "description",
-        content: "Student portal for Madina Tul Ilm: view your class timetable and school announcements.",
+        content: "Student portal for School LMS: view your class timetable and school announcements.",
       },
-      { property: "og:title", content: "Student Portal — Madina Tul Ilm" },
+      { property: "og:title", content: "Student Portal — School LMS" },
       {
         property: "og:description",
         content: "View your class timetable and school announcements.",
@@ -76,7 +76,7 @@ function PortalPage() {
           </div>
           <div className="leading-tight">
             <div className="font-display text-lg font-bold tracking-tight text-primary">
-              Madina Tul Ilm
+              School LMS
             </div>
             <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Student Portal
@@ -299,7 +299,7 @@ function AccountBooksTab({ student }: { student: any | null }) {
       return data;
     },
   });
-  const schoolName = settings?.school_name ?? "Madina Tul Ilm";
+  const schoolName = settings?.school_name ?? "School LMS";
   const currency = settings?.currency ?? "PKR";
 
   const { data, isLoading } = useQuery({

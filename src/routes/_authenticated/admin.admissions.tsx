@@ -31,7 +31,7 @@ import { formatClass, formatDate, formatDateTime, formatStatus } from "@/lib/for
 export const Route = createFileRoute("/_authenticated/admin/admissions")({
   head: () => ({
     meta: [
-      { title: "Admissions — Madina Tul Ilm" },
+      { title: "Admissions — School LMS" },
       { name: "description", content: "Manage applications, interviews and offers for new admissions." },
     ],
   }),

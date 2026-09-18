@@ -25,7 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({
     meta: [
-      { title: "Reports & Analytics — Madina Tul Ilm" },
+      { title: "Reports & Analytics — School LMS" },
       { name: "description", content: "Cross-module analytics: attendance, fees, exams, library, and transport insights." },
     ],
   }),

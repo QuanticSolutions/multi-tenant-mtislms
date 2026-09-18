@@ -21,7 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Madina Tul Ilm" },
+      { title: "Settings — School LMS" },
       { name: "description", content: "School profile, session, grading scales and role management." },
     ],
   }),

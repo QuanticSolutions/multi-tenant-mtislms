@@ -33,15 +33,15 @@ import { formatDate, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/employees")({
   head: () => ({
     meta: [
-      { title: "Employment Applications — Madina Tul Ilm" },
+      { title: "Employment Applications — School LMS" },
       {
         name: "description",
         content: "Review staff job applications and share an embeddable careers form.",
       },
-      { property: "og:title", content: "Employment Applications — Madina Tul Ilm" },
+      { property: "og:title", content: "Employment Applications — School LMS" },
       {
         property: "og:description",
-        content: "Review staff job applications for Madina Tul Ilm.",
+        content: "Review staff job applications for School LMS.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -30,7 +30,7 @@ import { formatClass } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/timetable")({
   head: () => ({
     meta: [
-      { title: "Timetable — Madina Tul Ilm" },
+      { title: "Timetable — School LMS" },
       { name: "description", content: "Weekly class period grid with teacher allocation and conflict detection." },
     ],
   }),

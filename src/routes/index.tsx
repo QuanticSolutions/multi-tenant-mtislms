@@ -23,8 +23,8 @@ import { Badge } from "@/components/ui/badge";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Madina Tul Ilm — Design System" },
-      { name: "description", content: "Madina Tul Ilm Management Portal design system preview." },
+      { title: "School LMS — Design System" },
+      { name: "description", content: "School LMS design system preview." },
     ],
   }),
   component: StyleGuide,
@@ -41,7 +41,7 @@ function StyleGuide() {
               M
             </div>
             <div className="leading-tight">
-              <div className="font-display text-lg font-bold tracking-tight text-primary">Madina Tul Ilm</div>
+              <div className="font-display text-lg font-bold tracking-tight text-primary">School LMS</div>
               <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                 Management Portal
               </div>
@@ -82,7 +82,7 @@ function StyleGuide() {
         <section className="mb-10">
           <p className="mtis-eyebrow">Design system · v0.1</p>
           <h1 className="mt-2 font-display text-3xl font-bold text-foreground">
-            Madina Tul Ilm Management Portal
+            School LMS
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
             Foundational theme, tokens, and components for the Muhammad Tahir International School
@@ -274,7 +274,7 @@ function StyleGuide() {
         </Section>
 
         <footer className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground">
-          Madina Tul Ilm Management Portal · Design system preview
+          School LMS · Design system preview
         </footer>
       </main>
     </div>

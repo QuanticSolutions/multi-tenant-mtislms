@@ -33,12 +33,12 @@ import { formatDate, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/donations")({
   head: () => ({
     meta: [
-      { title: "Donations — Madina Tul Ilm" },
+      { title: "Donations — School LMS" },
       {
         name: "description",
         content: "Track donor pledges and received donations, and share an embeddable donation form.",
       },
-      { property: "og:title", content: "Donations — Madina Tul Ilm" },
+      { property: "og:title", content: "Donations — School LMS" },
       {
         property: "og:description",
         content: "Track donor pledges and received donations for the school.",

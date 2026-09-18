@@ -2007,19 +2007,31 @@ export type Database = {
       school_settings: {
         Row: {
           academic_terms: Json | null
+          accent_color: string | null
           address: string | null
+          address_line1: string | null
+          address_line2: string | null
           city: string | null
+          country: string | null
           created_at: string
           currency: string
           current_session: string
           email: string | null
+          established_year: number | null
+          favicon_url: string | null
           id: string
           logo_url: string | null
           phone: string | null
+          postal_code: string | null
+          primary_color: string
+          registration_number: string | null
           school_name: string
+          secondary_color: string
           session_end_date: string | null
           session_start_date: string | null
           singleton: boolean
+          social_links: Json
+          state_province: string | null
           tagline: string | null
           timezone: string
           updated_at: string
@@ -2027,19 +2039,31 @@ export type Database = {
         }
         Insert: {
           academic_terms?: Json | null
+          accent_color?: string | null
           address?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
           current_session?: string
           email?: string | null
+          established_year?: number | null
+          favicon_url?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          postal_code?: string | null
+          primary_color?: string
+          registration_number?: string | null
           school_name?: string
+          secondary_color?: string
           session_end_date?: string | null
           session_start_date?: string | null
           singleton?: boolean
+          social_links?: Json
+          state_province?: string | null
           tagline?: string | null
           timezone?: string
           updated_at?: string
@@ -2047,19 +2071,31 @@ export type Database = {
         }
         Update: {
           academic_terms?: Json | null
+          accent_color?: string | null
           address?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
           city?: string | null
+          country?: string | null
           created_at?: string
           currency?: string
           current_session?: string
           email?: string | null
+          established_year?: number | null
+          favicon_url?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          postal_code?: string | null
+          primary_color?: string
+          registration_number?: string | null
           school_name?: string
+          secondary_color?: string
           session_end_date?: string | null
           session_start_date?: string | null
           singleton?: boolean
+          social_links?: Json
+          state_province?: string | null
           tagline?: string | null
           timezone?: string
           updated_at?: string
@@ -2619,6 +2655,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_edit_settings: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

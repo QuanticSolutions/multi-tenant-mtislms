@@ -32,7 +32,7 @@ import { formatDate, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/teachers")({
   head: () => ({
     meta: [
-      { title: "Teachers — Madina Tul Ilm" },
+      { title: "Teachers — School LMS" },
       { name: "description", content: "Manage teacher records, qualifications, and assignments." },
     ],
   }),

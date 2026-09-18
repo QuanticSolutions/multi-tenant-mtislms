@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Madina Tul Ilm Management Portal — Design System
+ * School LMS — Design System
  * Brand: deep navy + bold red accent, white-dominant surfaces.
  * All color tokens use oklch so Tailwind utilities and CSS vars stay in sync.
  */
