@@ -46,7 +46,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/inventory")({
   head: () => ({
     meta: [
-      { title: "Inventory — Madina Tul Ilm" },
+      { title: "Inventory — School LMS" },
       { name: "description", content: "Track school supplies, equipment, stock levels and issue transactions." },
     ],
   }),

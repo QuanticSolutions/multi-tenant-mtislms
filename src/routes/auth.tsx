@@ -12,8 +12,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — Madina Tul Ilm" },
-      { name: "description", content: "Sign in to the Madina Tul Ilm Management Portal." },
+      { title: "Sign in — School LMS" },
+      { name: "description", content: "Sign in to the School LMS." },
     ],
   }),
   component: AuthPage,
@@ -102,7 +102,7 @@ function AuthPage() {
               M
             </div>
             <div>
-              <div className="font-display text-lg font-bold tracking-tight">Madina Tul Ilm</div>
+              <div className="font-display text-lg font-bold tracking-tight">School LMS</div>
               <div className="text-xs uppercase tracking-widest text-primary-foreground/70">
                 Management Portal
               </div>
@@ -112,7 +112,7 @@ function AuthPage() {
           <div className="relative">
             <p className="mtis-eyebrow text-primary-foreground/70">Welcome to</p>
             <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-primary-foreground/70">
-              Madina Tul Ilm<br />School
+              School LMS<br />School
             </h1>
             <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
               Manage admissions, attendance, examinations, fees, library, and more — all from one
@@ -135,7 +135,7 @@ function AuthPage() {
                 M
               </div>
               <div className="font-display text-lg font-bold tracking-tight text-primary">
-                Madina Tul Ilm
+                School LMS
               </div>
             </div>
 

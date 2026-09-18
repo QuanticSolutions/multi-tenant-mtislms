@@ -68,16 +68,16 @@ export const Route = createFileRoute("/_authenticated/admin/finance")({
   }),
   head: () => ({
     meta: [
-      { title: "Finance — Madina Tul Ilm" },
+      { title: "Finance — School LMS" },
       {
         name: "description",
         content:
           "Track incoming student fee challans and outgoing staff payroll in one finance workspace.",
       },
-      { property: "og:title", content: "Finance — Madina Tul Ilm" },
+      { property: "og:title", content: "Finance — School LMS" },
       {
         property: "og:description",
-        content: "Student fee income and employee payroll for Madina Tul Ilm.",
+        content: "Student fee income and employee payroll for School LMS.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -191,7 +191,7 @@ function useSchoolName() {
       return data as { school_name: string; currency: string } | null;
     },
   });
-  return { name: data?.school_name ?? "Madina Tul Ilm", currency: data?.currency ?? "PKR" };
+  return { name: data?.school_name ?? "School LMS", currency: data?.currency ?? "PKR" };
 }
 
 function IncomeTab() {

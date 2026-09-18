@@ -19,7 +19,7 @@ import { formatDateTime, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/notifications")({
   head: () => ({
     meta: [
-      { title: "Notifications — Madina Tul Ilm" },
+      { title: "Notifications — School LMS" },
       { name: "description", content: "Email, SMS and push delivery log for school messaging." },
     ],
   }),

@@ -11,9 +11,9 @@ import { downloadTemplate } from "@/lib/import/io";
 export const Route = createFileRoute("/_authenticated/admin/import")({
   head: () => ({
     meta: [
-      { title: "Import Data — Madina Tul Ilm" },
+      { title: "Import Data — School LMS" },
       { name: "description", content: "Bulk import students, teachers, parents, fees and more from CSV or Excel files." },
-      { property: "og:title", content: "Import Data — Madina Tul Ilm" },
+      { property: "og:title", content: "Import Data — School LMS" },
       { property: "og:description", content: "Bulk import school records from CSV or Excel with column mapping and validation." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

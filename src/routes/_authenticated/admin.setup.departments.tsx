@@ -15,12 +15,12 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/setup/departments")({
   head: () => ({
     meta: [
-      { title: "Departments — Madina Tul Ilm" },
+      { title: "Departments — School LMS" },
       {
         name: "description",
         content: "Create teaching and non-teaching departments used across employee records.",
       },
-      { property: "og:title", content: "Departments — Madina Tul Ilm" },
+      { property: "og:title", content: "Departments — School LMS" },
       { property: "og:description", content: "Manage school departments and their teaching flag." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
