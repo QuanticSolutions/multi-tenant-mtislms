@@ -19,34 +19,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { BrandLockup, useBranding } from "@/hooks/use-branding";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "School LMS — Design System" },
-      { name: "description", content: "School LMS design system preview." },
+      { title: "Design System" },
+      { name: "description", content: "Theme, tokens and component preview." },
     ],
   }),
   component: StyleGuide,
 });
 
 function StyleGuide() {
+  const { schoolName } = useBranding();
+
   return (
     <div className="min-h-screen bg-background">
       {/* Top header */}
       <header className="sticky top-0 z-30 h-16 border-b border-border bg-surface shadow-card">
         <div className="mx-auto flex h-full max-w-[1400px] items-center gap-6 px-7">
-          <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground font-display font-bold">
-              M
-            </div>
-            <div className="leading-tight">
-              <div className="font-display text-lg font-bold tracking-tight text-primary">School LMS</div>
-              <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Management Portal
-              </div>
-            </div>
-          </div>
+          <BrandLockup subtitle="Management Portal" />
 
           <div className="ml-6 hidden flex-1 max-w-[420px] md:block">
             <div className="relative">
@@ -81,13 +74,10 @@ function StyleGuide() {
         {/* Hero */}
         <section className="mb-10">
           <p className="mtis-eyebrow">Design system · v0.1</p>
-          <h1 className="mt-2 font-display text-3xl font-bold text-foreground">
-            School LMS
-          </h1>
+          <h1 className="mt-2 font-display text-3xl font-bold text-foreground">{schoolName}</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Foundational theme, tokens, and components for the Muhammad Tahir International School
-            platform. Navy + crisp white surfaces, with a bold red accent reserved for action and
-            urgency.
+            Foundational theme, tokens, and components for the {schoolName} platform. Navy + crisp
+            white surfaces, with a bold red accent reserved for action and urgency.
           </p>
         </section>
 
@@ -274,7 +264,7 @@ function StyleGuide() {
         </Section>
 
         <footer className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground">
-          School LMS · Design system preview
+          {schoolName} · Design system preview
         </footer>
       </main>
     </div>
