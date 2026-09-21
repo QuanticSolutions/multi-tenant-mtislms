@@ -25,6 +25,7 @@ type Row = {
 
 export function ScholarshipsTab({ currency = "PKR" }: { currency?: string }) {
   const [q, setQ] = useState("");
+  const { branding } = useBranding();
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["scholarship-students"],
@@ -62,7 +63,10 @@ export function ScholarshipsTab({ currency = "PKR" }: { currency?: string }) {
   const percentCount = rows.filter((r) => r.discount_type === "percent").length;
 
   function exportXlsx() {
-    const ws = XLSX.utils.json_to_sheet(
+    saveBrandedWorkbook(
+      docBrand(branding),
+      "Scholarships",
+      "Student scholarships",
       filtered.map((r) => ({
         Student: r.full_name,
         "Admission no": r.admission_no,
@@ -72,10 +76,8 @@ export function ScholarshipsTab({ currency = "PKR" }: { currency?: string }) {
         Reason: r.discount_reason ?? "",
         Status: r.status,
       })),
+      `scholarships-${new Date().toISOString().slice(0, 10)}.xlsx`,
     );
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Scholarships");
-    XLSX.writeFile(wb, `scholarships-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
   return (
