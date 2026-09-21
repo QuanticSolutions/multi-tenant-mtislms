@@ -47,7 +47,7 @@ export const DEFAULT_BRANDING = {
 } as const;
 
 export const BRANDING_BUCKET = "branding";
-export const MAX_BRAND_IMAGE_BYTES = 2 * 1024 * 1024; // 2 MB
+export const MAX_BRAND_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const ALLOWED_BRAND_IMAGE_TYPES = [
   "image/png",
   "image/jpeg",
@@ -56,6 +56,61 @@ export const ALLOWED_BRAND_IMAGE_TYPES = [
   "image/x-icon",
   "image/vnd.microsoft.icon",
 ];
+
+/** `accept` attribute for brand image file inputs. */
+export const BRAND_IMAGE_ACCEPT = ALLOWED_BRAND_IMAGE_TYPES.join(",");
+
+/**
+ * The branding bucket is private — public object URLs are blocked — so logos
+ * and favicons are stored as object *paths* and read back as signed links.
+ */
+export const BRAND_SIGNED_URL_TTL_SECONDS = 60 * 60 * 24; // 24 hours
+
+const BRAND_IMAGE_EXTENSIONS: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "image/svg+xml": "svg",
+  "image/x-icon": "ico",
+  "image/vnd.microsoft.icon": "ico",
+};
+
+export function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Legacy rows (and pasted links) may hold a full URL rather than an object path. */
+export function isAbsoluteUrl(value: string | null | undefined) {
+  return !!value && /^(https?:|data:|blob:)/i.test(value.trim());
+}
+
+/** True when the stored value is a branding-bucket object path needing a signed link. */
+export function isStoragePath(value: string | null | undefined) {
+  return !!value && value.trim() !== "" && !isAbsoluteUrl(value);
+}
+
+/** Returns an error message when the file can't be used as a brand image. */
+export function validateBrandImage(file: File) {
+  if (!ALLOWED_BRAND_IMAGE_TYPES.includes(file.type)) {
+    return "Choose a PNG, JPEG, WebP, SVG or ICO image.";
+  }
+  if (file.size > MAX_BRAND_IMAGE_BYTES) {
+    return `Images must be under ${formatBytes(MAX_BRAND_IMAGE_BYTES)}. This one is ${formatBytes(file.size)}.`;
+  }
+  return null;
+}
+
+/** Collision-free object path inside the branding bucket. */
+export function brandObjectPath(kind: "logo" | "favicon", file: File) {
+  const fallback = file.name.split(".").pop()?.toLowerCase();
+  const ext =
+    BRAND_IMAGE_EXTENSIONS[file.type] ??
+    (fallback && /^[a-z0-9]+$/.test(fallback) ? fallback : "png");
+  const unique = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+  return `${kind}/${unique}.${ext}`;
+}
 
 export function isValidHex(value: string) {
   return /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value.trim());
