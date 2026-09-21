@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
+import { BrandLockup } from "@/hooks/use-branding";
 
 export function EmbedShell({
   title,
@@ -16,8 +17,8 @@ export function EmbedShell({
     <div className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto w-full max-w-2xl">
         <div className="mtis-card p-6 sm:p-8">
-          <p className="mtis-eyebrow">School LMS</p>
-          <h1 className="mt-1 font-display text-2xl font-bold tracking-tight">{title}</h1>
+          <BrandLockup />
+          <h1 className="mt-4 font-display text-2xl font-bold tracking-tight">{title}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
           <div className="mt-6">{children}</div>
         </div>
