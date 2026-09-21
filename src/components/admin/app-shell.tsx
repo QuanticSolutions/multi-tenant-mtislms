@@ -227,16 +227,8 @@ function Header({
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-border bg-surface shadow-card">
       <div className="mx-auto flex h-full max-w-[1400px] items-center gap-6 px-6">
-        <Link to="/admin" className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground font-display font-bold">
-            M
-          </div>
-          <div className="leading-tight">
-            <div className="font-display text-lg font-bold tracking-tight text-primary">School LMS</div>
-            <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              Admin Panel
-            </div>
-          </div>
+        <Link to="/admin" className="flex min-w-0 items-center gap-3">
+          <BrandLockup subtitle="Admin Panel" />
         </Link>
 
         <div className="ml-6 hidden flex-1 max-w-[420px] md:block">
