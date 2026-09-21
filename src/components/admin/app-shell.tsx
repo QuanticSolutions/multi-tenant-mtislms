@@ -43,6 +43,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyRoles } from "@/hooks/use-role";
 import { usePermissions } from "@/hooks/use-permissions";
+import { BrandLockup, useBranding } from "@/hooks/use-branding";
 import type { ModuleKey } from "@/lib/modules";
 
 type NavItem = {
@@ -373,5 +374,3 @@ function Sidebar() {
     </aside>
   );
 }
-
-
