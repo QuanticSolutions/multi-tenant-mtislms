@@ -1,21 +1,53 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
   applyBrandColors,
+  BRAND_SIGNED_URL_TTL_SECONDS,
+  BRANDING_BUCKET,
   colorsOf,
   DEFAULT_BRANDING,
   initialsOf,
+  isStoragePath,
   type Branding,
 } from "@/lib/branding";
 
 export const BRANDING_QUERY_KEY = ["branding"] as const;
+export const BRANDING_LINKS_QUERY_KEY = ["branding", "signed-links"] as const;
+
+/** Signs a single branding object path. Returns null if it can't be signed. */
+export async function brandSignedUrl(path: string) {
+  const { data, error } = await supabase.storage
+    .from(BRANDING_BUCKET)
+    .createSignedUrl(path, BRAND_SIGNED_URL_TTL_SECONDS);
+  if (error || !data) return null;
+  return data.signedUrl;
+}
+
+/** Signs several paths at once, skipping any the storage API rejects. */
+async function signBrandImages(paths: string[]) {
+  const links: Record<string, string> = {};
+  if (paths.length === 0) return links;
+  const { data, error } = await supabase.storage
+    .from(BRANDING_BUCKET)
+    .createSignedUrls(paths, BRAND_SIGNED_URL_TTL_SECONDS);
+  if (error || !data) return links;
+  for (const row of data) {
+    if (row.path && row.signedUrl && !row.error) links[row.path] = row.signedUrl;
+  }
+  return links;
+}
 
 /**
  * Reads the single school profile row. Readable by anyone (including visitors
  * on the login page and embedded forms), so branding is always available.
+ *
+ * `logo_url` / `favicon_url` hold object paths in the private `branding`
+ * bucket, so they're exchanged for signed links before being handed to
+ * consumers. The raw paths stay available as `logoPath` / `faviconPath` for
+ * the settings form. Absolute URLs saved by older rows pass through untouched.
  */
 export function useBranding() {
   const { data, isLoading } = useQuery({
@@ -32,16 +64,51 @@ export function useBranding() {
     },
   });
 
+  const logoPath = data?.logo_url || null;
+  const faviconPath = data?.favicon_url || null;
+
+  const pathsToSign = useMemo(
+    () => [logoPath, faviconPath].filter((p): p is string => isStoragePath(p)),
+    [logoPath, faviconPath],
+  );
+
+  const { data: links } = useQuery({
+    queryKey: [...BRANDING_LINKS_QUERY_KEY, ...pathsToSign],
+    enabled: pathsToSign.length > 0,
+    // Refresh well inside the signed-link lifetime.
+    staleTime: (BRAND_SIGNED_URL_TTL_SECONDS / 2) * 1000,
+    queryFn: () => signBrandImages(pathsToSign),
+  });
+
+  const resolve = (value: string | null) => {
+    if (!value) return null;
+    if (!isStoragePath(value)) return value;
+    return links?.[value] ?? null;
+  };
+
+  const logoUrl = resolve(logoPath);
+  const faviconUrl = resolve(faviconPath) ?? logoUrl;
+
   const schoolName = data?.school_name?.trim() || DEFAULT_BRANDING.school_name;
   const tagline = data?.tagline?.trim() || DEFAULT_BRANDING.tagline;
 
+  // Hand consumers (headers, printed documents, spreadsheets) a row whose
+  // image fields are already usable as `src` values.
+  const branding = useMemo(
+    () => (data ? { ...data, logo_url: logoUrl, favicon_url: faviconUrl } : null),
+    [data, logoUrl, faviconUrl],
+  );
+
   return {
-    branding: data ?? null,
+    branding,
     loading: isLoading,
     schoolName,
     tagline,
-    logoUrl: data?.logo_url || null,
-    faviconUrl: data?.favicon_url || data?.logo_url || null,
+    logoUrl,
+    faviconUrl,
+    /** Raw stored values — object paths, not links. */
+    logoPath,
+    faviconPath,
     colors: colorsOf(data),
     initials: initialsOf(schoolName),
   };
