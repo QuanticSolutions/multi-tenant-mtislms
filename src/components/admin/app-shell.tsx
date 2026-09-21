@@ -215,6 +215,8 @@ function Header({
   onSignOut: () => void;
 }) {
   const { isAdmin, isTeacher } = useMyRoles();
+  const { branding } = useBranding();
+  const session = branding?.current_session || "—";
   const roleLabel = isAdmin ? "Administrator" : isTeacher ? "Teacher" : "Staff";
   const initials = (user?.full_name ?? user?.email ?? "MT")
 
@@ -240,7 +242,7 @@ function Header({
 
         <div className="ml-auto flex items-center gap-2">
           <button className="hidden items-center gap-2 rounded-full border border-primary-light/40 bg-primary-pale px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary-pale/70 sm:inline-flex">
-            Session 2025–26
+            Session {session}
             <ChevronDown className="size-3.5" />
           </button>
           <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
