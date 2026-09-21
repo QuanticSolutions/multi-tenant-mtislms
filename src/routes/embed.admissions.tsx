@@ -20,15 +20,15 @@ import { formatClass } from "@/lib/format";
 export const Route = createFileRoute("/embed/admissions")({
   head: () => ({
     meta: [
-      { title: "Admission Application — School LMS" },
+      { title: "Admission Application" },
       {
         name: "description",
-        content: "Apply for admission to School LMS. Submit your child's details online.",
+        content: "Apply for admission online. Submit your child's details in a few minutes.",
       },
-      { property: "og:title", content: "Admission Application — School LMS" },
+      { property: "og:title", content: "Admission Application" },
       {
         property: "og:description",
-        content: "Apply for admission to School LMS online.",
+        content: "Apply for admission online.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
