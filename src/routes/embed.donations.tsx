@@ -20,15 +20,15 @@ import { formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/embed/donations")({
   head: () => ({
     meta: [
-      { title: "Donate — School LMS" },
+      { title: "Donate" },
       {
         name: "description",
-        content: "Support School LMS students by pledging a donation online.",
+        content: "Support our students by pledging a donation online.",
       },
-      { property: "og:title", content: "Donate — School LMS" },
+      { property: "og:title", content: "Donate" },
       {
         property: "og:description",
-        content: "Support School LMS students by pledging a donation.",
+        content: "Support our students by pledging a donation.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
