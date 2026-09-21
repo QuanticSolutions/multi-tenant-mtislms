@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatDateTime, formatStatus } from "@/lib/format";
 import { money, formatPeriod } from "@/lib/finance";
-import { buildDocument, printDocument } from "@/lib/print";
+import { buildDocument, docBrand, printDocument } from "@/lib/print";
+import { BrandLockup, useBranding } from "@/hooks/use-branding";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -71,17 +72,7 @@ function PortalPage() {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 h-16 border-b border-border bg-surface shadow-card">
         <div className="mx-auto flex h-full max-w-[1100px] items-center gap-3 px-6">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary font-display font-bold text-primary-foreground">
-            M
-          </div>
-          <div className="leading-tight">
-            <div className="font-display text-lg font-bold tracking-tight text-primary">
-              School LMS
-            </div>
-            <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              Student Portal
-            </div>
-          </div>
+          <BrandLockup subtitle="Student Portal" />
           <div className="ml-auto flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <div className="text-xs font-semibold">{student?.full_name ?? me?.name ?? "—"}</div>
@@ -288,19 +279,9 @@ function AccountBooksTab({ student }: { student: any | null }) {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [target, setTarget] = useState<PortalChallan | null>(null);
 
-  const { data: settings } = useQuery({
-    queryKey: ["portal-school-settings"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("school_settings")
-        .select("school_name, currency")
-        .limit(1)
-        .maybeSingle();
-      return data;
-    },
-  });
-  const schoolName = settings?.school_name ?? "School LMS";
-  const currency = settings?.currency ?? "PKR";
+  const { branding } = useBranding();
+  const brand = docBrand(branding);
+  const currency = branding?.currency ?? "PKR";
 
   const { data, isLoading } = useQuery({
     queryKey: ["portal-challans", student?.id],
@@ -344,7 +325,7 @@ function AccountBooksTab({ student }: { student: any | null }) {
   function download(c: PortalChallan) {
     const html = buildDocument({
       title: "Fee Challan",
-      schoolName,
+      brand,
       subtitle: `Billing period ${formatPeriod(c.period)}`,
       meta: [
         { label: "Student", value: student?.full_name ?? "—" },
