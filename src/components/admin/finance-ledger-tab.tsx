@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import { docBrand } from "@/lib/print";
+import { useBranding } from "@/hooks/use-branding";
+import { saveBrandedWorkbook } from "@/lib/xlsx-brand";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

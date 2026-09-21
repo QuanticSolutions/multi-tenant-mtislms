@@ -15,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 import { AppShell } from "@/components/admin/app-shell";
 import { Button } from "@/components/ui/button";
