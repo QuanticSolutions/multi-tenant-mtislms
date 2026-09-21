@@ -15,7 +15,6 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
 
 import { AppShell } from "@/components/admin/app-shell";
 import { Button } from "@/components/ui/button";
@@ -42,7 +41,9 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { formatDate, formatStatus } from "@/lib/format";
-import { buildDocument, printDocument } from "@/lib/print";
+import { buildDocument, docBrand, printDocument, type DocBrand } from "@/lib/print";
+import { useBranding } from "@/hooks/use-branding";
+import { saveBrandedWorkbook } from "@/lib/xlsx-brand";
 import {
   MONTHS,
   challanTotals,
@@ -179,25 +180,16 @@ function FinancePage() {
 
 /* ----------------------------------------------------------------- income */
 
-function useSchoolName() {
-  const { data } = useQuery({
-    queryKey: ["school_settings"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("school_settings")
-        .select("school_name, currency")
-        .limit(1)
-        .maybeSingle();
-      return data as { school_name: string; currency: string } | null;
-    },
-  });
-  return { name: data?.school_name ?? "School LMS", currency: data?.currency ?? "PKR" };
+/** School profile used for document headers and currency formatting. */
+function useSchoolBrand() {
+  const { branding } = useBranding();
+  return { brand: docBrand(branding), currency: branding?.currency ?? "PKR" };
 }
 
 function IncomeTab() {
   const qc = useQueryClient();
   const { can } = usePermissions();
-  const { name: schoolName, currency } = useSchoolName();
+  const { brand, currency } = useSchoolBrand();
   const [period, setPeriod] = useState(currentPeriod());
   const [statusFilter, setStatusFilter] = useState("all");
   const [genOpen, setGenOpen] = useState(false);
@@ -263,7 +255,7 @@ function IncomeTab() {
   function printChallan(c: Challan) {
     const html = buildDocument({
       title: "Fee Challan",
-      schoolName,
+      brand,
       subtitle: `Billing period ${formatPeriod(c.period)}`,
       meta: [
         { label: "Student", value: c.students?.full_name ?? "—" },
@@ -757,7 +749,7 @@ type RunRow = {
 function OutgoingTab() {
   const qc = useQueryClient();
   const { can } = usePermissions();
-  const { name: schoolName, currency } = useSchoolName();
+  const { brand, currency } = useSchoolBrand();
   const [genOpen, setGenOpen] = useState(false);
   const [openRun, setOpenRun] = useState<RunRow | null>(null);
 
@@ -872,7 +864,7 @@ function OutgoingTab() {
         <RunDetailDialog
           run={openRun}
           currency={currency}
-          schoolName={schoolName}
+          brand={brand}
           onClose={() => setOpenRun(null)}
         />
       )}
@@ -1245,12 +1237,12 @@ type ItemRow = {
 function RunDetailDialog({
   run,
   currency,
-  schoolName,
+  brand,
   onClose,
 }: {
   run: RunRow;
   currency: string;
-  schoolName: string;
+  brand: DocBrand;
   onClose: () => void;
 }) {
   const qc = useQueryClient();
@@ -1299,16 +1291,19 @@ function RunDetailDialog({
       Bonus: Number(i.bonus),
       "Net pay": Number(i.net_pay),
     }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Payroll");
-    XLSX.writeFile(wb, `payroll-${run.period_year}-${String(run.period_month).padStart(2, "0")}.xlsx`);
+    saveBrandedWorkbook(
+      brand,
+      "Payroll",
+      `Payroll — ${periodLabel}`,
+      rows,
+      `payroll-${run.period_year}-${String(run.period_month).padStart(2, "0")}.xlsx`,
+    );
   }
 
   function payslip(i: ItemRow) {
     const html = buildDocument({
       title: "Payslip",
-      schoolName,
+      brand,
       subtitle: periodLabel,
       meta: [
         { label: "Employee", value: i.teachers?.full_name ?? "—" },

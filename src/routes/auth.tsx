@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { GraduationCap, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { useBranding } from "@/hooks/use-branding";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -28,6 +29,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const { schoolName, tagline, logoUrl, initials } = useBranding();
 
   // If already signed in, redirect to admin.
   useEffect(() => {
@@ -98,11 +100,21 @@ function AuthPage() {
             }}
           />
           <div className="relative flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-primary-foreground/15 font-display text-lg font-bold backdrop-blur">
-              M
-            </div>
-            <div>
-              <div className="font-display text-lg font-bold tracking-tight">School LMS</div>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={`${schoolName} logo`}
+                className="h-12 w-12 shrink-0 rounded-md bg-primary-foreground/10 object-contain p-1"
+              />
+            ) : (
+              <div className="grid h-10 w-10 place-items-center rounded-md bg-primary-foreground/15 font-display text-lg font-bold backdrop-blur">
+                {initials}
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="truncate font-display text-lg font-bold tracking-tight">
+                {schoolName}
+              </div>
               <div className="text-xs uppercase tracking-widest text-primary-foreground/70">
                 Management Portal
               </div>
@@ -111,19 +123,10 @@ function AuthPage() {
 
           <div className="relative">
             <p className="mtis-eyebrow text-primary-foreground/70">Welcome to</p>
-            <h1 className="mt-2 font-display text-3xl font-bold leading-tight text-primary-foreground/70">
-              School LMS<br />School
+            <h1 className="mt-2 font-display text-3xl font-bold leading-tight">
+              {schoolName}
             </h1>
-            <p className="mt-4 max-w-md text-sm text-primary-foreground/80">
-              Manage admissions, attendance, examinations, fees, library, and more — all from one
-              unified portal.
-            </p>
-          </div>
-
-          <div className="relative grid grid-cols-3 gap-3 text-xs text-primary-foreground/80">
-            <Stat label="Students" value="1,284" />
-            <Stat label="Teachers" value="86" />
-            <Stat label="Classes" value="42" />
+            <p className="mt-4 max-w-md text-sm text-primary-foreground/80">{tagline}</p>
           </div>
         </aside>
 
@@ -131,11 +134,15 @@ function AuthPage() {
         <main className="flex items-center justify-center px-6 py-12">
           <div className="w-full max-w-md">
             <div className="mb-8 flex items-center gap-3 lg:hidden">
-              <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground font-display font-bold">
-                M
-              </div>
-              <div className="font-display text-lg font-bold tracking-tight text-primary">
-                School LMS
+              {logoUrl ? (
+                <img src={logoUrl} alt="" className="h-9 w-9 rounded-md object-contain" />
+              ) : (
+                <div className="grid h-9 w-9 place-items-center rounded-md bg-primary font-display font-bold text-primary-foreground">
+                  {initials}
+                </div>
+              )}
+              <div className="truncate font-display text-lg font-bold tracking-tight text-primary">
+                {schoolName}
               </div>
             </div>
 
@@ -236,15 +243,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </span>
       {children}
     </label>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-md border border-primary-foreground/15 bg-primary-foreground/5 p-3 backdrop-blur">
-      <div className="font-display text-lg font-bold">{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-primary-foreground/70">{label}</div>
-    </div>
   );
 }
 

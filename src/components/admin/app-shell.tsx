@@ -215,6 +215,8 @@ function Header({
   onSignOut: () => void;
 }) {
   const { isAdmin, isTeacher } = useMyRoles();
+  const { branding } = useBranding();
+  const session = branding?.current_session || "—";
   const roleLabel = isAdmin ? "Administrator" : isTeacher ? "Teacher" : "Staff";
   const initials = (user?.full_name ?? user?.email ?? "MT")
 
@@ -227,16 +229,8 @@ function Header({
   return (
     <header className="sticky top-0 z-30 h-16 border-b border-border bg-surface shadow-card">
       <div className="mx-auto flex h-full max-w-[1400px] items-center gap-6 px-6">
-        <Link to="/admin" className="flex items-center gap-3">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-primary text-primary-foreground font-display font-bold">
-            M
-          </div>
-          <div className="leading-tight">
-            <div className="font-display text-lg font-bold tracking-tight text-primary">School LMS</div>
-            <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              Admin Panel
-            </div>
-          </div>
+        <Link to="/admin" className="flex min-w-0 items-center gap-3">
+          <BrandLockup subtitle="Admin Panel" />
         </Link>
 
         <div className="ml-6 hidden flex-1 max-w-[420px] md:block">
@@ -248,7 +242,7 @@ function Header({
 
         <div className="ml-auto flex items-center gap-2">
           <button className="hidden items-center gap-2 rounded-full border border-primary-light/40 bg-primary-pale px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary-pale/70 sm:inline-flex">
-            Session 2025–26
+            Session {session}
             <ChevronDown className="size-3.5" />
           </button>
           <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">

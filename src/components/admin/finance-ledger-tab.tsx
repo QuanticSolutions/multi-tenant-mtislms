@@ -2,7 +2,9 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import * as XLSX from "xlsx";
+import { docBrand } from "@/lib/print";
+import { useBranding } from "@/hooks/use-branding";
+import { saveBrandedWorkbook } from "@/lib/xlsx-brand";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +48,7 @@ function todayISO() {
 
 export function LedgerTab({ currency = "PKR" }: { currency?: string }) {
   const { can } = usePermissions();
+  const { branding } = useBranding();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Entry | null>(null);
@@ -105,10 +108,13 @@ export function LedgerTab({ currency = "PKR" }: { currency?: string }) {
       { Name: "Total expense", Date: "", Type: "", Amount: totals.expense, Notes: "" },
       { Name: "Net", Date: "", Type: "", Amount: totals.net, Notes: "" },
     );
-    const ws = XLSX.utils.json_to_sheet(sheetRows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Ledger");
-    XLSX.writeFile(wb, `finance-ledger-${todayISO()}.xlsx`);
+    saveBrandedWorkbook(
+      docBrand(branding),
+      "Ledger",
+      "Finance ledger",
+      sheetRows as unknown as Record<string, unknown>[],
+      `finance-ledger-${todayISO()}.xlsx`,
+    );
   }
 
   const canWrite = can("finance", "write");
