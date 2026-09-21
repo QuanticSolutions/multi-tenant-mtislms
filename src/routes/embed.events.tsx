@@ -6,19 +6,20 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/lib/format";
+import { BrandLockup } from "@/hooks/use-branding";
 
 export const Route = createFileRoute("/embed/events")({
   head: () => ({
     meta: [
-      { title: "School Calendar — School LMS" },
+      { title: "School Calendar" },
       {
         name: "description",
-        content: "Holidays, exams, parent meetings and activities at School LMS.",
+        content: "Holidays, exams, parent meetings and activities.",
       },
-      { property: "og:title", content: "School Calendar — School LMS" },
+      { property: "og:title", content: "School Calendar" },
       {
         property: "og:description",
-        content: "Holidays, exams, parent meetings and activities at School LMS.",
+        content: "Holidays, exams, parent meetings and activities.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -105,8 +106,8 @@ function EventsEmbed() {
       <div className="mx-auto w-full max-w-4xl space-y-4">
         <div className="mtis-card flex items-center justify-between p-4">
           <div>
-            <p className="mtis-eyebrow">School LMS</p>
-            <h1 className="mt-1 font-display text-xl font-bold">{monthLabel}</h1>
+            <BrandLockup size="sm" />
+            <h1 className="mt-2 font-display text-xl font-bold">{monthLabel}</h1>
           </div>
           <div className="flex gap-2">
             <Button
