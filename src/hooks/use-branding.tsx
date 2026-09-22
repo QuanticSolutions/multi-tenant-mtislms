@@ -86,7 +86,7 @@ export function useBranding() {
     return links?.[value] ?? null;
   };
 
-  const logoUrl = resolve(logoPath);
+  const logoUrl = resolve(logoPath) ?? DEFAULT_BRANDING.logo_url;
   const faviconUrl = resolve(faviconPath) ?? logoUrl;
 
   const schoolName = data?.school_name?.trim() || DEFAULT_BRANDING.school_name;
