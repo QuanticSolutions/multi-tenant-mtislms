@@ -106,8 +106,8 @@ export const IMPORT_ENTITIES: ImportEntity[] = [
     ],
   },
   {
-    key: "employees",
-    label: "Employees",
+    key: "staff",
+    label: "Staff",
     description: "All staff, matched by Employee No. Teaching departments also appear in Teachers.",
     table: "teachers",
     dedupeFields: ["employee_no"],
