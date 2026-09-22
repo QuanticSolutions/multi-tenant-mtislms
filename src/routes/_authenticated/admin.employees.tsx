@@ -33,12 +33,12 @@ import { formatDate, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/employees")({
   head: () => ({
     meta: [
-      { title: "Employment Applications — School LMS" },
+      { title: "Staff Applications — School LMS" },
       {
         name: "description",
         content: "Review staff job applications and share an embeddable careers form.",
       },
-      { property: "og:title", content: "Employment Applications — School LMS" },
+      { property: "og:title", content: "Staff Applications — School LMS" },
       {
         property: "og:description",
         content: "Review staff job applications for School LMS.",
@@ -137,7 +137,7 @@ function EmployeesPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mtis-eyebrow">Intake</p>
-          <h1 className="mt-1 font-display text-2xl font-bold">Employment applications</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold">Staff applications</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Job applications for teaching and support roles, including embedded form submissions.
           </p>

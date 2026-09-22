@@ -10,7 +10,7 @@ export type IntakeKey = "admissions" | "donations" | "employees";
 const TABS: Array<{ key: IntakeKey; label: string; to: string }> = [
   { key: "admissions", label: "Admissions", to: "/admin/admissions" },
   { key: "donations", label: "Donations", to: "/admin/donations" },
-  { key: "employees", label: "Employees", to: "/admin/employees" },
+  { key: "employees", label: "Staff applications", to: "/admin/employees" },
 ];
 
 export function embedUrl(key: IntakeKey | "events") {
