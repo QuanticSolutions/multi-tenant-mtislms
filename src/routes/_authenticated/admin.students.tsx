@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, Users, Trash2, Pencil, X } from "lucide-react";
+import { Plus, Search, Users, Trash2, Pencil, X, FileDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -28,6 +28,9 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatDate, formatStatus } from "@/lib/format";
+import { useBranding } from "@/hooks/use-branding";
+import { docBrand } from "@/lib/print";
+import { downloadPdf } from "@/lib/pdf";
 
 export const Route = createFileRoute("/_authenticated/admin/students")({
   head: () => ({
@@ -64,6 +67,7 @@ const STATUS_OPTIONS: StudentStatus[] = ["active", "inactive", "graduated", "tra
 
 function StudentsPage() {
   const qc = useQueryClient();
+  const { branding } = useBranding();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [classFilter, setClassFilter] = useState<string>("all");
@@ -150,6 +154,58 @@ function StudentsPage() {
     },
     onError: (e: any) => toast.error(e.message ?? "Failed to delete"),
   });
+
+  /** Selected student's full record as a branded PDF. */
+  async function exportStudent(s: StudentRow) {
+    const scholarship =
+      s.discount_type === null || !s.discount_value
+        ? "—"
+        : s.discount_type === "percent"
+          ? `${s.discount_value}%`
+          : `Rs ${Number(s.discount_value).toLocaleString()}`;
+    try {
+      await downloadPdf({
+        brand: docBrand(branding),
+        filename: `student-${s.admission_no}.pdf`,
+        docs: [
+          {
+            title: "Student Record",
+            subtitle: s.full_name,
+            meta: [
+              { label: "Admission no", value: s.admission_no },
+              { label: "Status", value: formatStatus(s.status) },
+              { label: "Class", value: s.classes ? formatClass(s.classes.name, s.classes.section) : "—" },
+              { label: "Gender", value: s.gender ? formatStatus(s.gender) : "—" },
+              { label: "Enrolled", value: formatDate(s.enrollment_date) },
+              { label: "Transport driver", value: s.drivers?.full_name ?? "—" },
+            ],
+            tables: [
+              {
+                heading: "Guardian",
+                head: ["Detail", "Value"],
+                rows: [
+                  ["Guardian name", s.guardian_name ?? "—"],
+                  ["Guardian phone", s.guardian_phone ?? "—"],
+                ],
+              },
+              {
+                heading: "Scholarship",
+                head: ["Detail", "Value"],
+                rows: [
+                  ["Type", s.discount_type ? formatStatus(s.discount_type) : "—"],
+                  ["Value", scholarship],
+                  ["Reason", s.discount_reason || "—"],
+                ],
+              },
+            ],
+            footnote: "Student record export.",
+          },
+        ],
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
 
   return (
     <AppShell>
@@ -299,6 +355,15 @@ function StudentsPage() {
                   <Td className="text-right">
                     <Button variant="ghost" size="icon" aria-label="Edit" onClick={() => { setEditing(s); setOpen(true); }}>
                       <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Download PDF"
+                      title="Download student record (PDF)"
+                      onClick={() => exportStudent(s)}
+                    >
+                      <FileDown className="size-4" />
                     </Button>
 
                     <Button
