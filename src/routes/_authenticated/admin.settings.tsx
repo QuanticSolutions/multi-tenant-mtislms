@@ -291,8 +291,15 @@ function ProfileTab() {
   }, [loading, hydrated, initial]);
 
   useEffect(() => {
-    setPreview({ logo: logoUrl, favicon: faviconPath ? faviconUrl : null });
-  }, [logoUrl, faviconUrl, faviconPath]);
+    // Base the form's preview on the *stored* path, not the resolved URL —
+    // useBranding() falls back to the default /logo.png when nothing is
+    // uploaded, but the form should show an empty state (not the default
+    // logo with a misleading "Remove" affordance) until the admin uploads one.
+    setPreview({
+      logo: logoPath ? logoUrl : null,
+      favicon: faviconPath ? faviconUrl : null,
+    });
+  }, [logoPath, logoUrl, faviconPath, faviconUrl]);
 
   const set = <K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -614,7 +621,7 @@ function ProfileTab() {
             variant="outline"
             onClick={() => {
               setForm(initial);
-              setPreview({ logo: logoUrl, favicon: faviconPath ? faviconUrl : null });
+              setPreview({ logo: logoPath ? logoUrl : null, favicon: faviconPath ? faviconUrl : null });
             }}
             disabled={!dirty || save.isPending}
           >
