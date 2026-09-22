@@ -183,15 +183,18 @@ export async function downloadPdf(opts: {
   try {
     await waitForImages(host);
     const { default: html2pdf } = await import("html2pdf.js");
-    await html2pdf()
-      .set({
-        margin: [10, 10, 10, 10],
-        filename: safeFilename(opts.filename),
-        image: { type: "jpeg", quality: 0.96 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["css", "legacy"], before: ".pdf-break + .pdf-page" },
-      })
+    const options: Record<string, unknown> = {
+      margin: [10, 10, 10, 10],
+      filename: safeFilename(opts.filename),
+      image: { type: "jpeg", quality: 0.96 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", logging: false },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+      pagebreak: { mode: ["css", "legacy"], before: ".pdf-break + .pdf-page" },
+    };
+    await (html2pdf() as unknown as {
+      set: (o: Record<string, unknown>) => { from: (el: HTMLElement) => { save: () => Promise<void> } };
+    })
+      .set(options)
       .from(host.firstElementChild as HTMLElement)
       .save();
   } finally {
