@@ -32,12 +32,12 @@ import { money } from "@/lib/finance";
 export const Route = createFileRoute("/_authenticated/admin/staff-directory")({
   head: () => ({
     meta: [
-      { title: "Employees — School LMS" },
+      { title: "Staff — School LMS" },
       {
         name: "description",
-        content: "Employee directory with departments, designations, salaries and status.",
+        content: "Staff directory with departments, designations, salaries and status.",
       },
-      { property: "og:title", content: "Employees — School LMS" },
+      { property: "og:title", content: "Staff — School LMS" },
       {
         property: "og:description",
         content: "Manage every staff member's department, designation and salary.",
@@ -46,11 +46,11 @@ export const Route = createFileRoute("/_authenticated/admin/staff-directory")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: EmployeeDirectoryPage,
+  component: StaffDirectoryPage,
 });
 
-type EmployeeStatus = "active" | "on_leave" | "inactive" | "resigned" | "probation";
-const STATUS_OPTIONS: EmployeeStatus[] = [
+type StaffStatus = "active" | "on_leave" | "inactive" | "resigned" | "probation";
+const STATUS_OPTIONS: StaffStatus[] = [
   "active",
   "on_leave",
   "inactive",
@@ -58,13 +58,13 @@ const STATUS_OPTIONS: EmployeeStatus[] = [
   "probation",
 ];
 
-type EmployeeRow = {
+type StaffRow = {
   id: string;
   employee_no: string;
   full_name: string;
   email: string | null;
   phone: string | null;
-  status: EmployeeStatus;
+  status: StaffStatus;
   date_of_joining: string;
   department_id: string | null;
   designation: string | null;
@@ -74,16 +74,16 @@ type EmployeeRow = {
 
 type DepartmentOpt = { id: string; name: string; is_teaching: boolean };
 
-function EmployeeDirectoryPage() {
+function StaffDirectoryPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deptFilter, setDeptFilter] = useState("all");
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<EmployeeRow | null>(null);
+  const [editing, setEditing] = useState<StaffRow | null>(null);
 
-  const { data: employees, isLoading } = useQuery({
-    queryKey: ["employees-directory"],
+  const { data: staff, isLoading } = useQuery({
+    queryKey: ["staff-directory"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("teachers")
@@ -92,7 +92,7 @@ function EmployeeDirectoryPage() {
         )
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as unknown as EmployeeRow[];
+      return data as unknown as StaffRow[];
     },
   });
 
@@ -108,7 +108,7 @@ function EmployeeDirectoryPage() {
     },
   });
 
-  const rows = employees ?? [];
+  const rows = staff ?? [];
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -135,8 +135,8 @@ function EmployeeDirectoryPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Employee removed");
-      qc.invalidateQueries({ queryKey: ["employees-directory"] });
+      toast.success("Staff member removed");
+      qc.invalidateQueries({ queryKey: ["staff-directory"] });
       qc.invalidateQueries({ queryKey: ["teachers"] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -147,7 +147,7 @@ function EmployeeDirectoryPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mtis-eyebrow">Module</p>
-          <h1 className="mt-1 font-display text-2xl font-bold">Employees</h1>
+          <h1 className="mt-1 font-display text-2xl font-bold">Staff</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Every staff member — teaching and non-teaching — with department, designation and
             salary.
@@ -162,10 +162,10 @@ function EmployeeDirectoryPage() {
         >
           <DialogTrigger asChild>
             <Button onClick={() => setEditing(null)}>
-              <Plus /> Add employee
+              <Plus /> Add staff
             </Button>
           </DialogTrigger>
-          <EmployeeDialog
+          <StaffDialog
             key={editing?.id ?? "new"}
             existing={editing}
             departments={departments ?? []}
@@ -178,7 +178,7 @@ function EmployeeDirectoryPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatCard label="Employees" value={String(rows.length)} />
+        <StatCard label="Staff" value={String(rows.length)} />
         <StatCard
           label="Teaching"
           value={String(rows.filter((r) => r.departments?.is_teaching).length)}
@@ -195,7 +195,7 @@ function EmployeeDirectoryPage() {
           <div className="relative min-w-[220px] flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search name, employee no, designation…"
+              placeholder="Search name, staff no, designation…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -241,20 +241,20 @@ function EmployeeDirectoryPage() {
             </Button>
           )}
           <div className="ml-auto text-xs text-muted-foreground">
-            {filtered.length} of {rows.length} employees
+            {filtered.length} of {rows.length} staff
           </div>
         </div>
       </div>
 
       <div className="mtis-card overflow-hidden">
         {isLoading ? (
-          <div className="p-10 text-center text-sm text-muted-foreground">Loading employees…</div>
+          <div className="p-10 text-center text-sm text-muted-foreground">Loading staff…</div>
         ) : filtered.length === 0 ? (
           <div className="grid place-items-center p-12 text-center">
             <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-pale text-primary">
               <Users2 className="size-5" />
             </div>
-            <h3 className="mt-3 font-display text-base font-semibold">No employees yet</h3>
+            <h3 className="mt-3 font-display text-base font-semibold">No staff yet</h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
               Add staff members and assign them to a department to start payroll.
             </p>
@@ -263,7 +263,7 @@ function EmployeeDirectoryPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="bg-background">
-                <Th>Employee</Th>
+                <Th>Staff</Th>
                 <Th>Contact</Th>
                 <Th>Department</Th>
                 <Th>Designation</Th>
@@ -342,12 +342,12 @@ function EmployeeDirectoryPage() {
   );
 }
 
-function EmployeeDialog({
+function StaffDialog({
   existing,
   departments,
   onDone,
 }: {
-  existing: EmployeeRow | null;
+  existing: StaffRow | null;
   departments: DepartmentOpt[];
   onDone: () => void;
 }) {
@@ -361,7 +361,7 @@ function EmployeeDialog({
     designation: existing?.designation ?? "",
     base_salary: existing?.base_salary != null ? String(existing.base_salary) : "",
     date_of_joining: existing?.date_of_joining ?? new Date().toISOString().slice(0, 10),
-    status: (existing?.status ?? "active") as EmployeeStatus,
+    status: (existing?.status ?? "active") as StaffStatus,
   }));
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -371,10 +371,10 @@ function EmployeeDialog({
   const saveMut = useMutation({
     mutationFn: async () => {
       if (!form.employee_no.trim() || !form.full_name.trim()) {
-        throw new Error("Employee number and full name are required");
+        throw new Error("Staff number and full name are required");
       }
       if (!form.department_id) {
-        throw new Error("Department is required — every employee must belong to one");
+        throw new Error("Department is required — every staff member must belong to one");
       }
       const payload = {
         employee_no: form.employee_no.trim(),
@@ -396,8 +396,8 @@ function EmployeeDialog({
       }
     },
     onSuccess: () => {
-      toast.success(existing ? "Employee updated" : "Employee added");
-      qc.invalidateQueries({ queryKey: ["employees-directory"] });
+      toast.success(existing ? "Staff updated" : "Staff added");
+      qc.invalidateQueries({ queryKey: ["staff-directory"] });
       qc.invalidateQueries({ queryKey: ["teachers"] });
       onDone();
     },
@@ -407,14 +407,14 @@ function EmployeeDialog({
   return (
     <DialogContent className="max-w-2xl">
       <DialogHeader>
-        <DialogTitle>{existing ? "Edit employee" : "Add employee"}</DialogTitle>
+        <DialogTitle>{existing ? "Edit staff" : "Add staff"}</DialogTitle>
         <DialogDescription>
           Employment details only. Teaching assignments live in the Teachers module.
         </DialogDescription>
       </DialogHeader>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label="Employee No *">
+        <Field label="Staff No *">
           <Input
             value={form.employee_no}
             onChange={(e) => set("employee_no", e.target.value)}
@@ -470,7 +470,7 @@ function EmployeeDialog({
           />
         </Field>
         <Field label="Status">
-          <Select value={form.status} onValueChange={(v) => set("status", v as EmployeeStatus)}>
+          <Select value={form.status} onValueChange={(v) => set("status", v as StaffStatus)}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
@@ -490,7 +490,7 @@ function EmployeeDialog({
           Cancel
         </Button>
         <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
-          {saveMut.isPending ? "Saving…" : existing ? "Update employee" : "Save employee"}
+          {saveMut.isPending ? "Saving…" : existing ? "Update staff" : "Save staff"}
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -536,7 +536,7 @@ function Td({ children, className = "" }: { children: React.ReactNode; className
   return <td className={`px-6 py-3.5 align-middle text-foreground ${className}`}>{children}</td>;
 }
 
-function statusVariant(s: EmployeeStatus): "success" | "warning" | "danger" | "default" {
+function statusVariant(s: StaffStatus): "success" | "warning" | "danger" | "default" {
   if (s === "active") return "success";
   if (s === "on_leave" || s === "probation") return "warning";
   if (s === "inactive" || s === "resigned") return "danger";
