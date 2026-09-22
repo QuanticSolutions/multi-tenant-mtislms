@@ -39,11 +39,18 @@ export type Branding = {
 };
 
 export const DEFAULT_BRANDING = {
-  school_name: "School LMS",
+  school_name: "QS LMS",
   tagline: "Learning Management System",
-  primary_color: "#2952C4",
-  secondary_color: "#1D3B8A",
+  primary_color: "#059669", // emerald-600
+  secondary_color: "#16A34A", // green-600
   accent_color: "#DC2626",
+  /**
+   * Static asset in /public — always resolvable, no signed link needed.
+   * Used only as a fallback while no logo has been uploaded to the
+   * `branding` bucket; never written to `school_settings.logo_url` itself
+   * (see `isStoragePath` — a bucket lookup for this path would just fail).
+   */
+  logo_url: "/logo.png",
 } as const;
 
 export const BRANDING_BUCKET = "branding";
