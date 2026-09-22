@@ -3,20 +3,31 @@ import { useQuery } from "@tanstack/react-query";
 import {
   Users,
   GraduationCap,
-  CalendarCheck,
   Wallet,
-  BookOpen,
   TrendingUp,
   FileText,
   Plus,
   ArrowUpRight,
+  CalendarRange,
+  ClipboardCheck,
+  MapPin,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AppShell, useSessionUser } from "@/components/admin/app-shell";
 import { supabase } from "@/integrations/supabase/client";
-import { formatClass, formatStatus } from "@/lib/format";
+import { formatClass, formatStatus, formatDate } from "@/lib/format";
+import { useBranding } from "@/hooks/use-branding";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
@@ -28,20 +39,80 @@ export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminDashboard,
 });
 
+function isoDaysAgo(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+function monthStart() {
+  const d = new Date();
+  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+}
+
 function AdminDashboard() {
   const user = useSessionUser();
+  const { branding } = useBranding();
+  const currency = branding?.currency ?? "PKR";
 
   const { data: stats } = useQuery({
-    queryKey: ["admin-stats"],
+    queryKey: ["admin-stats", monthStart()],
     queryFn: async () => {
-      const [students, classes] = await Promise.all([
+      const since = monthStart();
+      const [students, teachers, invoices, payments, admissions] = await Promise.all([
         supabase.from("students").select("id, status", { count: "exact" }),
-        supabase.from("classes").select("id", { count: "exact", head: true }),
+        supabase.from("teachers").select("id", { count: "exact", head: true }),
+        supabase.from("invoices").select("amount, amount_paid, status"),
+        supabase.from("payments").select("amount").gte("paid_on", since),
+        supabase
+          .from("admission_applications")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["new", "screening", "interview", "offered"]),
       ]);
+
       const total = students.count ?? 0;
-      const active =
-        students.data?.filter((s) => s.status === "active").length ?? 0;
-      return { total, active, classes: classes.count ?? 0 };
+      const active = students.data?.filter((s) => s.status === "active").length ?? 0;
+      const collectedMTD = (payments.data ?? []).reduce((a, p) => a + Number(p.amount ?? 0), 0);
+      const outstanding = (invoices.data ?? []).reduce(
+        (a, i) => a + Math.max(0, Number(i.amount ?? 0) - Number(i.amount_paid ?? 0)),
+        0,
+      );
+
+      return {
+        total,
+        active,
+        teachers: teachers.count ?? 0,
+        collectedMTD,
+        outstanding,
+        pendingAdmissions: admissions.count ?? 0,
+      };
+    },
+  });
+
+  const { data: attendanceTrend } = useQuery({
+    queryKey: ["admin-attendance-trend"],
+    queryFn: async () => {
+      const since = isoDaysAgo(13);
+      const { data, error } = await supabase
+        .from("attendance")
+        .select("date, status")
+        .gte("date", since);
+      if (error) throw error;
+
+      const byDay = new Map<string, { present: number; total: number }>();
+      for (let i = 13; i >= 0; i--) {
+        byDay.set(isoDaysAgo(i), { present: 0, total: 0 });
+      }
+      for (const row of data ?? []) {
+        const bucket = byDay.get(row.date as string);
+        if (!bucket) continue;
+        bucket.total += 1;
+        if (row.status === "present" || row.status === "late") bucket.present += 1;
+      }
+      return Array.from(byDay.entries()).map(([date, v]) => ({
+        date,
+        label: new Date(date).toLocaleDateString(undefined, { day: "2-digit", month: "short" }),
+        rate: v.total ? Math.round((v.present / v.total) * 100) : null,
+      }));
     },
   });
 
@@ -58,6 +129,40 @@ function AdminDashboard() {
     },
   });
 
+  const { data: upcomingEvents } = useQuery({
+    queryKey: ["admin-upcoming-events"],
+    queryFn: async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from("events")
+        .select("id, title, event_type, start_date, location, is_holiday")
+        .gte("start_date", today)
+        .order("start_date", { ascending: true })
+        .limit(5);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: activity } = useQuery({
+    queryKey: ["admin-activity"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select("id, action, entity_type, actor_email, created_at")
+        .order("created_at", { ascending: false })
+        .limit(6);
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const attendanceAvg = (() => {
+    const rated = (attendanceTrend ?? []).filter((d) => d.rate !== null) as { rate: number }[];
+    if (!rated.length) return null;
+    return Math.round(rated.reduce((a, d) => a + d.rate, 0) / rated.length);
+  })();
+
   return (
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -71,9 +176,11 @@ function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline">
-            <FileText /> Export report
-          </Button>
+          <Link to="/admin/reports">
+            <Button variant="outline">
+              <FileText /> View reports
+            </Button>
+          </Link>
           <Link to="/admin/students">
             <Button>
               <Plus /> Add student
@@ -85,32 +192,141 @@ function AdminDashboard() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatTile
           icon={Users}
-          label="Total Students"
-          value={String(stats?.total ?? 0)}
-          delta={`${stats?.active ?? 0} active`}
+          label="Active Students"
+          value={String(stats?.active ?? 0)}
+          delta={`${stats?.total ?? 0} on roll`}
           tone="primary"
         />
         <StatTile
           icon={GraduationCap}
-          label="Classes"
-          value={String(stats?.classes ?? 0)}
-          delta="Across all grades"
+          label="Staff & Teachers"
+          value={String(stats?.teachers ?? 0)}
+          delta="Active employment records"
           tone="info"
         />
         <StatTile
-          icon={CalendarCheck}
-          label="Attendance"
-          value="—"
-          delta="Module coming soon"
+          icon={Wallet}
+          label="Fees Collected"
+          value={stats ? `${currency} ${stats.collectedMTD.toLocaleString()}` : "—"}
+          delta={
+            stats
+              ? `This month · ${currency} ${stats.outstanding.toLocaleString()} outstanding`
+              : "This month"
+          }
           tone="success"
         />
         <StatTile
-          icon={Wallet}
-          label="Fees Overdue"
-          value="—"
-          delta="Module coming soon"
-          tone="danger"
+          icon={ClipboardCheck}
+          label="Pending Admissions"
+          value={String(stats?.pendingAdmissions ?? 0)}
+          delta="Awaiting a decision"
+          tone={stats && stats.pendingAdmissions > 0 ? "danger" : "primary"}
         />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="mtis-card p-5 lg:col-span-2">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="mtis-section-title">Attendance — last 14 days</h3>
+              <p className="text-xs text-muted-foreground">Daily present + late rate, all classes.</p>
+            </div>
+            <div className="text-right">
+              <p className="font-display text-xl font-bold text-foreground">
+                {attendanceAvg !== null ? `${attendanceAvg}%` : "—"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">14-day average</p>
+            </div>
+          </div>
+          <div className="mt-4 h-56">
+            {attendanceTrend && attendanceTrend.some((d) => d.rate !== null) ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={attendanceTrend} margin={{ left: -20, right: 8, top: 8 }}>
+                  <defs>
+                    <linearGradient id="attendanceFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                      <stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} stroke="var(--border)" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, 100]}
+                    tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={36}
+                  />
+                  <Tooltip
+                    formatter={(v: number) => [`${v}%`, "Attendance"]}
+                    contentStyle={{
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="rate"
+                    stroke="var(--primary)"
+                    strokeWidth={2}
+                    fill="url(#attendanceFill)"
+                    connectNulls
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="grid h-full place-items-center text-sm text-muted-foreground">
+                No attendance recorded in the last 14 days.{" "}
+                <Link to="/admin/attendance" className="ml-1 text-primary hover:underline">
+                  Mark attendance →
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mtis-card p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="mtis-section-title">Upcoming</h3>
+            <Link to="/admin/events">
+              <CalendarRange className="size-4 text-muted-foreground" />
+            </Link>
+          </div>
+          <ul className="mt-4 space-y-4">
+            {upcomingEvents && upcomingEvents.length > 0 ? (
+              upcomingEvents.map((e) => (
+                <li key={e.id} className="flex gap-3">
+                  <div className="grid size-9 shrink-0 place-items-center rounded-md bg-primary-pale text-[11px] font-bold leading-none text-primary">
+                    {new Date(e.start_date as string).toLocaleDateString(undefined, {
+                      day: "2-digit",
+                      month: "short",
+                    })}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{e.title}</p>
+                    <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {e.is_holiday ? "Holiday" : formatStatus(e.event_type)}
+                      {e.location && (
+                        <>
+                          <MapPin className="size-3" /> {e.location}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className="text-sm text-muted-foreground">No upcoming events scheduled.</li>
+            )}
+          </ul>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -166,39 +382,48 @@ function AdminDashboard() {
             </table>
           ) : (
             <div className="p-10 text-center text-sm text-muted-foreground">
-              No students yet. <Link to="/admin/students" className="text-primary hover:underline">Add the first one →</Link>
+              No students yet.{" "}
+              <Link to="/admin/students" className="text-primary hover:underline">
+                Add the first one →
+              </Link>
             </div>
           )}
         </div>
 
         <div className="mtis-card p-6">
           <div className="flex items-center justify-between">
-            <h3 className="mtis-section-title">Activity</h3>
+            <h3 className="mtis-section-title">Recent Activity</h3>
             <TrendingUp className="size-4 text-muted-foreground" />
           </div>
           <ul className="mt-4 space-y-4">
-            {ACTIVITY.map((a, i) => (
-              <li key={i} className="flex gap-3">
-                <span className={`mt-1.5 size-2 shrink-0 rounded-full ${TONE_DOT[a.tone]}`} />
-                <div className="min-w-0">
-                  <p className="text-sm text-foreground">{a.text}</p>
-                  <p className="text-xs text-muted-foreground">{a.time}</p>
-                </div>
+            {activity && activity.length > 0 ? (
+              activity.map((a) => (
+                <li key={a.id} className="flex gap-3">
+                  <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
+                  <div className="min-w-0">
+                    <p className="text-sm text-foreground">
+                      <span className="font-medium">{formatStatus(a.action)}</span>{" "}
+                      <span className="text-muted-foreground">
+                        {formatStatus(a.entity_type)}
+                        {a.actor_email ? ` · ${a.actor_email}` : ""}
+                      </span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDate(a.created_at as string)}
+                    </p>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <li className="text-sm text-muted-foreground">
+                No activity recorded yet.{" "}
+                <Link to="/admin/audit" className="text-primary hover:underline">
+                  View audit log →
+                </Link>
               </li>
-            ))}
+            )}
           </ul>
         </div>
-      </div>
-
-      <div className="mtis-card grid place-items-center px-6 py-12 text-center">
-        <div className="grid h-12 w-12 place-items-center rounded-full bg-primary-pale text-primary">
-          <BookOpen className="size-5" />
-        </div>
-        <h3 className="mt-3 font-display text-base font-semibold">More modules coming soon</h3>
-        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-          Teachers, Attendance, Exams, Fees, Library & Messaging will appear here as we build
-          them out.
-        </p>
       </div>
     </AppShell>
   );
@@ -263,17 +488,3 @@ function statusVariant(s: string): "success" | "warning" | "danger" | "default" 
   if (s === "inactive" || s === "transferred") return "danger";
   return "default";
 }
-
-const TONE_DOT: Record<string, string> = {
-  success: "bg-success",
-  warning: "bg-warning",
-  danger: "bg-danger",
-  info: "bg-info",
-  primary: "bg-primary",
-};
-
-const ACTIVITY: Array<{ text: string; time: string; tone: keyof typeof TONE_DOT }> = [
-  { text: "Students module is live — start adding records", time: "Just now", tone: "success" },
-  { text: "Classes seeded for academic year 2025–26", time: "Today", tone: "info" },
-  { text: "Admin role assigned to first registered user", time: "Earlier", tone: "primary" },
-];
