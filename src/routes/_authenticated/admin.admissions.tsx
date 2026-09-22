@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, Trash2, Calendar, CheckCircle2, XCircle, UserPlus, GraduationCap } from "lucide-react";
+import { Plus, Search, Trash2, Calendar, CheckCircle2, XCircle, UserPlus, GraduationCap, FileDown } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
+import { IntakeTabs } from "@/components/admin/intake-tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,9 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatDate, formatDateTime, formatStatus } from "@/lib/format";
+import { useBranding } from "@/hooks/use-branding";
+import { docBrand } from "@/lib/print";
+import { downloadPdf } from "@/lib/pdf";
 
 export const Route = createFileRoute("/_authenticated/admin/admissions")({
   head: () => ({
@@ -99,6 +103,7 @@ const STATUS_BADGE: Record<Status, { label: string; className: string }> = {
 
 function AdmissionsPage() {
   const qc = useQueryClient();
+  const { branding } = useBranding();
   const [tab, setTab] = useState<Status | "all">("all");
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
@@ -201,6 +206,74 @@ function AdmissionsPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  /** Full admission detail of one applicant as a branded PDF. */
+  async function exportApplication(a: Application) {
+    const ivs = interviewsByApp[a.id] ?? [];
+    try {
+      await downloadPdf({
+        brand: docBrand(branding),
+        filename: `admission-${a.application_no}.pdf`,
+        docs: [
+          {
+            title: "Admission Detail",
+            subtitle: `Application ${a.application_no}`,
+            meta: [
+              { label: "Applicant", value: `${a.first_name} ${a.last_name}` },
+              { label: "Status", value: formatStatus(a.status) },
+              { label: "Gender", value: a.gender ? formatStatus(a.gender) : "—" },
+              { label: "Date of birth", value: a.date_of_birth ? formatDate(a.date_of_birth) : "—" },
+              {
+                label: "Applying for class",
+                value: a.applying_for_class_id ? formatClass(classMap[a.applying_for_class_id]) : "—",
+              },
+              { label: "Previous school", value: a.previous_school || "—" },
+              { label: "Submitted", value: formatDate(a.submitted_at) },
+              { label: "Source", value: a.source ? formatStatus(a.source) : "—" },
+            ],
+            tables: [
+              {
+                heading: "Guardian & contact",
+                head: ["Detail", "Value"],
+                rows: [
+                  ["Guardian name", a.guardian_name],
+                  ["Guardian phone", a.guardian_phone],
+                  ["Guardian email", a.guardian_email || "—"],
+                  ["Address", a.address || "—"],
+                ],
+              },
+              {
+                heading: "Application fee",
+                head: ["Detail", "Value"],
+                rows: [
+                  ["Application fee", `Rs ${Number(a.application_fee).toLocaleString()}`],
+                  ["Fee status", a.fee_paid ? "Paid" : "Unpaid"],
+                  ["Offer date", a.offer_date ? formatDate(a.offer_date) : "—"],
+                  ["Decision date", a.decision_date ? formatDate(a.decision_date) : "—"],
+                ],
+              },
+              {
+                heading: "Interviews",
+                head: ["Scheduled", "Mode", "Interviewer", "Score", "Outcome"],
+                empty: "No interviews scheduled.",
+                rows: ivs.map((iv) => [
+                  formatDateTime(iv.scheduled_at),
+                  formatStatus(iv.mode),
+                  iv.interviewer_name || "—",
+                  iv.score === null ? "—" : String(iv.score),
+                  formatStatus(iv.outcome),
+                ]),
+              },
+            ],
+            notes: a.decision_notes ? `Decision notes: ${a.decision_notes}` : undefined,
+            footnote: "Admission detail record.",
+          },
+        ],
+      });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  }
+
   return (
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -215,6 +288,8 @@ function AdmissionsPage() {
           <Plus className="mr-2 size-4" /> New application
         </Button>
       </div>
+
+      <IntakeTabs active="admissions" />
 
       <div className="grid gap-4 md:grid-cols-4">
         <StatTile label="Total" value={counts.total ?? 0} />
@@ -358,6 +433,14 @@ function AdmissionsPage() {
                           title="Schedule interview"
                         >
                           <Calendar className="size-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => exportApplication(a)}
+                          title="Download admission detail (PDF)"
+                        >
+                          <FileDown className="size-4" />
                         </Button>
                         <Select
                           value={a.status}
