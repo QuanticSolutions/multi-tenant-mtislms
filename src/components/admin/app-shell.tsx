@@ -80,7 +80,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Teachers & Staff",
     items: [
       { icon: GraduationCap, label: "Teachers", to: "/admin/teachers" , module: "teachers" },
-      { icon: Users, label: "Employees", to: "/admin/staff-directory", module: "employees" },
+      { icon: Users, label: "Staff", to: "/admin/staff-directory", module: "employees" },
       { icon: BriefcaseBusiness, label: "Employment applications", to: "/admin/employees", module: "employees" },
       { icon: Layers, label: "Departments", to: "/admin/setup/departments", module: "departments" },
     ],
