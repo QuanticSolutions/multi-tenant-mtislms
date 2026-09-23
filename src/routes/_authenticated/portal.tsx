@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatDateTime, formatStatus } from "@/lib/format";
 import { money, formatPeriod } from "@/lib/finance";
-import { buildDocument, docBrand, printDocument } from "@/lib/print";
+import { docBrand } from "@/lib/print";
+import { downloadPdf } from "@/lib/pdf";
 import { BrandLockup, useBranding } from "@/hooks/use-branding";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
@@ -323,35 +324,40 @@ function AccountBooksTab({ student }: { student: any | null }) {
   });
 
   function download(c: PortalChallan) {
-    const html = buildDocument({
-      title: "Fee Challan",
+    downloadPdf({
       brand,
-      subtitle: `Billing period ${formatPeriod(c.period)}`,
-      meta: [
-        { label: "Student", value: student?.full_name ?? "—" },
-        { label: "Admission no", value: student?.admission_no ?? "—" },
+      filename: `challan-${student?.admission_no ?? c.id}-${c.period}.pdf`,
+      docs: [
         {
-          label: "Class",
-          value: student?.classes
-            ? formatClass(student.classes.name, student.classes.section)
-            : "—",
+          title: "Fee Challan",
+          subtitle: `Billing period ${formatPeriod(c.period)}`,
+          meta: [
+            { label: "Student", value: student?.full_name ?? "—" },
+            { label: "Admission no", value: student?.admission_no ?? "—" },
+            {
+              label: "Class",
+              value: student?.classes
+                ? formatClass(student.classes.name, student.classes.section)
+                : "—",
+            },
+            { label: "Status", value: formatStatus(c.status) },
+          ],
+          tables: [
+            {
+              head: ["Fee constituent", "Amount"],
+              rows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
+              empty: "No fee constituents.",
+              totals: [
+                { label: "Subtotal", value: money(c.subtotal, currency) },
+                { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
+                { label: "Total payable", value: money(c.total_due, currency), strong: true },
+              ],
+            },
+          ],
+          footnote: "Please attach the deposit slip when uploading your payment proof.",
         },
-        { label: "Status", value: formatStatus(c.status) },
       ],
-      tableHead: ["Fee constituent", "Amount"],
-      tableRows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
-      totals: [
-        { label: "Subtotal", value: money(c.subtotal, currency) },
-        { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
-        { label: "Total payable", value: money(c.total_due, currency), strong: true },
-      ],
-      footnote: "Please attach the deposit slip when uploading your payment proof.",
-    });
-    try {
-      printDocument(html);
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
+    }).catch((e: Error) => toast.error(e.message));
   }
 
   if (!student?.id) {
