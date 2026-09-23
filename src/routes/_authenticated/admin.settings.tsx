@@ -234,7 +234,9 @@ function profileProblem(f: ProfileForm) {
   if (!f.school_name.trim()) {
     return "Add a school name — it appears across the app and on printed documents.";
   }
-  if (f.email.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) {
+  if (!f.phone.trim()) return "Add a phone number — it appears on documents and public forms.";
+  if (!f.email.trim()) return "Add an email address — it appears on documents and public forms.";
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim())) {
     return "Check the email address.";
   }
   if (f.established_year.trim()) {
@@ -451,14 +453,14 @@ function ProfileTab() {
           title="Contact & address"
           description="Used on fee challans, reports and the public admission form."
         >
-          <Field label="Phone">
+          <Field label="Phone *">
             <Input
               value={form.phone}
               onChange={(e) => set("phone", e.target.value)}
               placeholder="+92 21 1234567"
             />
           </Field>
-          <Field label="Email">
+          <Field label="Email *">
             <Input
               type="email"
               value={form.email}
