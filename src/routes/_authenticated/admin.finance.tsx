@@ -41,7 +41,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { formatDate, formatStatus } from "@/lib/format";
-import { buildDocument, docBrand, printDocument, type DocBrand } from "@/lib/print";
+import { docBrand, type DocBrand } from "@/lib/print";
+import { downloadPdf, type PdfDoc } from "@/lib/pdf";
 import { useBranding } from "@/hooks/use-branding";
 import { saveBrandedWorkbook } from "@/lib/xlsx-brand";
 import {
@@ -253,32 +254,41 @@ function IncomeTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  function printChallan(c: Challan) {
-    const html = buildDocument({
-      title: "Fee Challan",
+  function downloadChallan(c: Challan) {
+    downloadPdf({
       brand,
-      subtitle: `Billing period ${formatPeriod(c.period)}`,
-      meta: [
-        { label: "Student", value: c.students?.full_name ?? "—" },
-        { label: "Admission no", value: c.students?.admission_no ?? "—" },
+      filename: `challan-${c.students?.admission_no ?? c.id}-${c.period}.pdf`,
+      docs: [
         {
-          label: "Class",
-          value: c.students?.classes
-            ? `${c.students.classes.name}${c.students.classes.section ? ` — ${c.students.classes.section}` : ""}`
-            : "—",
+          title: "Fee Challan",
+          subtitle: `Billing period ${formatPeriod(c.period)}`,
+          meta: [
+            { label: "Student", value: c.students?.full_name ?? "—" },
+            { label: "Admission no", value: c.students?.admission_no ?? "—" },
+            {
+              label: "Class",
+              value: c.students?.classes
+                ? `${c.students.classes.name}${c.students.classes.section ? ` — ${c.students.classes.section}` : ""}`
+                : "—",
+            },
+            { label: "Status", value: formatStatus(c.status) },
+          ],
+          tables: [
+            {
+              head: ["Fee constituent", "Amount"],
+              rows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
+              empty: "No fee constituents.",
+              totals: [
+                { label: "Subtotal", value: money(c.subtotal, currency) },
+                { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
+                { label: "Total payable", value: money(c.total_due, currency), strong: true },
+              ],
+            },
+          ],
+          footnote: "Please attach the deposit slip when uploading your payment proof.",
         },
-        { label: "Status", value: formatStatus(c.status) },
       ],
-      tableHead: ["Fee constituent", "Amount"],
-      tableRows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
-      totals: [
-        { label: "Subtotal", value: money(c.subtotal, currency) },
-        { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
-        { label: "Total payable", value: money(c.total_due, currency), strong: true },
-      ],
-      footnote: "Please attach the deposit slip when uploading your payment proof.",
-    });
-    printDocument(html);
+    }).catch((e: Error) => toast.error(e.message));
   }
 
   async function openProof(path: string) {
@@ -392,7 +402,7 @@ function IncomeTab() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => printChallan(c)}>
+                      <Button variant="ghost" size="sm" onClick={() => downloadChallan(c)}>
                         <Download className="size-4" /> PDF
                       </Button>
                       {c.uploaded_proof_url && (
@@ -1301,10 +1311,9 @@ function RunDetailDialog({
     );
   }
 
-  function payslip(i: ItemRow) {
-    const html = buildDocument({
+  function payslipDoc(i: ItemRow): PdfDoc {
+    return {
       title: "Payslip",
-      brand,
       subtitle: periodLabel,
       meta: [
         { label: "Employee", value: i.teachers?.full_name ?? "—" },
@@ -1315,21 +1324,42 @@ function RunDetailDialog({
           value: `${i.present_days ?? 0}/${i.working_days ?? 0} days`,
         },
       ],
-      tableHead: ["Description", "Type", "Amount"],
-      tableRows: (i.payroll_item_lines ?? []).map((l) => [
-        l.label,
-        l.type,
-        money(l.amount, currency),
-      ]),
-      totals: [
-        { label: "Basic salary", value: money(i.basic_salary, currency) },
-        { label: "Deductions", value: `- ${money(i.deductions, currency)}` },
-        { label: "Bonus", value: money(i.bonus, currency) },
-        { label: "Net pay", value: money(i.net_pay, currency), strong: true },
+      tables: [
+        {
+          head: ["Description", "Type", "Amount"],
+          rows: (i.payroll_item_lines ?? []).map((l) => [
+            l.label,
+            l.type,
+            money(l.amount, currency),
+          ]),
+          empty: "No line items.",
+          totals: [
+            { label: "Basic salary", value: money(i.basic_salary, currency) },
+            { label: "Deductions", value: `- ${money(i.deductions, currency)}` },
+            { label: "Bonus", value: money(i.bonus, currency) },
+            { label: "Net pay", value: money(i.net_pay, currency), strong: true },
+          ],
+        },
       ],
       footnote: "Payslip generated by the school finance system.",
-    });
-    printDocument(html);
+    };
+  }
+
+  function downloadPayslip(i: ItemRow) {
+    const name = (i.teachers?.full_name ?? "employee").replace(/\s+/g, "-").toLowerCase();
+    downloadPdf({
+      brand,
+      filename: `payslip-${name}-${run.period_year}-${String(run.period_month).padStart(2, "0")}.pdf`,
+      docs: [payslipDoc(i)],
+    }).catch((e: Error) => toast.error(e.message));
+  }
+
+  function downloadAllPayslips() {
+    downloadPdf({
+      brand,
+      filename: `payslips-${run.period_year}-${String(run.period_month).padStart(2, "0")}.pdf`,
+      docs: items.map(payslipDoc),
+    }).catch((e: Error) => toast.error(e.message));
   }
 
   return (
@@ -1345,6 +1375,9 @@ function RunDetailDialog({
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={exportXlsx} disabled={items.length === 0}>
             <FileSpreadsheet className="size-4" /> Export master table (XLSX)
+          </Button>
+          <Button variant="outline" onClick={downloadAllPayslips} disabled={items.length === 0}>
+            <Download className="size-4" /> All payslips (PDF)
           </Button>
           {run.status !== "paid" && can("payroll", "update") && (
             <Button variant="outline" onClick={() => markPaid.mutate()} disabled={markPaid.isPending}>
@@ -1384,7 +1417,7 @@ function RunDetailDialog({
                     <td className="px-3 py-2 text-right">{i.bonus ? money(i.bonus, currency) : "—"}</td>
                     <td className="px-3 py-2 text-right font-semibold">{money(i.net_pay, currency)}</td>
                     <td className="px-3 py-2 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => payslip(i)}>
+                      <Button variant="ghost" size="sm" onClick={() => downloadPayslip(i)}>
                         <Download className="size-4" /> PDF
                       </Button>
                     </td>
