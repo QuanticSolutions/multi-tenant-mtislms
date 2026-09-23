@@ -41,7 +41,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { usePermissions } from "@/hooks/use-permissions";
 import { formatDate, formatStatus } from "@/lib/format";
-import { buildDocument, docBrand, printDocument, type DocBrand } from "@/lib/print";
+import { docBrand, type DocBrand } from "@/lib/print";
+import { downloadPdf, type PdfDoc } from "@/lib/pdf";
 import { useBranding } from "@/hooks/use-branding";
 import { saveBrandedWorkbook } from "@/lib/xlsx-brand";
 import {
@@ -253,32 +254,41 @@ function IncomeTab() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  function printChallan(c: Challan) {
-    const html = buildDocument({
-      title: "Fee Challan",
+  function downloadChallan(c: Challan) {
+    downloadPdf({
       brand,
-      subtitle: `Billing period ${formatPeriod(c.period)}`,
-      meta: [
-        { label: "Student", value: c.students?.full_name ?? "—" },
-        { label: "Admission no", value: c.students?.admission_no ?? "—" },
+      filename: `challan-${c.students?.admission_no ?? c.id}-${c.period}.pdf`,
+      docs: [
         {
-          label: "Class",
-          value: c.students?.classes
-            ? `${c.students.classes.name}${c.students.classes.section ? ` — ${c.students.classes.section}` : ""}`
-            : "—",
+          title: "Fee Challan",
+          subtitle: `Billing period ${formatPeriod(c.period)}`,
+          meta: [
+            { label: "Student", value: c.students?.full_name ?? "—" },
+            { label: "Admission no", value: c.students?.admission_no ?? "—" },
+            {
+              label: "Class",
+              value: c.students?.classes
+                ? `${c.students.classes.name}${c.students.classes.section ? ` — ${c.students.classes.section}` : ""}`
+                : "—",
+            },
+            { label: "Status", value: formatStatus(c.status) },
+          ],
+          tables: [
+            {
+              head: ["Fee constituent", "Amount"],
+              rows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
+              empty: "No fee constituents.",
+              totals: [
+                { label: "Subtotal", value: money(c.subtotal, currency) },
+                { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
+                { label: "Total payable", value: money(c.total_due, currency), strong: true },
+              ],
+            },
+          ],
+          footnote: "Please attach the deposit slip when uploading your payment proof.",
         },
-        { label: "Status", value: formatStatus(c.status) },
       ],
-      tableHead: ["Fee constituent", "Amount"],
-      tableRows: (c.constituent_breakdown ?? []).map((l) => [l.name, money(l.amount, currency)]),
-      totals: [
-        { label: "Subtotal", value: money(c.subtotal, currency) },
-        { label: "Discount", value: `- ${money(c.discount_applied, currency)}` },
-        { label: "Total payable", value: money(c.total_due, currency), strong: true },
-      ],
-      footnote: "Please attach the deposit slip when uploading your payment proof.",
-    });
-    printDocument(html);
+    }).catch((e: Error) => toast.error(e.message));
   }
 
   async function openProof(path: string) {
