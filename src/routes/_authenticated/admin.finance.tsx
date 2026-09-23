@@ -1376,6 +1376,9 @@ function RunDetailDialog({
           <Button variant="outline" onClick={exportXlsx} disabled={items.length === 0}>
             <FileSpreadsheet className="size-4" /> Export master table (XLSX)
           </Button>
+          <Button variant="outline" onClick={downloadAllPayslips} disabled={items.length === 0}>
+            <Download className="size-4" /> All payslips (PDF)
+          </Button>
           {run.status !== "paid" && can("payroll", "update") && (
             <Button variant="outline" onClick={() => markPaid.mutate()} disabled={markPaid.isPending}>
               <Check className="size-4" /> Mark as paid
@@ -1414,7 +1417,7 @@ function RunDetailDialog({
                     <td className="px-3 py-2 text-right">{i.bonus ? money(i.bonus, currency) : "—"}</td>
                     <td className="px-3 py-2 text-right font-semibold">{money(i.net_pay, currency)}</td>
                     <td className="px-3 py-2 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => payslip(i)}>
+                      <Button variant="ghost" size="sm" onClick={() => downloadPayslip(i)}>
                         <Download className="size-4" /> PDF
                       </Button>
                     </td>
