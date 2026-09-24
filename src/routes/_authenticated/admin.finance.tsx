@@ -70,16 +70,16 @@ export const Route = createFileRoute("/_authenticated/admin/finance")({
   }),
   head: () => ({
     meta: [
-      { title: "Finance — School LMS" },
+      { title: "Finance" },
       {
         name: "description",
         content:
           "Track incoming student fee challans and outgoing staff payroll in one finance workspace.",
       },
-      { property: "og:title", content: "Finance — School LMS" },
+      { property: "og:title", content: "Finance" },
       {
         property: "og:description",
-        content: "Student fee income and employee payroll for School LMS.",
+        content: "Student fee income and employee payroll for your school.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

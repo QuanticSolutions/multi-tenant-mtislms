@@ -39,12 +39,12 @@ import { formatDateTime, formatStatus } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
     meta: [
-      { title: "User Management — School LMS" },
+      { title: "User Management" },
       {
         name: "description",
         content: "Create and manage portal accounts and assign admin, teacher or student roles.",
       },
-      { property: "og:title", content: "User Management — School LMS" },
+      { property: "og:title", content: "User Management" },
       {
         property: "og:description",
         content: "Create and manage portal accounts and assign roles.",

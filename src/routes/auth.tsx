@@ -13,8 +13,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in — School LMS" },
-      { name: "description", content: "Sign in to the School LMS." },
+      { title: "Sign in" },
+      { name: "description", content: "Sign in to the your school." },
     ],
   }),
   component: AuthPage,

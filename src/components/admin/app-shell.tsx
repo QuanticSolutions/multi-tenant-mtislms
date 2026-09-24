@@ -390,7 +390,7 @@ function Sidebar() {
         <div className="mt-3 shrink-0 rounded-md border border-border bg-background p-3">
           <p className="text-xs font-semibold text-foreground">Need help?</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Check the School LMS handbook for setup steps.
+            Check the setup guide for next steps.
           </p>
         </div>
       </div>

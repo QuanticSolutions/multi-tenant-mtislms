@@ -32,12 +32,12 @@ import { money } from "@/lib/finance";
 export const Route = createFileRoute("/_authenticated/admin/staff-directory")({
   head: () => ({
     meta: [
-      { title: "Staff — School LMS" },
+      { title: "Staff" },
       {
         name: "description",
         content: "Staff directory with departments, designations, salaries and status.",
       },
-      { property: "og:title", content: "Staff — School LMS" },
+      { property: "og:title", content: "Staff" },
       {
         property: "og:description",
         content: "Manage every staff member's department, designation and salary.",

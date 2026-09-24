@@ -29,7 +29,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — School LMS" },
+      { title: "Settings" },
       { name: "description", content: "School profile, session, grading scales and role management." },
     ],
   }),

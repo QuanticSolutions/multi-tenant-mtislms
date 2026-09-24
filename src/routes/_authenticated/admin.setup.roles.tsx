@@ -24,12 +24,12 @@ import { MODULES, PERMISSION_ACTIONS, moduleLabel, type PermissionAction } from 
 export const Route = createFileRoute("/_authenticated/admin/setup/roles")({
   head: () => ({
     meta: [
-      { title: "Roles & Permissions — School LMS" },
+      { title: "Roles & Permissions" },
       {
         name: "description",
         content: "Create roles and control read, write, update and delete access per module.",
       },
-      { property: "og:title", content: "Roles & Permissions — School LMS" },
+      { property: "og:title", content: "Roles & Permissions" },
       {
         property: "og:description",
         content: "Module-level permission matrix for every staff role.",

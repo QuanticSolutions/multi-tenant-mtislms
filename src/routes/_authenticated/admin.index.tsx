@@ -32,8 +32,8 @@ import { useBranding } from "@/hooks/use-branding";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin Dashboard — School LMS" },
-      { name: "description", content: "School LMS administration overview." },
+      { title: "Admin Dashboard" },
+      { name: "description", content: "your school administration overview." },
     ],
   }),
   component: AdminDashboard,
