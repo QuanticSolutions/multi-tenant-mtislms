@@ -29,7 +29,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — School LMS" },
+      { title: "Settings" },
       { name: "description", content: "School profile, session, grading scales and role management." },
     ],
   }),
@@ -613,6 +613,29 @@ function ProfileTab() {
                 </span>
               </div>
             </div>
+          </div>
+
+          <div className="md:col-span-2 flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setForm((f) => ({
+                  ...f,
+                  school_name: DEFAULT_BRANDING.school_name,
+                  tagline: DEFAULT_BRANDING.tagline,
+                  logo_url: "",
+                  favicon_url: "",
+                  primary_color: DEFAULT_BRANDING.primary_color,
+                  secondary_color: DEFAULT_BRANDING.secondary_color,
+                  accent_color: DEFAULT_BRANDING.accent_color,
+                }));
+                setPreview({ logo: null, favicon: null });
+                toast.success("Branding reset to the built-in defaults — save to apply it");
+              }}
+            >
+              <RotateCcw className="mr-1.5 size-4" /> Reset to default branding
+            </Button>
           </div>
         </Section>
 

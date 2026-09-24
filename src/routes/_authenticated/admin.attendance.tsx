@@ -24,7 +24,7 @@ import { formatClass } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/attendance")({
   head: () => ({
     meta: [
-      { title: "Attendance — School LMS" },
+      { title: "Attendance" },
       { name: "description", content: "Record daily class roll-call attendance." },
     ],
   }),

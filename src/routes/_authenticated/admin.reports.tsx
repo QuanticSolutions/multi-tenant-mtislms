@@ -46,7 +46,7 @@ import { docBrand, buildReportDocument, printDocument, type DocSection } from "@
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({
     meta: [
-      { title: "Reports & Analytics — School LMS" },
+      { title: "Reports & Analytics" },
       { name: "description", content: "Cross-module analytics: attendance, fees, exams, library, and transport insights." },
     ],
   }),

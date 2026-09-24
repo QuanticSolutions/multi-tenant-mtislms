@@ -35,7 +35,7 @@ import { downloadPdf } from "@/lib/pdf";
 export const Route = createFileRoute("/_authenticated/admin/admissions")({
   head: () => ({
     meta: [
-      { title: "Admissions — School LMS" },
+      { title: "Admissions" },
       { name: "description", content: "Manage applications, interviews and offers for new admissions." },
     ],
   }),

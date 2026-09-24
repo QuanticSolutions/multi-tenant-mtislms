@@ -39,7 +39,7 @@ import { formatDate } from "@/lib/format";
 export const Route = createFileRoute("/_authenticated/admin/library")({
   head: () => ({
     meta: [
-      { title: "Library — School LMS" },
+      { title: "Library" },
       { name: "description", content: "Manage book catalog and student book issues." },
     ],
   }),

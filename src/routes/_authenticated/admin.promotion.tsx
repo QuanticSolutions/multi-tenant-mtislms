@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/promotion")({
-  head: () => ({ meta: [{ title: "Promotion — School LMS" }, { name: "description", content: "Bulk promote students from one class to another." }] }),
+  head: () => ({ meta: [{ title: "Promotion" }, { name: "description", content: "Bulk promote students from one class to another." }] }),
   component: PromotionPage,
 });
 

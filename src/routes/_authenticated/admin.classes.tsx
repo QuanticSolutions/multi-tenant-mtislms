@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/classes")({
-  head: () => ({ meta: [{ title: "Classes — School LMS" }, { name: "description", content: "Manage classes, sections and class teachers." }] }),
+  head: () => ({ meta: [{ title: "Classes" }, { name: "description", content: "Manage classes, sections and class teachers." }] }),
   component: ClassesPage,
 });
 

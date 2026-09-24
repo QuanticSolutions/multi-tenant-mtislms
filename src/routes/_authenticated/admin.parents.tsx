@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/parents")({
-  head: () => ({ meta: [{ title: "Parents — School LMS" }, { name: "description", content: "Manage parents and link them to students." }] }),
+  head: () => ({ meta: [{ title: "Parents" }, { name: "description", content: "Manage parents and link them to students." }] }),
   component: ParentsPage,
 });
 

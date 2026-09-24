@@ -24,12 +24,12 @@ import type { CalcType } from "@/lib/finance";
 export const Route = createFileRoute("/_authenticated/admin/setup/payroll")({
   head: () => ({
     meta: [
-      { title: "Payroll Deductions — School LMS" },
+      { title: "Payroll Deductions" },
       {
         name: "description",
         content: "Configure persistent payroll deductions and stepped attendance deduction rules.",
       },
-      { property: "og:title", content: "Payroll Deductions — School LMS" },
+      { property: "og:title", content: "Payroll Deductions" },
       {
         property: "og:description",
         content: "Persistent deduction components and absence-based payroll rules.",

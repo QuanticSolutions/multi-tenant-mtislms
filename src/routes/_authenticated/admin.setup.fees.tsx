@@ -26,12 +26,12 @@ import { money, round2 } from "@/lib/finance";
 export const Route = createFileRoute("/_authenticated/admin/setup/fees")({
   head: () => ({
     meta: [
-      { title: "Fee Groups & Constituents — School LMS" },
+      { title: "Fee Groups & Constituents" },
       {
         name: "description",
         content: "Configure reusable fee constituents and class-based fee groups with amounts.",
       },
-      { property: "og:title", content: "Fee Groups & Constituents — School LMS" },
+      { property: "og:title", content: "Fee Groups & Constituents" },
       {
         property: "og:description",
         content: "Set up class-based fee groups and their constituent amounts.",

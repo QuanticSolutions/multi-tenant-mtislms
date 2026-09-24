@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/admin/subjects")({
-  head: () => ({ meta: [{ title: "Subjects — School LMS" }, { name: "description", content: "Manage subjects per class and teacher allocation." }] }),
+  head: () => ({ meta: [{ title: "Subjects" }, { name: "description", content: "Manage subjects per class and teacher allocation." }] }),
   component: SubjectsPage,
 });
 

@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/audit")({
   head: () => ({
     meta: [
-      { title: "Audit Log — School LMS" },
+      { title: "Audit Log" },
       { name: "description", content: "Track administrative actions across the school system." },
     ],
   }),
