@@ -104,7 +104,7 @@ function docHtml(brand: DocBrand, doc: PdfDoc, isLast: boolean) {
 
 /** Full standalone HTML for the documents — also usable for preview or print. */
 export function buildPdfHtml(brand: DocBrand, docs: PdfDoc[]) {
-  const accent = brand.primaryColor || DEFAULT_BRANDING.primary_color;
+  const accent = /^#[0-9a-fA-F]{3,8}$/.test(brand.primaryColor ?? "") ? brand.primaryColor! : DEFAULT_BRANDING.primary_color;
   return `<div class="pdf-root">
 <style>
   .pdf-root{--accent:${accent};font-family:ui-sans-serif,system-ui,"Segoe UI",Arial,sans-serif;color:#17251f;background:#fff}
