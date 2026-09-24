@@ -47,7 +47,7 @@ export function buildDocument(opts: {
 
   const brand: DocBrand =
     opts.brand ?? { schoolName: opts.schoolName || DEFAULT_BRANDING.school_name };
-  const accent = brand.primaryColor || DEFAULT_BRANDING.primary_color;
+  const accent = /^#[0-9a-fA-F]{3,8}$/.test(brand.primaryColor ?? "") ? brand.primaryColor! : DEFAULT_BRANDING.primary_color;
 
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(opts.title)}</title>
 <style>
@@ -144,7 +144,7 @@ export function buildReportDocument(opts: {
 
   const brand: DocBrand =
     opts.brand ?? { schoolName: opts.schoolName || DEFAULT_BRANDING.school_name };
-  const accent = brand.primaryColor || DEFAULT_BRANDING.primary_color;
+  const accent = /^#[0-9a-fA-F]{3,8}$/.test(brand.primaryColor ?? "") ? brand.primaryColor! : DEFAULT_BRANDING.primary_color;
 
   const sectionsHtml = opts.sections
     .map(
