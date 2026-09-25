@@ -16,6 +16,7 @@ import { Route as EmbedEventsRouteImport } from './routes/embed.events'
 import { Route as EmbedEmployeesRouteImport } from './routes/embed.employees'
 import { Route as EmbedDonationsRouteImport } from './routes/embed.donations'
 import { Route as EmbedAdmissionsRouteImport } from './routes/embed.admissions'
+import { Route as AuthenticatedSecurityRouteImport } from './routes/_authenticated/security'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
@@ -85,6 +86,11 @@ const EmbedAdmissionsRoute = EmbedAdmissionsRouteImport.update({
   id: '/embed/admissions',
   path: '/embed/admissions',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSecurityRoute = AuthenticatedSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/portal': typeof AuthenticatedPortalRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/embed/admissions': typeof EmbedAdmissionsRoute
   '/embed/donations': typeof EmbedDonationsRoute
   '/embed/employees': typeof EmbedEmployeesRoute
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/portal': typeof AuthenticatedPortalRoute
+  '/security': typeof AuthenticatedSecurityRoute
   '/embed/admissions': typeof EmbedAdmissionsRoute
   '/embed/donations': typeof EmbedDonationsRoute
   '/embed/employees': typeof EmbedEmployeesRoute
@@ -381,6 +389,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/_authenticated/security': typeof AuthenticatedSecurityRoute
   '/embed/admissions': typeof EmbedAdmissionsRoute
   '/embed/donations': typeof EmbedDonationsRoute
   '/embed/employees': typeof EmbedEmployeesRoute
@@ -426,6 +435,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/portal'
+    | '/security'
     | '/embed/admissions'
     | '/embed/donations'
     | '/embed/employees'
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/portal'
+    | '/security'
     | '/embed/admissions'
     | '/embed/donations'
     | '/embed/employees'
@@ -512,6 +523,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/portal'
+    | '/_authenticated/security'
     | '/embed/admissions'
     | '/embed/donations'
     | '/embed/employees'
@@ -611,6 +623,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/embed/admissions'
       preLoaderRoute: typeof EmbedAdmissionsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/security': {
+      id: '/_authenticated/security'
+      path: '/security'
+      fullPath: '/security'
+      preLoaderRoute: typeof AuthenticatedSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/portal': {
       id: '/_authenticated/portal'
@@ -939,11 +958,13 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+  AuthenticatedSecurityRoute: typeof AuthenticatedSecurityRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+  AuthenticatedSecurityRoute: AuthenticatedSecurityRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
