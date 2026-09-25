@@ -280,6 +280,7 @@ function Header({
           <div className="grid h-9 w-9 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
             {initials}
           </div>
+          <Button asChild variant="ghost" size="icon" aria-label="Security"><Link to="/security"><ShieldCheck className="size-4" /></Link></Button>
           <Button variant="ghost" size="icon" aria-label="Sign out" onClick={onSignOut}>
             <LogOut className="size-4" />
           </Button>
