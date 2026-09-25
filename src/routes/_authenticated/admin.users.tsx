@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/admin/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -325,8 +326,7 @@ function AddUserDialog({ onDone }: { onDone: () => void }) {
           </div>
           <div>
             <Label>Password</Label>
-            <Input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Min 8 characters"
