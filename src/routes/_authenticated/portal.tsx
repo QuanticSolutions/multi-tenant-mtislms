@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Megaphone, LogOut, Pin, Wallet, Download, Upload } from "lucide-react";
+import { CalendarDays, Megaphone, LogOut, ShieldCheck, Pin, Wallet, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -83,6 +83,7 @@ function PortalPage() {
                   : "Student"}
               </div>
             </div>
+            <Button asChild variant="ghost" size="icon" aria-label="Security"><Link to="/security"><ShieldCheck className="size-4" /></Link></Button>
             <Button variant="ghost" size="icon" aria-label="Sign out" onClick={signOut}>
               <LogOut className="size-4" />
             </Button>

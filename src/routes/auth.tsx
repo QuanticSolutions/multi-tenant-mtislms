@@ -5,6 +5,9 @@ import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
+import { useServerFn } from "@tanstack/react-start";
+import { checkLoginAllowed, recordLoginAttempt } from "@/lib/api/login-guard.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useBranding } from "@/hooks/use-branding";
@@ -30,13 +33,50 @@ function AuthPage() {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const { schoolName, tagline, logoUrl, initials } = useBranding();
+  const [mfaFactor, setMfaFactor] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState("");
+  const [waitUntil, setWaitUntil] = useState(0);
+  const [now, setNow] = useState(Date.now());
+  const checkAllowed = useServerFn(checkLoginAllowed);
+  const recordAttempt = useServerFn(recordLoginAttempt);
 
-  // If already signed in, redirect to admin.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/admin", replace: true });
+    if (waitUntil <= Date.now()) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [waitUntil]);
+  const waitLeft = Math.max(0, Math.ceil((waitUntil - now) / 1000));
+
+  // Returns true when a second factor is still required.
+  async function needsMfa() {
+    const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (data && data.nextLevel === "aal2" && data.currentLevel !== "aal2") {
+      const { data: f } = await supabase.auth.mfa.listFactors();
+      const factor = f?.totp?.find((x) => x.status === "verified");
+      if (factor) {
+        setMfaFactor(factor.id);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // If already signed in, redirect to admin (or ask for the 2FA code).
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session && !(await needsMfa())) navigate({ to: "/admin", replace: true });
     });
   }, [navigate]);
+
+  async function handleMfa(e: React.FormEvent) {
+    e.preventDefault();
+    if (!mfaFactor || !/^\d{6}$/.test(mfaCode)) return toast.error("Enter the 6-digit code");
+    setLoading(true);
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId: mfaFactor, code: mfaCode });
+    setLoading(false);
+    if (error) return toast.error("Invalid code. Try again.");
+    navigate({ to: "/admin", replace: true });
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,8 +94,19 @@ function AuthPage() {
         if (error) throw error;
         toast.success("Account created. Signing you in…");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const clean = email.trim().toLowerCase();
+        const { wait } = await checkAllowed({ data: { email: clean } });
+        if (wait > 0) {
+          setWaitUntil(Date.now() + wait * 1000);
+          throw new Error(`Too many failed attempts. Try again in ${Math.ceil(wait / 60)} min.`);
+        }
+        const { error } = await supabase.auth.signInWithPassword({ email: clean, password });
+        const res = await recordAttempt({ data: { email: clean, success: !error } });
+        if (error) {
+          if (res.wait > 0) setWaitUntil(Date.now() + res.wait * 1000);
+          throw new Error("Invalid email or password");
+        }
+        if (await needsMfa()) return;
         toast.success("Welcome back");
       }
       navigate({ to: "/admin", replace: true });
@@ -71,7 +122,7 @@ function AuthPage() {
     setLoading(true);
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin + "/admin",
+        redirect_uri: window.location.origin + "/auth",
       });
       if (result.error) {
         toast.error("Google sign-in failed");
@@ -79,6 +130,7 @@ function AuthPage() {
         return;
       }
       if (result.redirected) return;
+      if (await needsMfa()) { setLoading(false); return; }
       navigate({ to: "/admin", replace: true });
     } catch {
       toast.error("Google sign-in failed");
@@ -146,6 +198,16 @@ function AuthPage() {
               </div>
             </div>
 
+            {mfaFactor ? (
+              <form onSubmit={handleMfa} className="space-y-4">
+                <p className="mtis-eyebrow">Two-factor sign-in</p>
+                <h2 className="font-display text-2xl font-bold">Enter your code</h2>
+                <p className="text-sm text-muted-foreground">Open your authenticator app and enter the 6-digit code.</p>
+                <Input autoFocus inputMode="numeric" maxLength={6} value={mfaCode} onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ""))} placeholder="123456" />
+                <Button type="submit" className="w-full" disabled={loading}>Verify</Button>
+                <button type="button" className="w-full text-sm text-muted-foreground hover:text-foreground" onClick={async () => { await supabase.auth.signOut(); setMfaFactor(null); }}>Cancel</button>
+              </form>
+            ) : (<>
             <p className="mtis-eyebrow">Account access</p>
             <h2 className="mt-2 font-display text-2xl font-bold">
               {mode === "signin" ? "Sign in to your account" : "Create your account"}
@@ -195,8 +257,7 @@ function AuthPage() {
                 />
               </Field>
               <Field label="Password">
-                <Input
-                  type="password"
+                <PasswordInput
                   autoComplete={mode === "signin" ? "current-password" : "new-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -206,9 +267,9 @@ function AuthPage() {
                 />
               </Field>
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading || waitLeft > 0}>
                 {loading ? <Loader2 className="animate-spin" /> : null}
-                {mode === "signin" ? "Sign in" : "Create account"}
+                {waitLeft > 0 ? `Locked — wait ${waitLeft}s` : mode === "signin" ? "Sign in" : "Create account"}
               </Button>
             </form>
 
@@ -222,6 +283,7 @@ function AuthPage() {
                 {mode === "signin" ? "Create one" : "Sign in"}
               </button>
             </p>
+            </>)}
 
             <p className="mt-8 text-center text-xs text-muted-foreground">
               <Link to="/" className="hover:text-foreground">
