@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { EmbedField, EmbedShell, EmbedSuccess } from "@/components/embed/embed-shell";
 import { supabase } from "@/integrations/supabase/client";
+import { usePublicTenant } from "@/hooks/use-tenant";
 import { formatClass } from "@/lib/format";
 
 export const Route = createFileRoute("/embed/admissions")({
@@ -54,12 +55,15 @@ function AdmissionEmbed() {
   });
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
+  const { tenantId } = usePublicTenant();
   const { data: classes } = useQuery({
-    queryKey: ["embed-classes"],
+    queryKey: ["embed-classes", tenantId],
+    enabled: !!tenantId,
     queryFn: async () => {
       const { data } = await supabase
         .from("classes")
         .select("id, name, section")
+        .eq("tenant_id", tenantId!)
         .order("grade_level");
       return data ?? [];
     },
@@ -71,7 +75,9 @@ function AdmissionEmbed() {
         throw new Error("Student name is required");
       if (!form.guardian_name.trim() || !form.guardian_phone.trim())
         throw new Error("Guardian name and phone are required");
+      if (!tenantId) throw new Error("This school could not be found");
       const { error } = await supabase.from("admission_applications").insert({
+        tenant_id: tenantId,
         application_no: `WEB-${Date.now().toString(36).toUpperCase()}`,
         first_name: form.first_name.trim().slice(0, 80),
         last_name: form.last_name.trim().slice(0, 80),

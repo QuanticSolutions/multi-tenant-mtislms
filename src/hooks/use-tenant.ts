@@ -106,3 +106,19 @@ export function useTenantHostGuard() {
     }
   }, [data]);
 }
+
+/**
+ * Public school for visitors (embeds, sign-in page): the school named in the
+ * web address, or the built-in "default" school on the bare domain/preview.
+ */
+export function usePublicTenant() {
+  const { ready, value } = useSubdomain();
+  const sub = value || "default";
+  const q = useQuery({
+    queryKey: ["tenant-public", sub],
+    enabled: ready,
+    staleTime: 5 * 60_000,
+    queryFn: () => fetchPublicTenant(sub),
+  });
+  return { ready: ready && !q.isLoading, tenant: q.data ?? null, tenantId: q.data?.id ?? null };
+}

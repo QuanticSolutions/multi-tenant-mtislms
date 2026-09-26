@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { EmbedField, EmbedShell, EmbedSuccess } from "@/components/embed/embed-shell";
 import { supabase } from "@/integrations/supabase/client";
+import { usePublicTenant } from "@/hooks/use-tenant";
 
 export const Route = createFileRoute("/embed/employees")({
   head: () => ({
@@ -45,11 +46,14 @@ function EmployeeEmbed() {
   });
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
+  const { tenantId } = usePublicTenant();
   const submit = useMutation({
     mutationFn: async () => {
       if (!form.full_name.trim() || !form.phone.trim() || !form.position.trim())
         throw new Error("Name, phone and position are required");
+      if (!tenantId) throw new Error("This school could not be found");
       const { error } = await supabase.from("employment_applications").insert({
+        tenant_id: tenantId,
         full_name: form.full_name.trim().slice(0, 120),
         phone: form.phone.trim().slice(0, 40),
         email: form.email.slice(0, 160) || null,
