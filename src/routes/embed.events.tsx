@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { usePublicTenant } from "@/hooks/use-tenant";
 import { formatDate } from "@/lib/format";
 import { BrandLockup } from "@/hooks/use-branding";
 
@@ -61,12 +62,15 @@ function EventsEmbed() {
   const monthStart = iso(anchor);
   const monthEnd = iso(new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0));
 
+  const { tenantId } = usePublicTenant();
   const { data: events } = useQuery({
-    queryKey: ["embed-events", monthStart],
+    queryKey: ["embed-events", monthStart, tenantId],
+    enabled: !!tenantId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("events")
         .select("id, title, event_type, start_date, end_date, location")
+        .eq("tenant_id", tenantId!)
         .lte("start_date", monthEnd)
         .gte("end_date", monthStart)
         .order("start_date");

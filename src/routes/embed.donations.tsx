@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { EmbedField, EmbedShell, EmbedSuccess } from "@/components/embed/embed-shell";
 import { supabase } from "@/integrations/supabase/client";
+import { usePublicTenant } from "@/hooks/use-tenant";
 import { formatStatus } from "@/lib/format";
 
 export const Route = createFileRoute("/embed/donations")({
@@ -54,12 +55,15 @@ function DonationEmbed() {
   });
   const set = (k: keyof typeof form, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
+  const { tenantId } = usePublicTenant();
   const submit = useMutation({
     mutationFn: async () => {
       if (!form.donor_name.trim()) throw new Error("Your name is required");
       const amount = Number(form.amount || 0);
       if (!amount || amount <= 0) throw new Error("Enter a valid donation amount");
+      if (!tenantId) throw new Error("This school could not be found");
       const { error } = await supabase.from("donations").insert({
+        tenant_id: tenantId,
         donor_name: form.donor_name.trim().slice(0, 120),
         donor_phone: form.donor_phone.slice(0, 40) || null,
         donor_email: form.donor_email.slice(0, 160) || null,

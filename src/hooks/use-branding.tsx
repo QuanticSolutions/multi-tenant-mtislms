@@ -3,6 +3,7 @@ import { useEffect, useMemo } from "react";
 import { useRouterState } from "@tanstack/react-router";
 
 import { supabase } from "@/integrations/supabase/client";
+import { useSubdomain } from "@/hooks/use-tenant";
 import {
   applyBrandColors,
   BRAND_SIGNED_URL_TTL_SECONDS,
@@ -50,10 +51,28 @@ async function signBrandImages(paths: string[]) {
  * the settings form. Absolute URLs saved by older rows pass through untouched.
  */
 export function useBranding() {
+  const { ready, value: subdomain } = useSubdomain();
   const { data, isLoading } = useQuery({
-    queryKey: BRANDING_QUERY_KEY,
+    queryKey: [...BRANDING_QUERY_KEY, subdomain],
     staleTime: 60_000,
+    enabled: ready,
     queryFn: async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) {
+        // Visitors: the school named in the web address, else built-in defaults.
+        if (!subdomain) return null;
+        const { data: t } = await supabase.rpc("get_tenant_public" as never, { _subdomain: subdomain } as never);
+        const tenantId = (t as { id?: string } | null)?.id;
+        if (!tenantId) return null;
+        const { data, error } = await supabase
+          .from("school_settings")
+          .select("*")
+          .eq("tenant_id" as never, tenantId as never)
+          .maybeSingle();
+        if (error) return null;
+        return (data as unknown as Branding | null) ?? null;
+      }
+      // Signed in: row-level security returns only the user's own school.
       const { data, error } = await supabase
         .from("school_settings")
         .select("*")
