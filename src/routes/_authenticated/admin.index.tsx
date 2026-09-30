@@ -29,7 +29,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatStatus, formatDate } from "@/lib/format";
 import { useBranding } from "@/hooks/use-branding";
 import { useMyTenant, useUpdateOnboarding } from "@/hooks/use-tenant";
-import { Link } from "@tanstack/react-router";
 import { CheckCircle2, Circle, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
