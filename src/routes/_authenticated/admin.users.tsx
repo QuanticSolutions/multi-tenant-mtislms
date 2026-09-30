@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { Plus, Trash2, ShieldCheck, Search, X } from "lucide-react";
+import { Plus, Trash2, ShieldCheck, Search, X, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -31,6 +31,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   createUser,
   deleteUser,
+  inviteUser,
   listUsers,
   setUserRole,
   type ManagedUser,
@@ -250,6 +251,8 @@ function UsersPage() {
 function AddUserDialog({ onDone }: { onDone: () => void }) {
   const qc = useQueryClient();
   const addUser = useServerFn(createUser);
+  const invite = useServerFn(inviteUser);
+  const [mode, setMode] = useState<"create" | "invite">("create");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -282,8 +285,13 @@ function AddUserDialog({ onDone }: { onDone: () => void }) {
   });
 
   const create = useMutation({
-    mutationFn: async () =>
-      addUser({
+    mutationFn: async () => {
+      if (mode === "invite") {
+        return invite({
+          data: { email: email.trim(), full_name: fullName.trim(), role },
+        });
+      }
+      return addUser({
         data: {
           email: email.trim(),
           password,
@@ -292,9 +300,10 @@ function AddUserDialog({ onDone }: { onDone: () => void }) {
           link_student_id: role === "student" && studentId ? studentId : null,
           link_teacher_id: role === "teacher" && teacherId ? teacherId : null,
         },
-      }),
+      });
+    },
     onSuccess: () => {
-      toast.success("User created");
+      toast.success(mode === "invite" ? "Invitation sent" : "User created");
       qc.invalidateQueries({ queryKey: ["managed-users"] });
       setEmail("");
       setPassword("");
@@ -309,29 +318,51 @@ function AddUserDialog({ onDone }: { onDone: () => void }) {
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle>New user</DialogTitle>
+        <DialogTitle>Add team member</DialogTitle>
         <DialogDescription>
-          The account is created immediately and can sign in right away.
+          Create an account directly or send an email invitation.
         </DialogDescription>
       </DialogHeader>
+      <div className="flex gap-2 rounded-lg bg-muted p-1">
+        <button
+          type="button"
+          onClick={() => setMode("create")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            mode === "create" ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground"
+          }`}
+        >
+          <Plus className="size-3.5" /> Create directly
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("invite")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+            mode === "invite" ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground"
+          }`}
+        >
+          <Mail className="size-3.5" /> Invite by email
+        </button>
+      </div>
       <div className="space-y-3">
         <div>
           <Label>Full name</Label>
           <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div>
+          <div className={mode === "invite" ? "col-span-2" : ""}>
             <Label>Email</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
-          <div>
-            <Label>Password</Label>
-            <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Min 8 characters"
-            />
-          </div>
+          {mode === "create" && (
+            <div>
+              <Label>Password</Label>
+              <PasswordInput
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min 8 characters"
+              />
+            </div>
+          )}
         </div>
         <div>
           <Label>Role</Label>
@@ -388,7 +419,9 @@ function AddUserDialog({ onDone }: { onDone: () => void }) {
       </div>
       <DialogFooter>
         <Button onClick={() => create.mutate()} disabled={create.isPending}>
-          {create.isPending ? "Creating…" : "Create user"}
+          {create.isPending
+            ? mode === "invite" ? "Sending…" : "Creating…"
+            : mode === "invite" ? "Send invitation" : "Create user"}
         </Button>
       </DialogFooter>
     </DialogContent>

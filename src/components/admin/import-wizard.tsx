@@ -96,11 +96,13 @@ export function ImportWizard({
   const saveProfile = useMutation({
     mutationFn: async () => {
       if (!profileName.trim()) throw new Error("Give the profile a name");
+      const { data: tenantData } = await supabase.rpc("current_tenant_id" as never);
+      const tenantId = tenantData as string | null;
       const { error } = await supabase
         .from("import_profiles")
         .upsert(
-          { entity_key: selected!, name: profileName.trim(), mapping },
-          { onConflict: "entity_key,name" },
+          { entity_key: selected!, name: profileName.trim(), mapping, tenant_id: tenantId },
+          { onConflict: "tenant_id,entity_key,name" },
         );
       if (error) throw error;
     },

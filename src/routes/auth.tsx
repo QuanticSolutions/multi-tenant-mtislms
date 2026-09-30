@@ -23,11 +23,9 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup";
-
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -210,12 +208,12 @@ function AuthPage() {
             ) : (<>
             <p className="mtis-eyebrow">Account access</p>
             <h2 className="mt-2 font-display text-2xl font-bold">
-              {mode === "signin" ? "Sign in to your account" : "Create your account"}
+              {mode === "signin" ? "Sign in to your account" : "Create an account"}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {mode === "signin"
                 ? "Use your portal credentials to continue."
-                : "The first account created becomes the portal administrator."}
+                : "Join an existing school portal."}
             </p>
 
             <Button
@@ -274,14 +272,25 @@ function AuthPage() {
             </form>
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
-              {mode === "signin" ? "Need an account?" : "Already have an account?"}{" "}
-              <button
-                type="button"
-                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-                className="font-semibold text-primary hover:text-primary-light"
-              >
-                {mode === "signin" ? "Create one" : "Sign in"}
-              </button>
+              {mode === "signin" ? (
+                <>
+                  Don't have a school yet?{" "}
+                  <Link to="/register" className="font-semibold text-primary hover:text-primary-light">
+                    Register your school
+                  </Link>
+                </>
+              ) : (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setMode("signin")}
+                    className="font-semibold text-primary hover:text-primary-light"
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
             </p>
             </>)}
 

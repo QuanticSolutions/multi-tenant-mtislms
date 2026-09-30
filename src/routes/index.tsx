@@ -1,428 +1,220 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Bell,
-  Search,
   GraduationCap,
   Users,
   CalendarCheck,
-  BookOpen,
   Wallet,
-  FileText,
-  ChevronDown,
-  Plus,
-  CheckCircle2,
-  AlertTriangle,
-  XCircle,
-  Info,
+  BookOpen,
+  Bus,
+  Package,
+  MessageSquare,
+  BarChart3,
+  ShieldCheck,
+  ArrowRight,
+  Check,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { BrandLockup, useBranding } from "@/hooks/use-branding";
+import { useTenantSubdomain } from "@/hooks/use-tenant";
+import { BrandLockup } from "@/hooks/use-branding";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Design System" },
-      { name: "description", content: "Theme, tokens and component preview." },
+      { title: "School Management, Simplified" },
+      { name: "description", content: "Run your school from one place — students, fees, attendance, payroll and more." },
     ],
   }),
-  component: StyleGuide,
+  component: LandingPage,
 });
 
-function StyleGuide() {
-  const { schoolName } = useBranding();
+const FEATURES = [
+  { icon: Users, title: "Student management", desc: "Admissions, profiles, class assignments and parent contacts." },
+  { icon: CalendarCheck, title: "Attendance", desc: "Daily attendance for students and staff with automated reports." },
+  { icon: Wallet, title: "Fees & finance", desc: "Invoices, payments, payroll, scholarships and donations." },
+  { icon: BookOpen, title: "Library & inventory", desc: "Book issuing, stock tracking and requisitions." },
+  { icon: GraduationCap, title: "Exams & grading", desc: "Schedule exams, record marks and generate report cards." },
+  { icon: Bus, title: "Transport", desc: "Routes, drivers, vehicle tracking and fare management." },
+  { icon: MessageSquare, title: "Communication", desc: "Announcements, events, messaging and notifications." },
+  { icon: BarChart3, title: "Reports & analytics", desc: "Dashboards, audit logs and exportable reports." },
+];
 
+const PLANS = [
+  {
+    name: "Starter",
+    price: "Free",
+    period: "for the first school",
+    features: ["Up to 200 students", "All core modules", "Email support", "1 admin user"],
+    cta: "Register your school",
+    highlight: false,
+  },
+  {
+    name: "Professional",
+    price: "$49",
+    period: "per month",
+    features: ["Unlimited students", "All modules", "Priority support", "Unlimited users", "Custom branding"],
+    cta: "Get started",
+    highlight: true,
+  },
+];
+
+function LandingPage() {
+  const { isRoot, notFound, subdomain } = useTenantSubdomain();
+
+  // On a school subdomain but school not found
+  if (!isRoot && notFound) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6">
+        <div className="text-center">
+          <h1 className="font-display text-3xl font-bold">School not found</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            No school is registered at <span className="font-semibold">{subdomain}</span>.
+          </p>
+          <Link to="/" className="mt-4 inline-block">
+            <Button variant="outline">Back to home</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // On a school subdomain with a valid tenant — show a sign-in prompt
+  if (!isRoot) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6">
+        <div className="text-center">
+          <BrandLockup className="mx-auto" size="md" />
+          <h1 className="mt-6 font-display text-2xl font-bold">Welcome</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Sign in to access your portal.</p>
+          <Link to="/auth" className="mt-4 inline-block">
+            <Button>Sign in <ArrowRight className="size-4" /></Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Root domain — marketing page
   return (
     <div className="min-h-screen bg-background">
-      {/* Top header */}
-      <header className="sticky top-0 z-30 h-16 border-b border-border bg-surface shadow-card">
-        <div className="mx-auto flex h-full max-w-[1400px] items-center gap-6 px-7">
-          <BrandLockup subtitle="Management Portal" />
-
-          <div className="ml-6 hidden flex-1 max-w-[420px] md:block">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search students, teachers, classes…"
-                className="pl-9"
-              />
+      {/* Header */}
+      <header className="sticky top-0 z-30 h-16 border-b border-border bg-surface/80 backdrop-blur">
+        <div className="mx-auto flex h-full max-w-5xl items-center justify-between px-6">
+          <div className="flex items-center gap-2 font-display text-lg font-bold">
+            <div className="grid h-8 w-8 place-items-center rounded-md bg-primary text-primary-foreground">
+              <GraduationCap className="size-5" />
             </div>
+            QS LMS
           </div>
-
-          <div className="ml-auto flex items-center gap-2">
-            <button className="hidden items-center gap-2 rounded-full border border-primary-light/40 bg-primary-pale px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary-pale/70 sm:inline-flex">
-              Session 2025–26
-              <ChevronDown className="size-3.5" />
-            </button>
-            <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
-              <Bell className="size-4" />
-              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
-            </Button>
-            <Link
-              to="/auth"
-              className="inline-flex h-9 items-center justify-center rounded-sm bg-primary px-4 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary-light"
-            >
+          <div className="flex items-center gap-3">
+            <Link to="/auth" className="text-sm font-medium text-muted-foreground hover:text-foreground">
               Sign in
+            </Link>
+            <Link to="/register">
+              <Button size="sm">Get started</Button>
             </Link>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-[1400px] px-7 py-10">
-        {/* Hero */}
-        <section className="mb-10">
-          <p className="mtis-eyebrow">Design system · v0.1</p>
-          <h1 className="mt-2 font-display text-3xl font-bold text-foreground">{schoolName}</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Foundational theme, tokens, and components for the {schoolName} platform. Navy + crisp
-            white surfaces, with a bold red accent reserved for action and urgency.
-          </p>
-        </section>
-
-        {/* Color palette */}
-        <Section title="Color palette" eyebrow="01 · Foundations">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            <Swatch name="Primary" hex="#1D3B8A" className="bg-primary text-primary-foreground" />
-            <Swatch name="Primary light" hex="#2952C4" className="bg-primary-light text-primary-foreground" />
-            <Swatch name="Primary pale" hex="#EEF2FF" className="bg-primary-pale text-primary" />
-            <Swatch name="Accent" hex="#DC2626" className="bg-accent text-accent-foreground" />
-            <Swatch name="Success" hex="#16A34A" className="bg-success text-success-foreground" />
-            <Swatch name="Warning" hex="#D97706" className="bg-warning text-warning-foreground" />
-            <Swatch name="Danger" hex="#DC2626" className="bg-danger text-danger-foreground" />
-            <Swatch name="Info" hex="#0891B2" className="bg-info text-info-foreground" />
-          </div>
-        </Section>
-
-        {/* Typography */}
-        <Section title="Typography" eyebrow="02 · Foundations">
-          <div className="mtis-card p-7">
-            <p className="mtis-eyebrow">Display · Plus Jakarta Sans</p>
-            <h2 className="mt-2 font-display text-3xl font-bold">Academics, refined.</h2>
-            <h3 className="mt-2 font-display text-2xl font-semibold text-foreground">
-              Section heading 28 / semibold
-            </h3>
-            <h4 className="mt-2 font-display text-lg font-semibold text-foreground">
-              Card title 18 / semibold
-            </h4>
-            <div className="my-6 h-px bg-border" />
-            <p className="mtis-eyebrow">Body · Inter</p>
-            <p className="mt-2 max-w-2xl text-sm text-foreground">
-              The quick brown fox jumps over the lazy dog. Body copy used for tables, forms, and
-              long-form sections at 14px with comfortable line-height.
-            </p>
-            <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
-              Helper / caption · 12px muted for inline hints, form helpers, and metadata.
-            </p>
-          </div>
-        </Section>
-
-        {/* Buttons */}
-        <Section title="Buttons" eyebrow="03 · Components">
-          <div className="mtis-card flex flex-wrap items-center gap-3 p-7">
-            <Button>
-              <Plus /> New Student
+      {/* Hero */}
+      <section className="mx-auto max-w-5xl px-6 py-20 text-center">
+        <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-semibold text-muted-foreground">
+          <ShieldCheck className="size-3.5 text-success" /> Trusted by schools worldwide
+        </div>
+        <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
+          Run your school from{" "}
+          <span className="text-primary">one place</span>
+        </h1>
+        <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          Students, fees, attendance, exams, payroll, library, transport and more — all in a single,
+          beautifully designed portal. Set up in minutes.
+        </p>
+        <div className="mt-8 flex items-center justify-center gap-3">
+          <Link to="/register">
+            <Button size="lg">
+              Register your school <ArrowRight className="size-4" />
             </Button>
-            <Button variant="outline">Secondary</Button>
-            <Button variant="ghost">Ghost</Button>
-            <Button variant="destructive">Delete</Button>
-            <Button variant="secondary">Filter</Button>
-            <Button size="sm">Small</Button>
-            <Button size="lg">Large</Button>
-            <Button size="icon" variant="outline" aria-label="More">
-              <Plus />
-            </Button>
-          </div>
-        </Section>
+          </Link>
+          <Link to="/auth">
+            <Button size="lg" variant="outline">Sign in</Button>
+          </Link>
+        </div>
+        <p className="mt-4 text-xs text-muted-foreground">No credit card required · Free for the first school</p>
+      </section>
 
-        {/* Inputs */}
-        <Section title="Form fields" eyebrow="04 · Components">
-          <div className="mtis-card grid gap-5 p-7 md:grid-cols-2">
-            <Field label="Student name">
-              <Input placeholder="e.g. Ayesha Khan" />
-            </Field>
-            <Field label="Roll number">
-              <Input placeholder="MTIS-2025-0142" />
-            </Field>
-            <Field label="Email">
-              <Input type="email" placeholder="guardian@example.com" />
-            </Field>
-            <Field label="Class" hint="Choose the current academic class.">
-              <Input placeholder="Grade 8 — Section A" />
-            </Field>
-          </div>
-        </Section>
-
-        {/* Badges */}
-        <Section title="Badges & status pills" eyebrow="05 · Components">
-          <div className="mtis-card flex flex-wrap items-center gap-3 p-7">
-            <Badge variant="success">
-              <CheckCircle2 className="mr-1 size-3" /> Present
-            </Badge>
-            <Badge variant="danger">
-              <XCircle className="mr-1 size-3" /> Absent
-            </Badge>
-            <Badge variant="warning">
-              <AlertTriangle className="mr-1 size-3" /> Pending
-            </Badge>
-            <Badge variant="info">
-              <Info className="mr-1 size-3" /> Notice
-            </Badge>
-            <Badge variant="role">Student</Badge>
-            <Badge variant="role">Teacher</Badge>
-            <Badge variant="solid">Admin</Badge>
-            <Badge variant="outline">Draft</Badge>
-          </div>
-        </Section>
-
-        {/* Stat cards */}
-        <Section title="Stat tiles" eyebrow="06 · Patterns">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile icon={Users} label="Total Students" value="1,284" delta="+24 this week" tone="primary" />
-            <StatTile icon={GraduationCap} label="Teachers" value="86" delta="3 on leave today" tone="info" />
-            <StatTile icon={CalendarCheck} label="Attendance" value="96.4%" delta="vs 94.1% last week" tone="success" />
-            <StatTile icon={Wallet} label="Fees Overdue" value="₨ 412,500" delta="18 invoices" tone="danger" />
-          </div>
-        </Section>
-
-        {/* Table */}
-        <Section title="Data table" eyebrow="07 · Patterns">
-          <div className="mtis-card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-border px-6 py-4">
-              <div>
-                <h3 className="mtis-section-title">Recent Admissions</h3>
-                <p className="text-xs text-muted-foreground">Updated 2 minutes ago</p>
+      {/* Features */}
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <div className="mb-10 text-center">
+          <p className="mtis-eyebrow">Everything you need</p>
+          <h2 className="mt-1 font-display text-3xl font-bold">A complete school management system</h2>
+        </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="mtis-card p-5">
+              <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary-pale text-primary">
+                <f.icon className="size-5" />
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                  <FileText /> Export
-                </Button>
-                <Button size="sm">
-                  <Plus /> Add Student
-                </Button>
-              </div>
+              <h3 className="mt-3 font-display text-base font-semibold">{f.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
             </div>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="bg-background">
-                  <Th>Student</Th>
-                  <Th>Roll #</Th>
-                  <Th>Class</Th>
-                  <Th>Status</Th>
-                  <Th>Fees</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {ROWS.map((r, i) => (
-                  <tr
-                    key={r.roll}
-                    className={`border-t border-border transition-colors hover:bg-primary-pale/60 ${
-                      i === 1 ? "bg-primary-pale/70" : ""
-                    }`}
-                  >
-                    <Td>
-                      <div className="flex items-center gap-3">
-                        <div className="grid h-8 w-8 place-items-center rounded-full bg-primary-pale text-xs font-semibold text-primary">
-                          {r.initials}
-                        </div>
-                        <div>
-                          <div className="font-medium text-foreground">{r.name}</div>
-                          <div className="text-xs text-muted-foreground">{r.guardian}</div>
-                        </div>
-                      </div>
-                    </Td>
-                    <Td className="font-mono text-xs text-muted-foreground">{r.roll}</Td>
-                    <Td>{r.cls}</Td>
-                    <Td>
-                      <Badge variant={r.statusVariant}>{r.status}</Badge>
-                    </Td>
-                    <Td>
-                      <Badge variant={r.feeVariant}>{r.fee}</Badge>
-                    </Td>
-                  </tr>
+          ))}
+        </div>
+      </section>
+
+      {/* Plans */}
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <div className="mb-10 text-center">
+          <p className="mtis-eyebrow">Pricing</p>
+          <h2 className="mt-1 font-display text-3xl font-bold">Simple, transparent pricing</h2>
+        </div>
+        <div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
+          {PLANS.map((plan) => (
+            <div
+              key={plan.name}
+              className={`mtis-card p-6 ${plan.highlight ? "ring-2 ring-primary" : ""}`}
+            >
+              <h3 className="font-display text-lg font-bold">{plan.name}</h3>
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className="font-display text-3xl font-bold">{plan.price}</span>
+                <span className="text-sm text-muted-foreground">{plan.period}</span>
+              </div>
+              <ul className="mt-4 space-y-2">
+                {plan.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm">
+                    <Check className="size-4 text-success" /> {f}
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        {/* Empty state */}
-        <Section title="Empty state" eyebrow="08 · Patterns">
-          <div className="mtis-card grid place-items-center px-6 py-16 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-full bg-primary-pale text-primary">
-              <BookOpen className="size-6" />
+              </ul>
+              <Link to="/register" className="mt-5 block">
+                <Button className="w-full" variant={plan.highlight ? "default" : "outline"}>
+                  {plan.cta}
+                </Button>
+              </Link>
             </div>
-            <h3 className="mt-4 font-display text-lg font-semibold">No study materials yet</h3>
-            <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              Upload your first lesson plan, worksheet, or reading material for this class.
-            </p>
-            <Button className="mt-5">
-              <Plus /> Upload material
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-5xl px-6 py-16">
+        <div className="mtis-card bg-primary p-10 text-center text-primary-foreground">
+          <h2 className="font-display text-3xl font-bold">Ready to get started?</h2>
+          <p className="mt-2 text-primary-foreground/80">
+            Set up your school's portal in under 5 minutes.
+          </p>
+          <Link to="/register" className="mt-6 inline-block">
+            <Button size="lg" variant="secondary">
+              Register your school <ArrowRight className="size-4" />
             </Button>
-          </div>
-        </Section>
+          </Link>
+        </div>
+      </section>
 
-        <footer className="mt-12 border-t border-border pt-6 text-xs text-muted-foreground">
-          {schoolName} · Design system preview
-        </footer>
-      </main>
+      {/* Footer */}
+      <footer className="border-t border-border py-8 text-center text-sm text-muted-foreground">
+        QS LMS · School Management, Simplified
+      </footer>
     </div>
   );
 }
-
-/* ---------- helpers ---------- */
-
-function Section({
-  title,
-  eyebrow,
-  children,
-}: {
-  title: string;
-  eyebrow: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mb-12">
-      <p className="mtis-eyebrow">{eyebrow}</p>
-      <h2 className="mb-5 mt-1 font-display text-xl font-semibold">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function Swatch({ name, hex, className }: { name: string; hex: string; className: string }) {
-  return (
-    <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-card">
-      <div className={`flex h-20 items-end justify-between p-3 ${className}`}>
-        <span className="font-display text-sm font-semibold">{name}</span>
-      </div>
-      <div className="flex items-center justify-between px-3 py-2 text-xs">
-        <span className="font-medium text-foreground">{name}</span>
-        <span className="font-mono text-muted-foreground">{hex}</span>
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </span>
-      {children}
-      {hint ? <span className="mt-1.5 block text-xs text-muted-foreground">{hint}</span> : null}
-    </label>
-  );
-}
-
-function StatTile({
-  icon: Icon,
-  label,
-  value,
-  delta,
-  tone,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  delta: string;
-  tone: "primary" | "success" | "danger" | "info";
-}) {
-  const toneMap: Record<string, string> = {
-    primary: "bg-primary-pale text-primary",
-    success: "bg-success-soft text-success",
-    danger: "bg-danger-soft text-danger",
-    info: "bg-info-soft text-info",
-  };
-  return (
-    <div className="mtis-card p-5">
-      <div className="flex items-center justify-between">
-        <span className="mtis-eyebrow">{label}</span>
-        <span className={`grid h-9 w-9 place-items-center rounded-md ${toneMap[tone]}`}>
-          <Icon className="size-4" />
-        </span>
-      </div>
-      <div className="mt-3 font-display text-2xl font-bold text-foreground">{value}</div>
-      <div className="mt-1 text-xs text-muted-foreground">{delta}</div>
-    </div>
-  );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th className="px-6 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-      {children}
-    </th>
-  );
-}
-
-function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <td className={`px-6 py-3.5 align-middle text-foreground ${className}`}>{children}</td>;
-}
-
-const ROWS: Array<{
-  name: string;
-  initials: string;
-  guardian: string;
-  roll: string;
-  cls: string;
-  status: string;
-  statusVariant: "success" | "warning" | "danger";
-  fee: string;
-  feeVariant: "success" | "warning" | "danger";
-}> = [
-  {
-    name: "Ayesha Khan",
-    initials: "AK",
-    guardian: "Guardian · Imran Khan",
-    roll: "MTIS-2025-0142",
-    cls: "Grade 8 — A",
-    status: "Active",
-    statusVariant: "success",
-    fee: "Paid",
-    feeVariant: "success",
-  },
-  {
-    name: "Hassan Raza",
-    initials: "HR",
-    guardian: "Guardian · Faiza Raza",
-    roll: "MTIS-2025-0143",
-    cls: "Grade 6 — B",
-    status: "Active",
-    statusVariant: "success",
-    fee: "Pending",
-    feeVariant: "warning",
-  },
-  {
-    name: "Maryam Tariq",
-    initials: "MT",
-    guardian: "Guardian · Tariq Mehmood",
-    roll: "MTIS-2025-0144",
-    cls: "Grade 10 — A",
-    status: "Probation",
-    statusVariant: "warning",
-    fee: "Overdue",
-    feeVariant: "danger",
-  },
-  {
-    name: "Bilal Ahmed",
-    initials: "BA",
-    guardian: "Guardian · Saima Ahmed",
-    roll: "MTIS-2025-0145",
-    cls: "Grade 4 — C",
-    status: "Suspended",
-    statusVariant: "danger",
-    fee: "Paid",
-    feeVariant: "success",
-  },
-];

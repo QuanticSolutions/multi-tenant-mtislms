@@ -28,6 +28,9 @@ import { AppShell, useSessionUser } from "@/components/admin/app-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClass, formatStatus, formatDate } from "@/lib/format";
 import { useBranding } from "@/hooks/use-branding";
+import { useMyTenant, useUpdateOnboarding } from "@/hooks/use-tenant";
+import { Link } from "@tanstack/react-router";
+import { CheckCircle2, Circle, X } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
@@ -53,6 +56,8 @@ function AdminDashboard() {
   const user = useSessionUser();
   const { branding } = useBranding();
   const currency = branding?.currency ?? "PKR";
+  const { data: myTenant } = useMyTenant();
+  const updateOnboarding = useUpdateOnboarding();
 
   const { data: stats } = useQuery({
     queryKey: ["admin-stats", monthStart()],
@@ -223,6 +228,13 @@ function AdminDashboard() {
           tone={stats && stats.pendingAdmissions > 0 ? "danger" : "primary"}
         />
       </div>
+
+      <SetupChecklist
+        steps={myTenant?.onboarding_completed_steps ?? []}
+        dismissed={myTenant?.onboarding_dismissed ?? false}
+        onDismiss={() => updateOnboarding(null, true)}
+        onComplete={(step) => updateOnboarding(step, false)}
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="mtis-card p-5 lg:col-span-2">
@@ -487,4 +499,78 @@ function statusVariant(s: string): "success" | "warning" | "danger" | "default" 
   if (s === "probation") return "warning";
   if (s === "inactive" || s === "transferred") return "danger";
   return "default";
+}
+
+const SETUP_STEPS = [
+  { key: "branding", label: "Add school profile & logo", link: "/admin/settings" },
+  { key: "classes", label: "Create classes", link: "/admin/classes" },
+  { key: "students", label: "Add students", link: "/admin/students" },
+  { key: "fees", label: "Set up fee structures", link: "/admin/setup/fees" },
+  { key: "team", label: "Invite your team", link: "/admin/users" },
+  { key: "done", label: "Review dashboard", link: "/admin" },
+] as const;
+
+function SetupChecklist({
+  steps,
+  dismissed,
+  onDismiss,
+  onComplete,
+}: {
+  steps: string[];
+  dismissed: boolean;
+  onDismiss: () => void;
+  onComplete: (step: string) => void;
+}) {
+  if (dismissed) return null;
+  const completedCount = SETUP_STEPS.filter((s) => steps.includes(s.key)).length;
+  const allDone = completedCount === SETUP_STEPS.length;
+  if (allDone) return null;
+
+  return (
+    <div className="mtis-card p-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="mtis-section-title">Setup checklist</h3>
+          <p className="text-xs text-muted-foreground">
+            {completedCount} of {SETUP_STEPS.length} completed
+          </p>
+        </div>
+        <button
+          onClick={onDismiss}
+          className="rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label="Dismiss checklist"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${(completedCount / SETUP_STEPS.length) * 100}%` }}
+        />
+      </div>
+      <ul className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {SETUP_STEPS.map((step) => {
+          const done = steps.includes(step.key);
+          return (
+            <li key={step.key}>
+              <Link
+                to={step.link as never}
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-primary-pale/60"
+              >
+                {done ? (
+                  <CheckCircle2 className="size-4 shrink-0 text-success" />
+                ) : (
+                  <Circle className="size-4 shrink-0 text-muted-foreground" />
+                )}
+                <span className={done ? "text-muted-foreground line-through" : "text-foreground"}>
+                  {step.label}
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }
