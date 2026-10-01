@@ -51,6 +51,7 @@ type Settings = {
   session_end_date: string | null;
   timezone: string;
   currency: string;
+  attendance_mode: 'per_day' | 'per_course';
 };
 
 type Band = { grade: string; min: number; max: number };
@@ -808,6 +809,7 @@ function SessionTab() {
       const { error } = await supabase.from("school_settings").update({
         current_session: form.current_session, session_start_date: form.session_start_date || null,
         session_end_date: form.session_end_date || null, timezone: form.timezone, currency: form.currency,
+        attendance_mode: form.attendance_mode ?? 'per_day',
       }).eq("id", data.id);
       if (error) throw error;
     },
@@ -822,6 +824,35 @@ function SessionTab() {
       <Field label="Session start"><Input type="date" value={form.session_start_date ?? ""} onChange={(e) => setForm({ ...form, session_start_date: e.target.value })} /></Field>
       <Field label="Session end"><Input type="date" value={form.session_end_date ?? ""} onChange={(e) => setForm({ ...form, session_end_date: e.target.value })} /></Field>
       <Field label="Currency"><Input value={form.currency ?? ""} onChange={(e) => setForm({ ...form, currency: e.target.value })} placeholder="PKR" /></Field>
+      <div className="md:col-span-2">
+        <p className="mb-2 text-xs font-medium text-muted-foreground">Attendance mode</p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, attendance_mode: 'per_day' })}
+            className={`flex-1 rounded-md border p-3 text-left transition-colors ${
+              (form.attendance_mode ?? 'per_day') === 'per_day'
+                ? "border-primary bg-primary-pale text-primary"
+                : "border-border bg-background text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            <p className="text-sm font-semibold">Per day</p>
+            <p className="mt-0.5 text-xs">One class teacher marks the whole class once a day</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, attendance_mode: 'per_course' })}
+            className={`flex-1 rounded-md border p-3 text-left transition-colors ${
+              form.attendance_mode === 'per_course'
+                ? "border-primary bg-primary-pale text-primary"
+                : "border-border bg-background text-muted-foreground hover:bg-muted"
+            }`}
+          >
+            <p className="text-sm font-semibold">Per course</p>
+            <p className="mt-0.5 text-xs">Each subject teacher marks their own period</p>
+          </button>
+        </div>
+      </div>
       <div className="md:col-span-2 flex justify-end">
         <Button onClick={() => save.mutate()} disabled={save.isPending}><Save className="mr-2 size-4" /> Save session</Button>
       </div>

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Save, Users } from "lucide-react";
+import { Save, Users, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/admin/app-shell";
@@ -41,11 +41,30 @@ const STATUS_OPTIONS: { value: AttStatus; label: string }[] = [
   { value: "excused", label: "Excused" },
 ];
 
+function useAttendanceMode() {
+  return useQuery({
+    queryKey: ["attendance_mode"],
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("school_settings")
+        .select("attendance_mode")
+        .maybeSingle();
+      if (error) return "per_day" as const;
+      return (data?.attendance_mode as "per_day" | "per_course") ?? "per_day";
+    },
+  });
+}
+
 function StudentAttendancePanel() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
+  const { data: mode } = useAttendanceMode();
+  const isPerCourse = mode === "per_course";
+
   const [classId, setClassId] = useState<string>("");
   const [date, setDate] = useState<string>(today);
+  const [slotId, setSlotId] = useState<string>("");
   const [rows, setRows] = useState<Record<string, Row>>({});
 
   const { data: classes } = useQuery({
@@ -60,18 +79,48 @@ function StudentAttendancePanel() {
     },
   });
 
+  // For per_course mode: fetch the teacher's timetable slots for the selected day
+  const dayOfWeek = new Date(date + "T00:00:00").getDay();
+
+  const { data: mySlots } = useQuery({
+    queryKey: ["my-timetable-slots", date, dayOfWeek],
+    enabled: isPerCourse,
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) return [];
+      const { data, error } = await supabase
+        .from("timetable_slots")
+        .select("id, class_id, subject, period_no, start_time, end_time, room, classes(id, name, section)")
+        .eq("teacher_id", uid)
+        .eq("day_of_week", dayOfWeek)
+        .order("period_no", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   useEffect(() => {
-    if (!classId && classes?.length) setClassId(classes[0].id);
-  }, [classes, classId]);
+    if (!isPerCourse && !classId && classes?.length) setClassId(classes[0].id);
+  }, [classes, classId, isPerCourse]);
+
+  useEffect(() => {
+    if (isPerCourse && mySlots?.length && !slotId) setSlotId(mySlots[0].id);
+  }, [mySlots, slotId, isPerCourse]);
+
+  // Derive classId from selected slot in per_course mode
+  const effectiveClassId = isPerCourse
+    ? (mySlots?.find((s: any) => s.id === slotId)?.class_id ?? "")
+    : classId;
 
   const { data: students, isLoading: loadingStudents } = useQuery({
-    queryKey: ["roster", classId],
-    enabled: !!classId,
+    queryKey: ["roster", effectiveClassId],
+    enabled: !!effectiveClassId,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
         .select("id, admission_no, full_name")
-        .eq("class_id", classId)
+        .eq("class_id", effectiveClassId)
         .eq("status", "active")
         .order("full_name", { ascending: true });
       if (error) throw error;
@@ -80,20 +129,25 @@ function StudentAttendancePanel() {
   });
 
   const { data: existing, isLoading: loadingExisting } = useQuery({
-    queryKey: ["attendance", classId, date],
-    enabled: !!classId && !!date,
+    queryKey: ["attendance", effectiveClassId, date, slotId],
+    enabled: !!effectiveClassId && !!date,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from("attendance")
-        .select("student_id, status, notes")
-        .eq("class_id", classId)
+        .select("student_id, status, notes, timetable_slot_id")
+        .eq("class_id", effectiveClassId)
         .eq("date", date);
+      if (isPerCourse && slotId) {
+        q = q.eq("timetable_slot_id", slotId);
+      } else {
+        q = q.is("timetable_slot_id", null);
+      }
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
   });
 
-  // Initialize rows whenever roster/existing changes
   useEffect(() => {
     if (!students) return;
     const map: Record<string, Row> = {};
@@ -134,32 +188,49 @@ function StudentAttendancePanel() {
 
   const saveMut = useMutation({
     mutationFn: async () => {
-      if (!classId || !date) throw new Error("Pick a class and date");
+      if (!effectiveClassId || !date) throw new Error("Pick a class and date");
       const userRes = await supabase.auth.getUser();
       const uid = userRes.data.user?.id ?? null;
       const payload = Object.values(rows).map((r) => ({
-        class_id: classId,
+        class_id: effectiveClassId,
         student_id: r.student_id,
         date,
         status: r.status,
         notes: r.notes.trim() ? r.notes.trim() : null,
         recorded_by: uid,
+        timetable_slot_id: isPerCourse && slotId ? slotId : null,
       }));
       if (payload.length === 0) return;
-      const { error } = await supabase
+
+      // Delete existing rows for this class/date/slot, then insert fresh.
+      // This handles both modes cleanly without relying on raw SQL in onConflict.
+      let delQ = supabase
         .from("attendance")
-        .upsert(payload, { onConflict: "class_id,student_id,date" });
+        .delete()
+        .eq("class_id", effectiveClassId)
+        .eq("date", date);
+      if (isPerCourse && slotId) {
+        delQ = delQ.eq("timetable_slot_id", slotId);
+      } else {
+        delQ = delQ.is("timetable_slot_id", null);
+      }
+      const { error: delErr } = await delQ;
+      if (delErr) throw delErr;
+
+      const { error } = await supabase.from("attendance").insert(payload);
       if (error) throw error;
     },
     onSuccess: () => {
       toast.success("Attendance saved");
-      qc.invalidateQueries({ queryKey: ["attendance", classId, date] });
+      qc.invalidateQueries({ queryKey: ["attendance", effectiveClassId, date, slotId] });
     },
     onError: (e: any) => toast.error(e.message ?? "Failed to save attendance"),
   });
 
   const isLoading = loadingStudents || loadingExisting;
   const studentCount = students?.length ?? 0;
+
+  const selectedSlot = mySlots?.find((s: any) => s.id === slotId) as any;
 
   return (
     <>
@@ -170,35 +241,76 @@ function StudentAttendancePanel() {
       </div>
 
       <div className="mtis-card p-4">
-        <div className="grid gap-3 sm:grid-cols-[1fr_220px_auto]">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold text-foreground">Class</label>
-            <Select value={classId} onValueChange={setClassId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select class" />
-              </SelectTrigger>
-              <SelectContent>
-                {(classes ?? []).map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {formatClass(c.name, c.section)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        {isPerCourse ? (
+          <div className="grid gap-3 sm:grid-cols-[1fr_180px_auto]">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-foreground">Period</label>
+              <Select value={slotId} onValueChange={setSlotId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(mySlots ?? []).map((s: any) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      P{s.period_no} · {s.subject}
+                      {s.classes ? ` — ${formatClass(s.classes.name, s.classes.section)}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-foreground">Date</label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={today} />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => markAll("present")}>
+                All present
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => markAll("absent")}>
+                All absent
+              </Button>
+            </div>
           </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold text-foreground">Date</label>
-            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={today} />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-[1fr_220px_auto]">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-foreground">Class</label>
+              <Select value={classId} onValueChange={setClassId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select class" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(classes ?? []).map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {formatClass(c.name, c.section)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold text-foreground">Date</label>
+              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} max={today} />
+            </div>
+            <div className="flex items-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => markAll("present")}>
+                All present
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => markAll("absent")}>
+                All absent
+              </Button>
+            </div>
           </div>
-          <div className="flex items-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => markAll("present")}>
-              All present
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => markAll("absent")}>
-              All absent
-            </Button>
+        )}
+
+        {isPerCourse && selectedSlot && (
+          <div className="mt-3 flex items-center gap-2 rounded-md bg-primary-pale/40 px-3 py-2 text-xs text-muted-foreground">
+            <Clock className="size-3.5" />
+            {selectedSlot.start_time}–{selectedSlot.end_time}
+            {selectedSlot.room ? ` · Room ${selectedSlot.room}` : ""}
           </div>
-        </div>
+        )}
 
         <div className="mt-4 flex flex-wrap gap-2 text-xs">
           <Stat label="Present" value={counts.present} tone="success" />
@@ -212,8 +324,8 @@ function StudentAttendancePanel() {
       </div>
 
       <div className="mtis-card overflow-hidden">
-        {!classId ? (
-          <EmptyState text="Select a class to begin roll call." />
+        {!effectiveClassId ? (
+          <EmptyState text={isPerCourse ? "No timetable slots found for this day. Set up your timetable first." : "Select a class to begin roll call."} />
         ) : isLoading ? (
           <div className="p-10 text-center text-sm text-muted-foreground">Loading roster…</div>
         ) : studentCount === 0 ? (
@@ -374,4 +486,3 @@ function toneClasses(s: AttStatus) {
       return "border-primary-light/40 bg-primary-pale text-primary";
   }
 }
-

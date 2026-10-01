@@ -162,6 +162,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Communication",
     items: [
       { icon: MessageSquare, label: "Announcements", to: "/admin/messaging", teacher: true , module: "messaging" },
+      { icon: MessageSquare, label: "Faculty Chat", to: "/admin/faculty-chat", teacher: true , module: "messaging" },
       { icon: Bell, label: "Notifications", to: "/admin/notifications" , module: "notifications" },
       { icon: CalendarRange, label: "Events", to: "/admin/events", teacher: true , module: "events" },
     ],

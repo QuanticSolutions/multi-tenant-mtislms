@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminImportRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminHomeworkRouteImport } from './routes/_authenticated/admin.homework'
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin.finance'
 import { Route as AuthenticatedAdminFeesRouteImport } from './routes/_authenticated/admin.fees'
+import { Route as AuthenticatedAdminFacultyChatRouteImport } from './routes/_authenticated/admin.faculty-chat'
 import { Route as AuthenticatedAdminExamsRouteImport } from './routes/_authenticated/admin.exams'
 import { Route as AuthenticatedAdminEventsRouteImport } from './routes/_authenticated/admin.events'
 import { Route as AuthenticatedAdminEmployeesRouteImport } from './routes/_authenticated/admin.employees'
@@ -224,6 +225,12 @@ const AuthenticatedAdminFeesRoute = AuthenticatedAdminFeesRouteImport.update({
   path: '/fees',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedAdminFacultyChatRoute =
+  AuthenticatedAdminFacultyChatRouteImport.update({
+    id: '/faculty-chat',
+    path: '/faculty-chat',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminExamsRoute = AuthenticatedAdminExamsRouteImport.update({
   id: '/exams',
   path: '/exams',
@@ -321,6 +328,7 @@ export interface FileRoutesByFullPath {
   '/admin/employees': typeof AuthenticatedAdminEmployeesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
+  '/admin/faculty-chat': typeof AuthenticatedAdminFacultyChatRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
@@ -365,6 +373,7 @@ export interface FileRoutesByTo {
   '/admin/employees': typeof AuthenticatedAdminEmployeesRoute
   '/admin/events': typeof AuthenticatedAdminEventsRoute
   '/admin/exams': typeof AuthenticatedAdminExamsRoute
+  '/admin/faculty-chat': typeof AuthenticatedAdminFacultyChatRoute
   '/admin/fees': typeof AuthenticatedAdminFeesRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/homework': typeof AuthenticatedAdminHomeworkRoute
@@ -412,6 +421,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/employees': typeof AuthenticatedAdminEmployeesRoute
   '/_authenticated/admin/events': typeof AuthenticatedAdminEventsRoute
   '/_authenticated/admin/exams': typeof AuthenticatedAdminExamsRoute
+  '/_authenticated/admin/faculty-chat': typeof AuthenticatedAdminFacultyChatRoute
   '/_authenticated/admin/fees': typeof AuthenticatedAdminFeesRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/homework': typeof AuthenticatedAdminHomeworkRoute
@@ -459,6 +469,7 @@ export interface FileRouteTypes {
     | '/admin/employees'
     | '/admin/events'
     | '/admin/exams'
+    | '/admin/faculty-chat'
     | '/admin/fees'
     | '/admin/finance'
     | '/admin/homework'
@@ -503,6 +514,7 @@ export interface FileRouteTypes {
     | '/admin/employees'
     | '/admin/events'
     | '/admin/exams'
+    | '/admin/faculty-chat'
     | '/admin/fees'
     | '/admin/finance'
     | '/admin/homework'
@@ -549,6 +561,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/employees'
     | '/_authenticated/admin/events'
     | '/_authenticated/admin/exams'
+    | '/_authenticated/admin/faculty-chat'
     | '/_authenticated/admin/fees'
     | '/_authenticated/admin/finance'
     | '/_authenticated/admin/homework'
@@ -805,6 +818,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFeesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/faculty-chat': {
+      id: '/_authenticated/admin/faculty-chat'
+      path: '/faculty-chat'
+      fullPath: '/admin/faculty-chat'
+      preLoaderRoute: typeof AuthenticatedAdminFacultyChatRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/exams': {
       id: '/_authenticated/admin/exams'
       path: '/exams'
@@ -909,6 +929,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminEmployeesRoute: typeof AuthenticatedAdminEmployeesRoute
   AuthenticatedAdminEventsRoute: typeof AuthenticatedAdminEventsRoute
   AuthenticatedAdminExamsRoute: typeof AuthenticatedAdminExamsRoute
+  AuthenticatedAdminFacultyChatRoute: typeof AuthenticatedAdminFacultyChatRoute
   AuthenticatedAdminFeesRoute: typeof AuthenticatedAdminFeesRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminHomeworkRoute: typeof AuthenticatedAdminHomeworkRoute
@@ -945,6 +966,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminEmployeesRoute: AuthenticatedAdminEmployeesRoute,
   AuthenticatedAdminEventsRoute: AuthenticatedAdminEventsRoute,
   AuthenticatedAdminExamsRoute: AuthenticatedAdminExamsRoute,
+  AuthenticatedAdminFacultyChatRoute: AuthenticatedAdminFacultyChatRoute,
   AuthenticatedAdminFeesRoute: AuthenticatedAdminFeesRoute,
   AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
   AuthenticatedAdminHomeworkRoute: AuthenticatedAdminHomeworkRoute,
