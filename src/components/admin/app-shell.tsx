@@ -64,6 +64,7 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Overview",
     items: [
       { icon: TrendingUp, label: "Dashboard", to: "/admin", teacher: true },
+      { icon: BookOpen, label: "My Courses", to: "/admin/teacher", teacher: true },
       { icon: BarChart3, label: "Reports", to: "/admin/reports" , module: "reports" },
     ],
   },
