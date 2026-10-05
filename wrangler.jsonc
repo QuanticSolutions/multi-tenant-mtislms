@@ -3,12 +3,16 @@
   "name": "qslms",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "dist/server/server.js", 
+  "main": "dist/server/server.js",
   "assets": {
-    "directory": "dist/client", 
+    "directory": "dist/client",
     "binding": "ASSETS"
   },
   "build": {
     "command": "bun run build"
   },
+  "vars": {
+    "SUPABASE_URL": "https://qtelxafaufvxtylozlmd.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_UPWXJ-fY7FAEf2YG8z74Sg_lO-5C2q4"
+  }
 }
