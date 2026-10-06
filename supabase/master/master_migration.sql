@@ -1,558 +1,48 @@
 -- =====================================================================
--- MADINA TUL ILM — MASTER MIGRATION
--- Run this once against a fresh Supabase project (SQL Editor).
--- Contains: enums, tables, functions, triggers, grants, RLS policies,
--- storage bucket + policies, and the admin bootstrap.
+-- QSLMS — MASTER DATABASE MIGRATION
+-- Run this against a fresh Supabase project using the SQL Editor.
+-- This combines all migration files into a single script that creates
+-- the complete database schema: enums, tables, constraints, indexes,
+-- functions, triggers, foreign keys, RLS policies, grants, and storage.
 -- =====================================================================
 
-BEGIN;
-
--- Functions are declared before their tables in this dump, so skip body
--- validation while the script runs (bodies are re-checked at execution time).
-SET LOCAL check_function_bodies = false;
-
---
--- PostgreSQL database dump
---
-
-
--- Dumped from database version 17.6
--- Dumped by pg_dump version 17.9
-
-
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
-
-
---
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
---
-
-
-
---
--- Name: admission_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.admission_status AS ENUM (
-    'new',
-    'screening',
-    'interview',
-    'offered',
-    'accepted',
-    'rejected',
-    'withdrawn'
-);
-
-
---
--- Name: announcement_audience; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.announcement_audience AS ENUM (
-    'all',
-    'teachers',
-    'parents',
-    'class'
-);
-
-
---
--- Name: app_role; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.app_role AS ENUM (
-    'admin',
-    'teacher',
-    'student',
-    'parent',
-    'librarian',
-    'accountant'
-);
-
-
---
--- Name: attendance_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.attendance_status AS ENUM (
-    'present',
-    'absent',
-    'late',
-    'excused'
-);
-
-
---
--- Name: book_issue_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.book_issue_status AS ENUM (
-    'issued',
-    'returned',
-    'overdue',
-    'lost'
-);
-
-
---
--- Name: calc_type; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.calc_type AS ENUM (
-    'flat',
-    'percent'
-);
-
-
---
--- Name: challan_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.challan_status AS ENUM (
-    'unpaid',
-    'pending_review',
-    'approved',
-    'rejected'
-);
-
-
---
--- Name: discount_type; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.discount_type AS ENUM (
-    'flat',
-    'percent'
-);
-
-
---
--- Name: donation_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.donation_status AS ENUM (
-    'pledged',
-    'received',
-    'cancelled'
-);
-
-
---
--- Name: employment_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.employment_status AS ENUM (
-    'new',
-    'screening',
-    'interview',
-    'offered',
-    'hired',
-    'rejected'
-);
-
-
---
--- Name: event_audience; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.event_audience AS ENUM (
-    'all',
-    'students',
-    'teachers',
-    'parents',
-    'staff'
-);
-
-
---
--- Name: event_type; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.event_type AS ENUM (
-    'holiday',
-    'exam',
-    'ptm',
-    'activity',
-    'announcement',
-    'other'
-);
-
-
---
--- Name: exam_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.exam_status AS ENUM (
-    'scheduled',
-    'ongoing',
-    'completed',
-    'cancelled'
-);
-
-
---
--- Name: fee_frequency; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.fee_frequency AS ENUM (
-    'one_time',
-    'monthly',
-    'quarterly',
-    'annual'
-);
-
-
---
--- Name: homework_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.homework_status AS ENUM (
-    'draft',
-    'assigned',
-    'closed'
-);
-
-
---
--- Name: interview_mode; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.interview_mode AS ENUM (
-    'in_person',
-    'online',
-    'phone'
-);
-
-
---
--- Name: interview_outcome; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.interview_outcome AS ENUM (
-    'pending',
-    'pass',
-    'fail',
-    'hold'
-);
-
-
---
--- Name: invoice_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.invoice_status AS ENUM (
-    'pending',
-    'paid',
-    'partial',
-    'overdue',
-    'cancelled'
-);
-
-
---
--- Name: message_channel; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.message_channel AS ENUM (
-    'email',
-    'sms',
-    'whatsapp',
-    'in_app'
-);
-
-
---
--- Name: message_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.message_status AS ENUM (
-    'draft',
-    'queued',
-    'sent',
-    'failed'
-);
-
-
---
--- Name: notification_channel; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.notification_channel AS ENUM (
-    'email',
-    'sms',
-    'push',
-    'in_app'
-);
-
-
---
--- Name: notification_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.notification_status AS ENUM (
-    'queued',
-    'sent',
-    'failed',
-    'delivered'
-);
-
-
---
--- Name: payment_method; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.payment_method AS ENUM (
-    'cash',
-    'bank_transfer',
-    'card',
-    'cheque',
-    'online',
-    'other'
-);
-
-
---
--- Name: payroll_line_type; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.payroll_line_type AS ENUM (
-    'earning',
-    'deduction',
-    'bonus'
-);
-
-
---
--- Name: payroll_run_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.payroll_run_status AS ENUM (
-    'draft',
-    'finalized',
-    'paid'
-);
-
-
---
--- Name: staff_attendance_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.staff_attendance_status AS ENUM (
-    'present',
-    'absent',
-    'late',
-    'half_day',
-    'leave'
-);
-
-
---
--- Name: student_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.student_status AS ENUM (
-    'active',
-    'inactive',
-    'graduated',
-    'transferred',
-    'terminated'
-);
-
-
---
--- Name: submission_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.submission_status AS ENUM (
-    'pending',
-    'submitted',
-    'late',
-    'graded'
-);
-
-
---
--- Name: teacher_status; Type: TYPE; Schema: public; Owner: -
---
-
-CREATE TYPE public.teacher_status AS ENUM (
-    'active',
-    'on_leave',
-    'inactive',
-    'resigned',
-    'probation'
-);
-
-
---
--- Name: apply_inventory_transaction(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.apply_inventory_transaction() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO 'public'
-    AS $$
-DECLARE delta numeric;
-BEGIN
-  IF NEW.txn_type = 'in' THEN delta := NEW.quantity;
-  ELSIF NEW.txn_type = 'out' THEN delta := -NEW.quantity;
-  ELSE delta := NEW.quantity; END IF;
-  UPDATE public.inventory_items SET quantity = quantity + delta WHERE id = NEW.item_id;
-  RETURN NEW;
-END; $$;
-
-
---
--- Name: handle_book_issue_change(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.handle_book_issue_change() RETURNS trigger
-    LANGUAGE plpgsql
-    SET search_path TO 'public'
-    AS $$
-DECLARE
-  v_avail INT;
-BEGIN
-  IF TG_OP = 'INSERT' THEN
-    SELECT available_copies INTO v_avail FROM public.books WHERE id = NEW.book_id FOR UPDATE;
-    IF v_avail IS NULL OR v_avail < 1 THEN
-      RAISE EXCEPTION 'No copies available for this book';
-    END IF;
-    IF NEW.status = 'issued' AND NEW.due_date < CURRENT_DATE THEN
-      NEW.status := 'overdue';
-    END IF;
-    UPDATE public.books SET available_copies = available_copies - 1 WHERE id = NEW.book_id;
-    RETURN NEW;
-  ELSIF TG_OP = 'UPDATE' THEN
-    -- returning a previously open issue
-    IF OLD.status IN ('issued','overdue') AND NEW.status IN ('returned','lost') THEN
-      IF NEW.status = 'returned' THEN
-        UPDATE public.books SET available_copies = available_copies + 1 WHERE id = NEW.book_id;
-        IF NEW.return_date IS NULL THEN NEW.return_date := CURRENT_DATE; END IF;
-      END IF;
-      -- 'lost' keeps available_copies lower; optionally reduce total
-    ELSIF OLD.status IN ('returned','lost') AND NEW.status IN ('issued','overdue') THEN
-      UPDATE public.books SET available_copies = available_copies - 1 WHERE id = NEW.book_id;
-    END IF;
-    IF NEW.status = 'issued' AND NEW.due_date < CURRENT_DATE THEN
-      NEW.status := 'overdue';
-    END IF;
-    RETURN NEW;
-  ELSIF TG_OP = 'DELETE' THEN
-    IF OLD.status IN ('issued','overdue') THEN
-      UPDATE public.books SET available_copies = available_copies + 1 WHERE id = OLD.book_id;
-    END IF;
-    RETURN OLD;
-  END IF;
-  RETURN NULL;
-END;
-$$;
-
-
---
--- Name: handle_new_user(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.handle_new_user() RETURNS trigger
-    LANGUAGE plpgsql SECURITY DEFINER
-    SET search_path TO 'public'
-    AS $$
-DECLARE
-  user_count INTEGER;
-BEGIN
-  INSERT INTO public.profiles (id, full_name, email)
-  VALUES (
-    NEW.id,
-    COALESCE(NEW.raw_user_meta_data ->> 'full_name', split_part(NEW.email, '@', 1)),
-    NEW.email
-  )
-  ON CONFLICT (id) DO NOTHING;
-
-  -- First user in the system becomes admin automatically
-  SELECT COUNT(*) INTO user_count FROM public.user_roles;
-  IF user_count = 0 THEN
-    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin')
-    ON CONFLICT DO NOTHING;
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: has_role(uuid, public.app_role); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean
-    LANGUAGE sql STABLE SECURITY DEFINER
-    SET search_path TO 'public'
-    AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.user_roles
-    WHERE user_id = _user_id AND role = _role
-  );
-$$;
-
-
---
--- Name: recompute_invoice_totals(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.recompute_invoice_totals() RETURNS trigger
-    LANGUAGE plpgsql
-    SET search_path TO 'public'
-    AS $$
-DECLARE
-  v_invoice_id UUID;
-  v_paid NUMERIC(12,2);
-  v_amount NUMERIC(12,2);
-  v_discount NUMERIC(12,2);
-  v_due DATE;
-  v_status public.invoice_status;
-  v_current public.invoice_status;
-BEGIN
-  v_invoice_id := COALESCE(NEW.invoice_id, OLD.invoice_id);
-  SELECT COALESCE(SUM(amount),0) INTO v_paid FROM public.payments WHERE invoice_id = v_invoice_id;
-  SELECT amount, discount, due_date, status INTO v_amount, v_discount, v_due, v_current FROM public.invoices WHERE id = v_invoice_id;
-  IF v_current = 'cancelled' THEN
-    UPDATE public.invoices SET amount_paid = v_paid WHERE id = v_invoice_id;
-    RETURN NEW;
-  END IF;
-  IF v_paid >= (v_amount - v_discount) AND v_paid > 0 THEN
-    v_status := 'paid';
-  ELSIF v_paid > 0 THEN
-    v_status := 'partial';
-  ELSIF v_due < CURRENT_DATE THEN
-    v_status := 'overdue';
-  ELSE
-    v_status := 'pending';
-  END IF;
-  UPDATE public.invoices SET amount_paid = v_paid, status = v_status WHERE id = v_invoice_id;
-  RETURN NEW;
-END;
-$$;
-
-
---
--- Name: set_updated_at(); Type: FUNCTION; Schema: public; Owner: -
---
-
-CREATE FUNCTION public.set_updated_at() RETURNS trigger
-    LANGUAGE plpgsql
-    SET search_path TO 'public'
-    AS $$
-BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
-
-
-
-
---
--- Name: admission_applications; Type: TABLE; Schema: public; Owner: -
---
+-- =====================================================================
+-- Migration: 20260929030104_master_part1_enums.sql
+-- =====================================================================
+
+CREATE TYPE public.admission_status AS ENUM ('new','screening','interview','offered','accepted','rejected','withdrawn');
+CREATE TYPE public.announcement_audience AS ENUM ('all','teachers','parents','class');
+CREATE TYPE public.app_role AS ENUM ('admin','teacher','student','parent','librarian','accountant');
+CREATE TYPE public.attendance_status AS ENUM ('present','absent','late','excused');
+CREATE TYPE public.book_issue_status AS ENUM ('issued','returned','overdue','lost');
+CREATE TYPE public.calc_type AS ENUM ('flat','percent');
+CREATE TYPE public.challan_status AS ENUM ('unpaid','pending_review','approved','rejected');
+CREATE TYPE public.discount_type AS ENUM ('flat','percent');
+CREATE TYPE public.donation_status AS ENUM ('pledged','received','cancelled');
+CREATE TYPE public.employment_status AS ENUM ('new','screening','interview','offered','hired','rejected');
+CREATE TYPE public.event_audience AS ENUM ('all','students','teachers','parents','staff');
+CREATE TYPE public.event_type AS ENUM ('holiday','exam','ptm','activity','announcement','other');
+CREATE TYPE public.exam_status AS ENUM ('scheduled','ongoing','completed','cancelled');
+CREATE TYPE public.fee_frequency AS ENUM ('one_time','monthly','quarterly','annual');
+CREATE TYPE public.homework_status AS ENUM ('draft','assigned','closed');
+CREATE TYPE public.interview_mode AS ENUM ('in_person','online','phone');
+CREATE TYPE public.interview_outcome AS ENUM ('pending','pass','fail','hold');
+CREATE TYPE public.invoice_status AS ENUM ('pending','paid','partial','overdue','cancelled');
+CREATE TYPE public.message_channel AS ENUM ('email','sms','whatsapp','in_app');
+CREATE TYPE public.message_status AS ENUM ('draft','queued','sent','failed');
+CREATE TYPE public.notification_channel AS ENUM ('email','sms','push','in_app');
+CREATE TYPE public.notification_status AS ENUM ('queued','sent','failed','delivered');
+CREATE TYPE public.payment_method AS ENUM ('cash','bank_transfer','card','cheque','online','other');
+CREATE TYPE public.payroll_line_type AS ENUM ('earning','deduction','bonus');
+CREATE TYPE public.payroll_run_status AS ENUM ('draft','finalized','paid');
+CREATE TYPE public.staff_attendance_status AS ENUM ('present','absent','late','half_day','leave');
+CREATE TYPE public.student_status AS ENUM ('active','inactive','graduated','transferred','terminated');
+CREATE TYPE public.submission_status AS ENUM ('pending','submitted','late','graded');
+CREATE TYPE public.teacher_status AS ENUM ('active','on_leave','inactive','resigned','probation');
+
+-- =====================================================================
+-- Migration: 20260929030159_master_part2_tables.sql
+-- =====================================================================
 
 CREATE TABLE public.admission_applications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -579,11 +69,6 @@ CREATE TABLE public.admission_applications (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: admission_interviews; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.admission_interviews (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     application_id uuid NOT NULL,
@@ -598,11 +83,6 @@ CREATE TABLE public.admission_interviews (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: announcements; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.announcements (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     title text NOT NULL,
@@ -616,11 +96,6 @@ CREATE TABLE public.announcements (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: attendance; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.attendance (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     class_id uuid NOT NULL,
@@ -633,11 +108,6 @@ CREATE TABLE public.attendance (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: attendance_deduction_rules; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.attendance_deduction_rules (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text DEFAULT 'Absence deduction'::text NOT NULL,
@@ -648,11 +118,6 @@ CREATE TABLE public.attendance_deduction_rules (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: audit_logs; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.audit_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -665,11 +130,6 @@ CREATE TABLE public.audit_logs (
     ip_address text,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: book_issues; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.book_issues (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -686,11 +146,6 @@ CREATE TABLE public.book_issues (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT book_issues_fine_amount_check CHECK ((fine_amount >= (0)::numeric))
 );
-
-
---
--- Name: books; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.books (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -710,11 +165,6 @@ CREATE TABLE public.books (
     CONSTRAINT books_total_copies_check CHECK ((total_copies >= 0))
 );
 
-
---
--- Name: classes; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.classes (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -727,11 +177,6 @@ CREATE TABLE public.classes (
     class_teacher_id uuid
 );
 
-
---
--- Name: deduction_components; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.deduction_components (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -742,11 +187,6 @@ CREATE TABLE public.deduction_components (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: departments; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.departments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -754,11 +194,6 @@ CREATE TABLE public.departments (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: donations; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.donations (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -777,11 +212,6 @@ CREATE TABLE public.donations (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: drivers; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.drivers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     full_name text NOT NULL,
@@ -795,11 +225,6 @@ CREATE TABLE public.drivers (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: employment_applications; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.employment_applications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -817,11 +242,6 @@ CREATE TABLE public.employment_applications (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: events; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.events (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -843,11 +263,6 @@ CREATE TABLE public.events (
     CONSTRAINT events_date_range CHECK ((end_date >= start_date))
 );
 
-
---
--- Name: exam_results; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.exam_results (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     exam_id uuid NOT NULL,
@@ -859,11 +274,6 @@ CREATE TABLE public.exam_results (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: exams; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.exams (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -881,11 +291,6 @@ CREATE TABLE public.exams (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: fee_challans; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.fee_challans (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -905,11 +310,6 @@ CREATE TABLE public.fee_challans (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: fee_constituents; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.fee_constituents (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -917,11 +317,6 @@ CREATE TABLE public.fee_constituents (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: fee_group_constituents; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.fee_group_constituents (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -932,11 +327,6 @@ CREATE TABLE public.fee_group_constituents (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: fee_groups; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.fee_groups (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -945,11 +335,6 @@ CREATE TABLE public.fee_groups (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: fee_structures; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.fee_structures (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -967,11 +352,6 @@ CREATE TABLE public.fee_structures (
     CONSTRAINT fee_structures_due_day_check CHECK (((due_day >= 1) AND (due_day <= 31)))
 );
 
-
---
--- Name: grading_scales; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.grading_scales (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -981,11 +361,6 @@ CREATE TABLE public.grading_scales (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: homework; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.homework (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1002,11 +377,6 @@ CREATE TABLE public.homework (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: homework_submissions; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.homework_submissions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     homework_id uuid NOT NULL,
@@ -1019,11 +389,6 @@ CREATE TABLE public.homework_submissions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: import_profiles; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.import_profiles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     entity_key text NOT NULL,
@@ -1034,11 +399,6 @@ CREATE TABLE public.import_profiles (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: inventory_categories; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.inventory_categories (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -1046,11 +406,6 @@ CREATE TABLE public.inventory_categories (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: inventory_items; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.inventory_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1069,11 +424,6 @@ CREATE TABLE public.inventory_items (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: inventory_transactions; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.inventory_transactions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     item_id uuid NOT NULL,
@@ -1089,11 +439,6 @@ CREATE TABLE public.inventory_transactions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     CONSTRAINT inventory_transactions_txn_type_check CHECK ((txn_type = ANY (ARRAY['in'::text, 'out'::text, 'adjust'::text])))
 );
-
-
---
--- Name: invoices; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.invoices (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1116,11 +461,6 @@ CREATE TABLE public.invoices (
     CONSTRAINT invoices_discount_check CHECK ((discount >= (0)::numeric))
 );
 
-
---
--- Name: messages; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.messages (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     parent_contact_id uuid,
@@ -1134,11 +474,6 @@ CREATE TABLE public.messages (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: notifications; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.notifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1157,11 +492,6 @@ CREATE TABLE public.notifications (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: parent_contacts; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.parent_contacts (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     student_id uuid NOT NULL,
@@ -1174,11 +504,6 @@ CREATE TABLE public.parent_contacts (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: parents; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.parents (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1195,11 +520,6 @@ CREATE TABLE public.parents (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: payments; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.payments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     invoice_id uuid NOT NULL,
@@ -1214,11 +534,6 @@ CREATE TABLE public.payments (
     CONSTRAINT payments_amount_check CHECK ((amount > (0)::numeric))
 );
 
-
---
--- Name: payroll_item_lines; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.payroll_item_lines (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     payroll_item_id uuid NOT NULL,
@@ -1229,11 +544,6 @@ CREATE TABLE public.payroll_item_lines (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: payroll_items; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.payroll_items (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1251,11 +561,6 @@ CREATE TABLE public.payroll_items (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: payroll_run_bonus_lines; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.payroll_run_bonus_lines (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     payroll_run_id uuid NOT NULL,
@@ -1266,11 +571,6 @@ CREATE TABLE public.payroll_run_bonus_lines (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: payroll_runs; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.payroll_runs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1286,11 +586,6 @@ CREATE TABLE public.payroll_runs (
     CONSTRAINT payroll_runs_period_year_check CHECK (((period_year >= 2000) AND (period_year <= 2100)))
 );
 
-
---
--- Name: profiles; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.profiles (
     id uuid NOT NULL,
     full_name text,
@@ -1300,11 +595,6 @@ CREATE TABLE public.profiles (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     role_id uuid
 );
-
-
---
--- Name: role_permissions; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.role_permissions (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1318,11 +608,6 @@ CREATE TABLE public.role_permissions (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: roles; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.roles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name text NOT NULL,
@@ -1330,11 +615,6 @@ CREATE TABLE public.roles (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: school_settings; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.school_settings (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1357,11 +637,6 @@ CREATE TABLE public.school_settings (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: staff_attendance; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.staff_attendance (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     staff_id uuid NOT NULL,
@@ -1376,11 +651,6 @@ CREATE TABLE public.staff_attendance (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: student_parents; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.student_parents (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     student_id uuid NOT NULL,
@@ -1389,11 +659,6 @@ CREATE TABLE public.student_parents (
     is_primary boolean DEFAULT false NOT NULL,
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: students; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.students (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1419,11 +684,6 @@ CREATE TABLE public.students (
     discount_reason text
 );
 
-
---
--- Name: subjects; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.subjects (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     class_id uuid NOT NULL,
@@ -1435,11 +695,6 @@ CREATE TABLE public.subjects (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: teachers; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.teachers (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1466,11 +721,6 @@ CREATE TABLE public.teachers (
     base_salary numeric(12,2) DEFAULT 0 NOT NULL
 );
 
-
---
--- Name: timetable_slots; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.timetable_slots (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     class_id uuid NOT NULL,
@@ -1489,11 +739,6 @@ CREATE TABLE public.timetable_slots (
     CONSTRAINT timetable_slots_period_no_check CHECK (((period_no >= 1) AND (period_no <= 12)))
 );
 
-
---
--- Name: transport_assignments; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.transport_assignments (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     student_id uuid NOT NULL,
@@ -1507,11 +752,6 @@ CREATE TABLE public.transport_assignments (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
-
-
---
--- Name: transport_routes; Type: TABLE; Schema: public; Owner: -
---
 
 CREATE TABLE public.transport_routes (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1527,11 +767,6 @@ CREATE TABLE public.transport_routes (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: transport_vehicles; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.transport_vehicles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     registration_no text NOT NULL,
@@ -1546,11 +781,6 @@ CREATE TABLE public.transport_vehicles (
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: user_roles; Type: TABLE; Schema: public; Owner: -
---
-
 CREATE TABLE public.user_roles (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
@@ -1558,3615 +788,737 @@ CREATE TABLE public.user_roles (
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
-
---
--- Name: admission_applications admission_applications_application_no_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admission_applications
-    ADD CONSTRAINT admission_applications_application_no_key UNIQUE (application_no);
-
-
---
--- Name: admission_applications admission_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admission_applications
-    ADD CONSTRAINT admission_applications_pkey PRIMARY KEY (id);
-
-
---
--- Name: admission_interviews admission_interviews_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admission_interviews
-    ADD CONSTRAINT admission_interviews_pkey PRIMARY KEY (id);
-
-
---
--- Name: announcements announcements_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.announcements
-    ADD CONSTRAINT announcements_pkey PRIMARY KEY (id);
-
-
---
--- Name: attendance attendance_class_id_student_id_date_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.attendance
-    ADD CONSTRAINT attendance_class_id_student_id_date_key UNIQUE (class_id, student_id, date);
-
-
---
--- Name: attendance_deduction_rules attendance_deduction_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.attendance_deduction_rules
-    ADD CONSTRAINT attendance_deduction_rules_pkey PRIMARY KEY (id);
-
-
---
--- Name: attendance attendance_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.attendance
-    ADD CONSTRAINT attendance_pkey PRIMARY KEY (id);
-
-
---
--- Name: audit_logs audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.audit_logs
-    ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (id);
-
-
---
--- Name: book_issues book_issues_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.book_issues
-    ADD CONSTRAINT book_issues_pkey PRIMARY KEY (id);
-
-
---
--- Name: books books_isbn_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.books
-    ADD CONSTRAINT books_isbn_key UNIQUE (isbn);
-
-
---
--- Name: books books_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.books
-    ADD CONSTRAINT books_pkey PRIMARY KEY (id);
-
-
---
--- Name: classes classes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.classes
-    ADD CONSTRAINT classes_pkey PRIMARY KEY (id);
-
-
---
--- Name: deduction_components deduction_components_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.deduction_components
-    ADD CONSTRAINT deduction_components_pkey PRIMARY KEY (id);
-
-
---
--- Name: departments departments_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.departments
-    ADD CONSTRAINT departments_name_key UNIQUE (name);
-
-
---
--- Name: departments departments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.departments
-    ADD CONSTRAINT departments_pkey PRIMARY KEY (id);
-
-
---
--- Name: donations donations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.donations
-    ADD CONSTRAINT donations_pkey PRIMARY KEY (id);
-
-
---
--- Name: drivers drivers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.drivers
-    ADD CONSTRAINT drivers_pkey PRIMARY KEY (id);
-
-
---
--- Name: employment_applications employment_applications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.employment_applications
-    ADD CONSTRAINT employment_applications_pkey PRIMARY KEY (id);
-
-
---
--- Name: events events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.events
-    ADD CONSTRAINT events_pkey PRIMARY KEY (id);
-
-
---
--- Name: exam_results exam_results_exam_id_student_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exam_results
-    ADD CONSTRAINT exam_results_exam_id_student_id_key UNIQUE (exam_id, student_id);
-
-
---
--- Name: exam_results exam_results_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exam_results
-    ADD CONSTRAINT exam_results_pkey PRIMARY KEY (id);
-
-
---
--- Name: exams exams_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exams
-    ADD CONSTRAINT exams_pkey PRIMARY KEY (id);
-
-
---
--- Name: fee_challans fee_challans_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_challans
-    ADD CONSTRAINT fee_challans_pkey PRIMARY KEY (id);
-
-
---
--- Name: fee_challans fee_challans_student_id_period_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_challans
-    ADD CONSTRAINT fee_challans_student_id_period_key UNIQUE (student_id, period);
-
-
---
--- Name: fee_constituents fee_constituents_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_constituents
-    ADD CONSTRAINT fee_constituents_name_key UNIQUE (name);
-
-
---
--- Name: fee_constituents fee_constituents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_constituents
-    ADD CONSTRAINT fee_constituents_pkey PRIMARY KEY (id);
-
-
---
--- Name: fee_group_constituents fee_group_constituents_group_id_constituent_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_group_constituents
-    ADD CONSTRAINT fee_group_constituents_group_id_constituent_id_key UNIQUE (group_id, constituent_id);
-
-
---
--- Name: fee_group_constituents fee_group_constituents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_group_constituents
-    ADD CONSTRAINT fee_group_constituents_pkey PRIMARY KEY (id);
-
-
---
--- Name: fee_groups fee_groups_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_groups
-    ADD CONSTRAINT fee_groups_name_key UNIQUE (name);
-
-
---
--- Name: fee_groups fee_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_groups
-    ADD CONSTRAINT fee_groups_pkey PRIMARY KEY (id);
-
-
---
--- Name: fee_structures fee_structures_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_structures
-    ADD CONSTRAINT fee_structures_pkey PRIMARY KEY (id);
-
-
---
--- Name: grading_scales grading_scales_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.grading_scales
-    ADD CONSTRAINT grading_scales_pkey PRIMARY KEY (id);
-
-
---
--- Name: homework homework_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework
-    ADD CONSTRAINT homework_pkey PRIMARY KEY (id);
-
-
---
--- Name: homework_submissions homework_submissions_homework_id_student_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework_submissions
-    ADD CONSTRAINT homework_submissions_homework_id_student_id_key UNIQUE (homework_id, student_id);
-
-
---
--- Name: homework_submissions homework_submissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework_submissions
-    ADD CONSTRAINT homework_submissions_pkey PRIMARY KEY (id);
-
-
---
--- Name: import_profiles import_profiles_entity_key_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.import_profiles
-    ADD CONSTRAINT import_profiles_entity_key_name_key UNIQUE (entity_key, name);
-
-
---
--- Name: import_profiles import_profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.import_profiles
-    ADD CONSTRAINT import_profiles_pkey PRIMARY KEY (id);
-
-
---
--- Name: inventory_categories inventory_categories_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_categories
-    ADD CONSTRAINT inventory_categories_name_key UNIQUE (name);
-
-
---
--- Name: inventory_categories inventory_categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_categories
-    ADD CONSTRAINT inventory_categories_pkey PRIMARY KEY (id);
-
-
---
--- Name: inventory_items inventory_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_items
-    ADD CONSTRAINT inventory_items_pkey PRIMARY KEY (id);
-
-
---
--- Name: inventory_items inventory_items_sku_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_items
-    ADD CONSTRAINT inventory_items_sku_key UNIQUE (sku);
-
-
---
--- Name: inventory_transactions inventory_transactions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_transactions
-    ADD CONSTRAINT inventory_transactions_pkey PRIMARY KEY (id);
-
-
---
--- Name: invoices invoices_invoice_no_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.invoices
-    ADD CONSTRAINT invoices_invoice_no_key UNIQUE (invoice_no);
-
-
---
--- Name: invoices invoices_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.invoices
-    ADD CONSTRAINT invoices_pkey PRIMARY KEY (id);
-
-
---
--- Name: messages messages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.messages
-    ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
-
-
---
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
-
-
---
--- Name: parent_contacts parent_contacts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parent_contacts
-    ADD CONSTRAINT parent_contacts_pkey PRIMARY KEY (id);
-
-
---
--- Name: parents parents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parents
-    ADD CONSTRAINT parents_pkey PRIMARY KEY (id);
-
-
---
--- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payments
-    ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
-
-
---
--- Name: payroll_item_lines payroll_item_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_item_lines
-    ADD CONSTRAINT payroll_item_lines_pkey PRIMARY KEY (id);
-
-
---
--- Name: payroll_items payroll_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_items
-    ADD CONSTRAINT payroll_items_pkey PRIMARY KEY (id);
-
-
---
--- Name: payroll_items payroll_items_run_id_staff_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_items
-    ADD CONSTRAINT payroll_items_run_id_staff_id_key UNIQUE (run_id, staff_id);
-
-
---
--- Name: payroll_run_bonus_lines payroll_run_bonus_lines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_run_bonus_lines
-    ADD CONSTRAINT payroll_run_bonus_lines_pkey PRIMARY KEY (id);
-
-
---
--- Name: payroll_runs payroll_runs_period_month_period_year_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_runs
-    ADD CONSTRAINT payroll_runs_period_month_period_year_key UNIQUE (period_month, period_year);
-
-
---
--- Name: payroll_runs payroll_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_runs
-    ADD CONSTRAINT payroll_runs_pkey PRIMARY KEY (id);
-
-
---
--- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.profiles
-    ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
-
-
---
--- Name: role_permissions role_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.role_permissions
-    ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (id);
-
-
---
--- Name: role_permissions role_permissions_role_id_module_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.role_permissions
-    ADD CONSTRAINT role_permissions_role_id_module_key UNIQUE (role_id, module);
-
-
---
--- Name: roles roles_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_name_key UNIQUE (name);
-
-
---
--- Name: roles roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.roles
-    ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
-
-
---
--- Name: school_settings school_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.school_settings
-    ADD CONSTRAINT school_settings_pkey PRIMARY KEY (id);
-
-
---
--- Name: school_settings school_settings_singleton_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.school_settings
-    ADD CONSTRAINT school_settings_singleton_key UNIQUE (singleton);
-
-
---
--- Name: staff_attendance staff_attendance_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_attendance
-    ADD CONSTRAINT staff_attendance_pkey PRIMARY KEY (id);
-
-
---
--- Name: staff_attendance staff_attendance_staff_id_date_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_attendance
-    ADD CONSTRAINT staff_attendance_staff_id_date_key UNIQUE (staff_id, date);
-
-
---
--- Name: student_parents student_parents_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.student_parents
-    ADD CONSTRAINT student_parents_pkey PRIMARY KEY (id);
-
-
---
--- Name: student_parents student_parents_student_id_parent_id_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.student_parents
-    ADD CONSTRAINT student_parents_student_id_parent_id_key UNIQUE (student_id, parent_id);
-
-
---
--- Name: students students_admission_no_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_admission_no_key UNIQUE (admission_no);
-
-
---
--- Name: students students_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_pkey PRIMARY KEY (id);
-
-
---
--- Name: subjects subjects_class_id_name_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.subjects
-    ADD CONSTRAINT subjects_class_id_name_key UNIQUE (class_id, name);
-
-
---
--- Name: subjects subjects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.subjects
-    ADD CONSTRAINT subjects_pkey PRIMARY KEY (id);
-
-
---
--- Name: teachers teachers_employee_no_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_employee_no_key UNIQUE (employee_no);
-
-
---
--- Name: teachers teachers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_pkey PRIMARY KEY (id);
-
-
---
--- Name: timetable_slots timetable_slots_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timetable_slots
-    ADD CONSTRAINT timetable_slots_pkey PRIMARY KEY (id);
-
-
---
--- Name: timetable_slots timetable_unique_class_slot; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timetable_slots
-    ADD CONSTRAINT timetable_unique_class_slot UNIQUE (class_id, day_of_week, period_no);
-
-
---
--- Name: transport_assignments transport_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_assignments
-    ADD CONSTRAINT transport_assignments_pkey PRIMARY KEY (id);
-
-
---
--- Name: transport_routes transport_routes_code_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_routes
-    ADD CONSTRAINT transport_routes_code_key UNIQUE (code);
-
-
---
--- Name: transport_routes transport_routes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_routes
-    ADD CONSTRAINT transport_routes_pkey PRIMARY KEY (id);
-
-
---
--- Name: transport_vehicles transport_vehicles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_vehicles
-    ADD CONSTRAINT transport_vehicles_pkey PRIMARY KEY (id);
-
-
---
--- Name: transport_vehicles transport_vehicles_registration_no_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_vehicles
-    ADD CONSTRAINT transport_vehicles_registration_no_key UNIQUE (registration_no);
-
-
---
--- Name: user_roles user_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id);
-
-
---
--- Name: user_roles user_roles_user_id_role_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_user_id_role_key UNIQUE (user_id, role);
-
-
---
--- Name: attendance_class_date_idx; Type: INDEX; Schema: public; Owner: -
---
+-- =====================================================================
+-- Migration: 20260929030229_master_part3_constraints_indexes.sql
+-- =====================================================================
+
+ALTER TABLE ONLY public.admission_applications ADD CONSTRAINT admission_applications_application_no_key UNIQUE (application_no);
+ALTER TABLE ONLY public.admission_applications ADD CONSTRAINT admission_applications_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.admission_interviews ADD CONSTRAINT admission_interviews_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.announcements ADD CONSTRAINT announcements_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.attendance ADD CONSTRAINT attendance_class_id_student_id_date_key UNIQUE (class_id, student_id, date);
+ALTER TABLE ONLY public.attendance_deduction_rules ADD CONSTRAINT attendance_deduction_rules_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.attendance ADD CONSTRAINT attendance_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.audit_logs ADD CONSTRAINT audit_logs_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.book_issues ADD CONSTRAINT book_issues_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.books ADD CONSTRAINT books_isbn_key UNIQUE (isbn);
+ALTER TABLE ONLY public.books ADD CONSTRAINT books_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.classes ADD CONSTRAINT classes_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.deduction_components ADD CONSTRAINT deduction_components_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.departments ADD CONSTRAINT departments_name_key UNIQUE (name);
+ALTER TABLE ONLY public.departments ADD CONSTRAINT departments_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.donations ADD CONSTRAINT donations_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.drivers ADD CONSTRAINT drivers_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.employment_applications ADD CONSTRAINT employment_applications_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.events ADD CONSTRAINT events_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.exam_results ADD CONSTRAINT exam_results_exam_id_student_id_key UNIQUE (exam_id, student_id);
+ALTER TABLE ONLY public.exam_results ADD CONSTRAINT exam_results_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.exams ADD CONSTRAINT exams_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fee_challans ADD CONSTRAINT fee_challans_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fee_challans ADD CONSTRAINT fee_challans_student_id_period_key UNIQUE (student_id, period);
+ALTER TABLE ONLY public.fee_constituents ADD CONSTRAINT fee_constituents_name_key UNIQUE (name);
+ALTER TABLE ONLY public.fee_constituents ADD CONSTRAINT fee_constituents_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fee_group_constituents ADD CONSTRAINT fee_group_constituents_group_id_constituent_id_key UNIQUE (group_id, constituent_id);
+ALTER TABLE ONLY public.fee_group_constituents ADD CONSTRAINT fee_group_constituents_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fee_groups ADD CONSTRAINT fee_groups_name_key UNIQUE (name);
+ALTER TABLE ONLY public.fee_groups ADD CONSTRAINT fee_groups_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.fee_structures ADD CONSTRAINT fee_structures_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.grading_scales ADD CONSTRAINT grading_scales_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.homework ADD CONSTRAINT homework_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.homework_submissions ADD CONSTRAINT homework_submissions_homework_id_student_id_key UNIQUE (homework_id, student_id);
+ALTER TABLE ONLY public.homework_submissions ADD CONSTRAINT homework_submissions_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.import_profiles ADD CONSTRAINT import_profiles_entity_key_name_key UNIQUE (entity_key, name);
+ALTER TABLE ONLY public.import_profiles ADD CONSTRAINT import_profiles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.inventory_categories ADD CONSTRAINT inventory_categories_name_key UNIQUE (name);
+ALTER TABLE ONLY public.inventory_categories ADD CONSTRAINT inventory_categories_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.inventory_items ADD CONSTRAINT inventory_items_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.inventory_items ADD CONSTRAINT inventory_items_sku_key UNIQUE (sku);
+ALTER TABLE ONLY public.inventory_transactions ADD CONSTRAINT inventory_transactions_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.invoices ADD CONSTRAINT invoices_invoice_no_key UNIQUE (invoice_no);
+ALTER TABLE ONLY public.invoices ADD CONSTRAINT invoices_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.messages ADD CONSTRAINT messages_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.notifications ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.parent_contacts ADD CONSTRAINT parent_contacts_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.parents ADD CONSTRAINT parents_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.payments ADD CONSTRAINT payments_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.payroll_item_lines ADD CONSTRAINT payroll_item_lines_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.payroll_items ADD CONSTRAINT payroll_items_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.payroll_items ADD CONSTRAINT payroll_items_run_id_staff_id_key UNIQUE (run_id, staff_id);
+ALTER TABLE ONLY public.payroll_run_bonus_lines ADD CONSTRAINT payroll_run_bonus_lines_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.payroll_runs ADD CONSTRAINT payroll_runs_period_month_period_year_key UNIQUE (period_month, period_year);
+ALTER TABLE ONLY public.payroll_runs ADD CONSTRAINT payroll_runs_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.profiles ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.role_permissions ADD CONSTRAINT role_permissions_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.role_permissions ADD CONSTRAINT role_permissions_role_id_module_key UNIQUE (role_id, module);
+ALTER TABLE ONLY public.roles ADD CONSTRAINT roles_name_key UNIQUE (name);
+ALTER TABLE ONLY public.roles ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.school_settings ADD CONSTRAINT school_settings_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.school_settings ADD CONSTRAINT school_settings_singleton_key UNIQUE (singleton);
+ALTER TABLE ONLY public.staff_attendance ADD CONSTRAINT staff_attendance_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.staff_attendance ADD CONSTRAINT staff_attendance_staff_id_date_key UNIQUE (staff_id, date);
+ALTER TABLE ONLY public.student_parents ADD CONSTRAINT student_parents_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.student_parents ADD CONSTRAINT student_parents_student_id_parent_id_key UNIQUE (student_id, parent_id);
+ALTER TABLE ONLY public.students ADD CONSTRAINT students_admission_no_key UNIQUE (admission_no);
+ALTER TABLE ONLY public.students ADD CONSTRAINT students_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.subjects ADD CONSTRAINT subjects_class_id_name_key UNIQUE (class_id, name);
+ALTER TABLE ONLY public.subjects ADD CONSTRAINT subjects_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.teachers ADD CONSTRAINT teachers_employee_no_key UNIQUE (employee_no);
+ALTER TABLE ONLY public.teachers ADD CONSTRAINT teachers_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.timetable_slots ADD CONSTRAINT timetable_slots_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.timetable_slots ADD CONSTRAINT timetable_unique_class_slot UNIQUE (class_id, day_of_week, period_no);
+ALTER TABLE ONLY public.transport_assignments ADD CONSTRAINT transport_assignments_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.transport_routes ADD CONSTRAINT transport_routes_code_key UNIQUE (code);
+ALTER TABLE ONLY public.transport_routes ADD CONSTRAINT transport_routes_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.transport_vehicles ADD CONSTRAINT transport_vehicles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.transport_vehicles ADD CONSTRAINT transport_vehicles_registration_no_key UNIQUE (registration_no);
+ALTER TABLE ONLY public.user_roles ADD CONSTRAINT user_roles_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.user_roles ADD CONSTRAINT user_roles_user_id_role_key UNIQUE (user_id, role);
 
 CREATE INDEX attendance_class_date_idx ON public.attendance USING btree (class_id, date);
-
-
---
--- Name: attendance_student_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX attendance_student_idx ON public.attendance USING btree (student_id);
-
-
---
--- Name: events_start_date_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX events_start_date_idx ON public.events USING btree (start_date);
-
-
---
--- Name: events_type_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX events_type_idx ON public.events USING btree (event_type);
-
-
---
--- Name: exams_class_date_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX exams_class_date_idx ON public.exams USING btree (class_id, exam_date DESC);
-
-
---
--- Name: idx_admission_applications_status; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_admission_applications_status ON public.admission_applications USING btree (status);
-
-
---
--- Name: idx_admission_interviews_app; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_admission_interviews_app ON public.admission_interviews USING btree (application_id);
-
-
---
--- Name: idx_audit_logs_created; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_audit_logs_created ON public.audit_logs USING btree (created_at DESC);
-
-
---
--- Name: idx_audit_logs_entity; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_audit_logs_entity ON public.audit_logs USING btree (entity_type, entity_id);
-
-
---
--- Name: idx_book_issues_book; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_book_issues_book ON public.book_issues USING btree (book_id);
-
-
---
--- Name: idx_book_issues_status; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_book_issues_status ON public.book_issues USING btree (status);
-
-
---
--- Name: idx_book_issues_student; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_book_issues_student ON public.book_issues USING btree (student_id);
-
-
---
--- Name: idx_inv_items_category; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_inv_items_category ON public.inventory_items USING btree (category_id);
-
-
---
--- Name: idx_inv_txn_date; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_inv_txn_date ON public.inventory_transactions USING btree (txn_date);
-
-
---
--- Name: idx_inv_txn_item; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_inv_txn_item ON public.inventory_transactions USING btree (item_id);
-
-
---
--- Name: idx_messages_contact; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_messages_contact ON public.messages USING btree (parent_contact_id);
-
-
---
--- Name: idx_notifications_created; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_notifications_created ON public.notifications USING btree (created_at DESC);
-
-
---
--- Name: idx_notifications_status; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_notifications_status ON public.notifications USING btree (status);
-
-
---
--- Name: idx_parent_contacts_student; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_parent_contacts_student ON public.parent_contacts USING btree (student_id);
-
-
---
--- Name: idx_payroll_items_run; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_payroll_items_run ON public.payroll_items USING btree (run_id);
-
-
---
--- Name: idx_payroll_items_staff; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_payroll_items_staff ON public.payroll_items USING btree (staff_id);
-
-
---
--- Name: idx_staff_attendance_date; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_staff_attendance_date ON public.staff_attendance USING btree (date);
-
-
---
--- Name: idx_staff_attendance_staff; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_staff_attendance_staff ON public.staff_attendance USING btree (staff_id);
-
-
---
--- Name: idx_student_parents_parent; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_student_parents_parent ON public.student_parents USING btree (parent_id);
-
-
---
--- Name: idx_student_parents_student; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_student_parents_student ON public.student_parents USING btree (student_id);
-
-
---
--- Name: idx_subjects_class; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX idx_subjects_class ON public.subjects USING btree (class_id);
-
-
---
--- Name: invoices_status_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX invoices_status_idx ON public.invoices USING btree (status);
-
-
---
--- Name: invoices_student_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX invoices_student_idx ON public.invoices USING btree (student_id);
-
-
---
--- Name: payments_invoice_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX payments_invoice_idx ON public.payments USING btree (invoice_id);
-
-
---
--- Name: students_class_id_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX students_class_id_idx ON public.students USING btree (class_id);
-
-
---
--- Name: students_status_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX students_status_idx ON public.students USING btree (status);
-
-
---
--- Name: students_user_id_key; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE UNIQUE INDEX students_user_id_key ON public.students USING btree (user_id) WHERE (user_id IS NOT NULL);
-
-
---
--- Name: teachers_user_id_key; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE UNIQUE INDEX teachers_user_id_key ON public.teachers USING btree (user_id) WHERE (user_id IS NOT NULL);
-
-
---
--- Name: timetable_slots_class_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX timetable_slots_class_idx ON public.timetable_slots USING btree (class_id, day_of_week, period_no);
-
-
---
--- Name: timetable_slots_teacher_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX timetable_slots_teacher_idx ON public.timetable_slots USING btree (teacher_id, day_of_week, period_no);
-
-
---
--- Name: timetable_unique_teacher_slot; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE UNIQUE INDEX timetable_unique_teacher_slot ON public.timetable_slots USING btree (teacher_id, day_of_week, period_no) WHERE (teacher_id IS NOT NULL);
-
-
---
--- Name: transport_assignments_route_idx; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE INDEX transport_assignments_route_idx ON public.transport_assignments USING btree (route_id);
-
-
---
--- Name: transport_assignments_unique_active_student; Type: INDEX; Schema: public; Owner: -
---
-
 CREATE UNIQUE INDEX transport_assignments_unique_active_student ON public.transport_assignments USING btree (student_id) WHERE (is_active = true);
 
+-- =====================================================================
+-- Migration: 20260929030247_master_part4_functions.sql
+-- =====================================================================
 
---
--- Name: admission_applications admission_applications_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
+SET check_function_bodies = false;
+
+CREATE FUNCTION public.apply_inventory_transaction() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE delta numeric;
+BEGIN
+  IF NEW.txn_type = 'in' THEN delta := NEW.quantity;
+  ELSIF NEW.txn_type = 'out' THEN delta := -NEW.quantity;
+  ELSE delta := NEW.quantity; END IF;
+  UPDATE public.inventory_items SET quantity = quantity + delta WHERE id = NEW.item_id;
+  RETURN NEW;
+END; $$;
+
+CREATE FUNCTION public.handle_book_issue_change() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+    AS $$
+DECLARE v_avail INT;
+BEGIN
+  IF TG_OP = 'INSERT' THEN
+    SELECT available_copies INTO v_avail FROM public.books WHERE id = NEW.book_id FOR UPDATE;
+    IF v_avail IS NULL OR v_avail < 1 THEN RAISE EXCEPTION 'No copies available for this book'; END IF;
+    IF NEW.status = 'issued' AND NEW.due_date < CURRENT_DATE THEN NEW.status := 'overdue'; END IF;
+    UPDATE public.books SET available_copies = available_copies - 1 WHERE id = NEW.book_id;
+    RETURN NEW;
+  ELSIF TG_OP = 'UPDATE' THEN
+    IF OLD.status IN ('issued','overdue') AND NEW.status IN ('returned','lost') THEN
+      IF NEW.status = 'returned' THEN
+        UPDATE public.books SET available_copies = available_copies + 1 WHERE id = NEW.book_id;
+        IF NEW.return_date IS NULL THEN NEW.return_date := CURRENT_DATE; END IF;
+      END IF;
+    ELSIF OLD.status IN ('returned','lost') AND NEW.status IN ('issued','overdue') THEN
+      UPDATE public.books SET available_copies = available_copies - 1 WHERE id = NEW.book_id;
+    END IF;
+    IF NEW.status = 'issued' AND NEW.due_date < CURRENT_DATE THEN NEW.status := 'overdue'; END IF;
+    RETURN NEW;
+  ELSIF TG_OP = 'DELETE' THEN
+    IF OLD.status IN ('issued','overdue') THEN
+      UPDATE public.books SET available_copies = available_copies + 1 WHERE id = OLD.book_id;
+    END IF;
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+CREATE FUNCTION public.handle_new_user() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE user_count INTEGER;
+BEGIN
+  INSERT INTO public.profiles (id, full_name, email)
+  VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data ->> 'full_name', split_part(NEW.email, '@', 1)), NEW.email)
+  ON CONFLICT (id) DO NOTHING;
+  SELECT COUNT(*) INTO user_count FROM public.user_roles;
+  IF user_count = 0 THEN
+    INSERT INTO public.user_roles (user_id, role) VALUES (NEW.id, 'admin') ON CONFLICT DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE FUNCTION public.has_role(_user_id uuid, _role public.app_role) RETURNS boolean
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT EXISTS (SELECT 1 FROM public.user_roles WHERE user_id = _user_id AND role = _role);
+$$;
+
+CREATE FUNCTION public.recompute_invoice_totals() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+    AS $$
+DECLARE
+  v_invoice_id UUID; v_paid NUMERIC(12,2); v_amount NUMERIC(12,2);
+  v_discount NUMERIC(12,2); v_due DATE; v_status public.invoice_status; v_current public.invoice_status;
+BEGIN
+  v_invoice_id := COALESCE(NEW.invoice_id, OLD.invoice_id);
+  SELECT COALESCE(SUM(amount),0) INTO v_paid FROM public.payments WHERE invoice_id = v_invoice_id;
+  SELECT amount, discount, due_date, status INTO v_amount, v_discount, v_due, v_current FROM public.invoices WHERE id = v_invoice_id;
+  IF v_current = 'cancelled' THEN
+    UPDATE public.invoices SET amount_paid = v_paid WHERE id = v_invoice_id;
+    RETURN NEW;
+  END IF;
+  IF v_paid >= (v_amount - v_discount) AND v_paid > 0 THEN v_status := 'paid';
+  ELSIF v_paid > 0 THEN v_status := 'partial';
+  ELSIF v_due < CURRENT_DATE THEN v_status := 'overdue';
+  ELSE v_status := 'pending'; END IF;
+  UPDATE public.invoices SET amount_paid = v_paid, status = v_status WHERE id = v_invoice_id;
+  RETURN NEW;
+END;
+$$;
+
+CREATE FUNCTION public.set_updated_at() RETURNS trigger
+    LANGUAGE plpgsql
+    SET search_path TO 'public'
+    AS $$
+BEGIN NEW.updated_at = now(); RETURN NEW; END; $$;
+
+-- =====================================================================
+-- Migration: 20260929030320_master_part5_triggers_fkeys.sql
+-- =====================================================================
 
 CREATE TRIGGER admission_applications_updated_at BEFORE UPDATE ON public.admission_applications FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: admission_interviews admission_interviews_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER admission_interviews_updated_at BEFORE UPDATE ON public.admission_interviews FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: attendance_deduction_rules adr_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER adr_updated_at BEFORE UPDATE ON public.attendance_deduction_rules FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: attendance attendance_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER attendance_set_updated_at BEFORE UPDATE ON public.attendance FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: classes classes_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER classes_set_updated_at BEFORE UPDATE ON public.classes FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: deduction_components deduction_components_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER deduction_components_updated_at BEFORE UPDATE ON public.deduction_components FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: departments departments_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER departments_updated_at BEFORE UPDATE ON public.departments FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: donations donations_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER donations_updated_at BEFORE UPDATE ON public.donations FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: drivers drivers_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER drivers_updated_at BEFORE UPDATE ON public.drivers FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: employment_applications employment_applications_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER employment_applications_updated_at BEFORE UPDATE ON public.employment_applications FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: events events_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER events_set_updated_at BEFORE UPDATE ON public.events FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: exam_results exam_results_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER exam_results_set_updated_at BEFORE UPDATE ON public.exam_results FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: exams exams_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER exams_set_updated_at BEFORE UPDATE ON public.exams FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: fee_challans fee_challans_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER fee_challans_updated_at BEFORE UPDATE ON public.fee_challans FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: fee_constituents fee_constituents_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER fee_constituents_updated_at BEFORE UPDATE ON public.fee_constituents FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: fee_groups fee_groups_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER fee_groups_updated_at BEFORE UPDATE ON public.fee_groups FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: fee_structures fee_structures_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER fee_structures_set_updated_at BEFORE UPDATE ON public.fee_structures FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: fee_group_constituents fgc_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER fgc_updated_at BEFORE UPDATE ON public.fee_group_constituents FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: grading_scales grading_scales_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER grading_scales_updated_at BEFORE UPDATE ON public.grading_scales FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: invoices invoices_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER invoices_set_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: notifications notifications_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER notifications_updated_at BEFORE UPDATE ON public.notifications FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: parents parents_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER parents_updated_at BEFORE UPDATE ON public.parents FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: payments payments_recompute_invoice; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER payments_recompute_invoice AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.recompute_invoice_totals();
-
-
---
--- Name: payments payments_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER payments_set_updated_at BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: payroll_item_lines payroll_item_lines_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER payroll_item_lines_updated_at BEFORE UPDATE ON public.payroll_item_lines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: payroll_run_bonus_lines prbl_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER prbl_updated_at BEFORE UPDATE ON public.payroll_run_bonus_lines FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: profiles profiles_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER profiles_set_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: role_permissions role_permissions_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER role_permissions_updated_at BEFORE UPDATE ON public.role_permissions FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: roles roles_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER roles_updated_at BEFORE UPDATE ON public.roles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: school_settings school_settings_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER school_settings_updated_at BEFORE UPDATE ON public.school_settings FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: import_profiles set_import_profiles_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER set_import_profiles_updated_at BEFORE UPDATE ON public.import_profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: students students_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER students_set_updated_at BEFORE UPDATE ON public.students FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: subjects subjects_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER subjects_updated_at BEFORE UPDATE ON public.subjects FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: teachers teachers_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER teachers_set_updated_at BEFORE UPDATE ON public.teachers FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: timetable_slots timetable_slots_set_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER timetable_slots_set_updated_at BEFORE UPDATE ON public.timetable_slots FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: announcements trg_announcements_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_announcements_updated BEFORE UPDATE ON public.announcements FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: book_issues trg_book_issues_changes; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_book_issues_changes BEFORE INSERT OR DELETE OR UPDATE ON public.book_issues FOR EACH ROW EXECUTE FUNCTION public.handle_book_issue_change();
-
-
---
--- Name: book_issues trg_book_issues_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_book_issues_updated BEFORE UPDATE ON public.book_issues FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: books trg_books_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_books_updated BEFORE UPDATE ON public.books FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: homework trg_homework_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_homework_updated BEFORE UPDATE ON public.homework FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: homework_submissions trg_hw_submissions_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_hw_submissions_updated BEFORE UPDATE ON public.homework_submissions FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: inventory_transactions trg_inv_apply_txn; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_inv_apply_txn AFTER INSERT ON public.inventory_transactions FOR EACH ROW EXECUTE FUNCTION public.apply_inventory_transaction();
-
-
---
--- Name: inventory_categories trg_inv_categories_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_inv_categories_updated BEFORE UPDATE ON public.inventory_categories FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: inventory_items trg_inv_items_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_inv_items_updated BEFORE UPDATE ON public.inventory_items FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: inventory_transactions trg_inv_txn_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_inv_txn_updated BEFORE UPDATE ON public.inventory_transactions FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: messages trg_messages_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_messages_updated BEFORE UPDATE ON public.messages FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: parent_contacts trg_parent_contacts_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_parent_contacts_updated BEFORE UPDATE ON public.parent_contacts FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: payroll_items trg_payroll_items_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_payroll_items_updated_at BEFORE UPDATE ON public.payroll_items FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: payroll_runs trg_payroll_runs_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_payroll_runs_updated_at BEFORE UPDATE ON public.payroll_runs FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: staff_attendance trg_staff_attendance_updated_at; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_staff_attendance_updated_at BEFORE UPDATE ON public.staff_attendance FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: transport_assignments trg_transport_assignments_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_transport_assignments_updated BEFORE UPDATE ON public.transport_assignments FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: transport_routes trg_transport_routes_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_transport_routes_updated BEFORE UPDATE ON public.transport_routes FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
-
---
--- Name: transport_vehicles trg_transport_vehicles_updated; Type: TRIGGER; Schema: public; Owner: -
---
-
 CREATE TRIGGER trg_transport_vehicles_updated BEFORE UPDATE ON public.transport_vehicles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
-
---
--- Name: admission_applications admission_applications_applying_for_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admission_applications
-    ADD CONSTRAINT admission_applications_applying_for_class_id_fkey FOREIGN KEY (applying_for_class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
-
-
---
--- Name: admission_interviews admission_interviews_application_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admission_interviews
-    ADD CONSTRAINT admission_interviews_application_id_fkey FOREIGN KEY (application_id) REFERENCES public.admission_applications(id) ON DELETE CASCADE;
-
-
---
--- Name: admission_interviews admission_interviews_interviewer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.admission_interviews
-    ADD CONSTRAINT admission_interviews_interviewer_id_fkey FOREIGN KEY (interviewer_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
-
-
---
--- Name: announcements announcements_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.announcements
-    ADD CONSTRAINT announcements_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
-
-
---
--- Name: announcements announcements_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.announcements
-    ADD CONSTRAINT announcements_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: attendance attendance_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.attendance
-    ADD CONSTRAINT attendance_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
-
-
---
--- Name: attendance attendance_recorded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.attendance
-    ADD CONSTRAINT attendance_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: attendance attendance_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.attendance
-    ADD CONSTRAINT attendance_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: audit_logs audit_logs_actor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.audit_logs
-    ADD CONSTRAINT audit_logs_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: book_issues book_issues_book_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.book_issues
-    ADD CONSTRAINT book_issues_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE RESTRICT;
-
-
---
--- Name: book_issues book_issues_issued_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.book_issues
-    ADD CONSTRAINT book_issues_issued_by_fkey FOREIGN KEY (issued_by) REFERENCES auth.users(id);
-
-
---
--- Name: book_issues book_issues_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.book_issues
-    ADD CONSTRAINT book_issues_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE RESTRICT;
-
-
---
--- Name: classes classes_class_teacher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.classes
-    ADD CONSTRAINT classes_class_teacher_id_fkey FOREIGN KEY (class_teacher_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
-
-
---
--- Name: events events_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.events
-    ADD CONSTRAINT events_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
-
-
---
--- Name: events events_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.events
-    ADD CONSTRAINT events_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: exam_results exam_results_exam_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exam_results
-    ADD CONSTRAINT exam_results_exam_id_fkey FOREIGN KEY (exam_id) REFERENCES public.exams(id) ON DELETE CASCADE;
-
-
---
--- Name: exam_results exam_results_recorded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exam_results
-    ADD CONSTRAINT exam_results_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: exam_results exam_results_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exam_results
-    ADD CONSTRAINT exam_results_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: exams exams_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exams
-    ADD CONSTRAINT exams_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
-
-
---
--- Name: exams exams_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.exams
-    ADD CONSTRAINT exams_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: fee_challans fee_challans_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_challans
-    ADD CONSTRAINT fee_challans_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.fee_groups(id) ON DELETE SET NULL;
-
-
---
--- Name: fee_challans fee_challans_reviewed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_challans
-    ADD CONSTRAINT fee_challans_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id);
-
-
---
--- Name: fee_challans fee_challans_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_challans
-    ADD CONSTRAINT fee_challans_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: fee_group_constituents fee_group_constituents_constituent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_group_constituents
-    ADD CONSTRAINT fee_group_constituents_constituent_id_fkey FOREIGN KEY (constituent_id) REFERENCES public.fee_constituents(id) ON DELETE RESTRICT;
-
-
---
--- Name: fee_group_constituents fee_group_constituents_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_group_constituents
-    ADD CONSTRAINT fee_group_constituents_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.fee_groups(id) ON DELETE CASCADE;
-
-
---
--- Name: fee_structures fee_structures_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.fee_structures
-    ADD CONSTRAINT fee_structures_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
-
-
---
--- Name: homework homework_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework
-    ADD CONSTRAINT homework_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
-
-
---
--- Name: homework homework_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework
-    ADD CONSTRAINT homework_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: homework_submissions homework_submissions_homework_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework_submissions
-    ADD CONSTRAINT homework_submissions_homework_id_fkey FOREIGN KEY (homework_id) REFERENCES public.homework(id) ON DELETE CASCADE;
-
-
---
--- Name: homework_submissions homework_submissions_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.homework_submissions
-    ADD CONSTRAINT homework_submissions_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: import_profiles import_profiles_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.import_profiles
-    ADD CONSTRAINT import_profiles_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id);
-
-
---
--- Name: inventory_items inventory_items_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_items
-    ADD CONSTRAINT inventory_items_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.inventory_categories(id) ON DELETE SET NULL;
-
-
---
--- Name: inventory_transactions inventory_transactions_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_transactions
-    ADD CONSTRAINT inventory_transactions_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: inventory_transactions inventory_transactions_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.inventory_transactions
-    ADD CONSTRAINT inventory_transactions_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.inventory_items(id) ON DELETE CASCADE;
-
-
---
--- Name: invoices invoices_fee_structure_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.invoices
-    ADD CONSTRAINT invoices_fee_structure_id_fkey FOREIGN KEY (fee_structure_id) REFERENCES public.fee_structures(id) ON DELETE SET NULL;
-
-
---
--- Name: invoices invoices_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.invoices
-    ADD CONSTRAINT invoices_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: messages messages_parent_contact_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.messages
-    ADD CONSTRAINT messages_parent_contact_id_fkey FOREIGN KEY (parent_contact_id) REFERENCES public.parent_contacts(id) ON DELETE SET NULL;
-
-
---
--- Name: messages messages_sent_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.messages
-    ADD CONSTRAINT messages_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: messages messages_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.messages
-    ADD CONSTRAINT messages_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE SET NULL;
-
-
---
--- Name: notifications notifications_created_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.notifications
-    ADD CONSTRAINT notifications_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: parent_contacts parent_contacts_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parent_contacts
-    ADD CONSTRAINT parent_contacts_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: parents parents_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.parents
-    ADD CONSTRAINT parents_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: payments payments_invoice_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payments
-    ADD CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES public.invoices(id) ON DELETE CASCADE;
-
-
---
--- Name: payroll_item_lines payroll_item_lines_payroll_item_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_item_lines
-    ADD CONSTRAINT payroll_item_lines_payroll_item_id_fkey FOREIGN KEY (payroll_item_id) REFERENCES public.payroll_items(id) ON DELETE CASCADE;
-
-
---
--- Name: payroll_items payroll_items_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_items
-    ADD CONSTRAINT payroll_items_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.payroll_runs(id) ON DELETE CASCADE;
-
-
---
--- Name: payroll_items payroll_items_staff_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_items
-    ADD CONSTRAINT payroll_items_staff_id_fkey FOREIGN KEY (staff_id) REFERENCES public.teachers(id) ON DELETE CASCADE;
-
-
---
--- Name: payroll_run_bonus_lines payroll_run_bonus_lines_employee_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_run_bonus_lines
-    ADD CONSTRAINT payroll_run_bonus_lines_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.teachers(id) ON DELETE CASCADE;
-
-
---
--- Name: payroll_run_bonus_lines payroll_run_bonus_lines_payroll_run_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_run_bonus_lines
-    ADD CONSTRAINT payroll_run_bonus_lines_payroll_run_id_fkey FOREIGN KEY (payroll_run_id) REFERENCES public.payroll_runs(id) ON DELETE CASCADE;
-
-
---
--- Name: payroll_runs payroll_runs_processed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.payroll_runs
-    ADD CONSTRAINT payroll_runs_processed_by_fkey FOREIGN KEY (processed_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.profiles
-    ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-
---
--- Name: profiles profiles_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.profiles
-    ADD CONSTRAINT profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE SET NULL;
-
-
---
--- Name: role_permissions role_permissions_role_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.role_permissions
-    ADD CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
-
-
---
--- Name: staff_attendance staff_attendance_recorded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_attendance
-    ADD CONSTRAINT staff_attendance_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: staff_attendance staff_attendance_staff_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.staff_attendance
-    ADD CONSTRAINT staff_attendance_staff_id_fkey FOREIGN KEY (staff_id) REFERENCES public.teachers(id) ON DELETE CASCADE;
-
-
---
--- Name: student_parents student_parents_parent_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.student_parents
-    ADD CONSTRAINT student_parents_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.parents(id) ON DELETE CASCADE;
-
-
---
--- Name: student_parents student_parents_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.student_parents
-    ADD CONSTRAINT student_parents_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: students students_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
-
-
---
--- Name: students students_driver_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_driver_id_fkey FOREIGN KEY (driver_id) REFERENCES public.drivers(id) ON DELETE SET NULL;
-
-
---
--- Name: students students_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.students
-    ADD CONSTRAINT students_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: subjects subjects_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.subjects
-    ADD CONSTRAINT subjects_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
-
-
---
--- Name: subjects subjects_teacher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.subjects
-    ADD CONSTRAINT subjects_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
-
-
---
--- Name: teachers teachers_department_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_department_id_fkey FOREIGN KEY (department_id) REFERENCES public.departments(id) ON DELETE RESTRICT;
-
-
---
--- Name: teachers teachers_fee_group_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_fee_group_id_fkey FOREIGN KEY (fee_group_id) REFERENCES public.fee_groups(id) ON DELETE SET NULL;
-
-
---
--- Name: teachers teachers_subject_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES public.subjects(id) ON DELETE SET NULL;
-
-
---
--- Name: teachers teachers_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.teachers
-    ADD CONSTRAINT teachers_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
-
-
---
--- Name: timetable_slots timetable_slots_class_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timetable_slots
-    ADD CONSTRAINT timetable_slots_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
-
-
---
--- Name: timetable_slots timetable_slots_teacher_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.timetable_slots
-    ADD CONSTRAINT timetable_slots_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
-
-
---
--- Name: transport_assignments transport_assignments_route_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_assignments
-    ADD CONSTRAINT transport_assignments_route_id_fkey FOREIGN KEY (route_id) REFERENCES public.transport_routes(id) ON DELETE CASCADE;
-
-
---
--- Name: transport_assignments transport_assignments_student_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_assignments
-    ADD CONSTRAINT transport_assignments_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
-
-
---
--- Name: transport_vehicles transport_vehicles_route_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.transport_vehicles
-    ADD CONSTRAINT transport_vehicles_route_id_fkey FOREIGN KEY (route_id) REFERENCES public.transport_routes(id) ON DELETE SET NULL;
-
-
---
--- Name: user_roles user_roles_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.user_roles
-    ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-
---
--- Name: invoices Accountants manage invoices; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Accountants manage invoices" ON public.invoices TO authenticated USING (public.has_role(auth.uid(), 'accountant'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'accountant'::public.app_role));
-
-
---
--- Name: payments Accountants manage payments; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Accountants manage payments" ON public.payments TO authenticated USING (public.has_role(auth.uid(), 'accountant'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'accountant'::public.app_role));
-
-
---
--- Name: grading_scales Admin manage scales; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admin manage scales" ON public.grading_scales TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: school_settings Admin manage settings; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admin manage settings" ON public.school_settings TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: audit_logs Admin view audit; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admin view audit" ON public.audit_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: user_roles Admins can delete roles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins can delete roles" ON public.user_roles FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: user_roles Admins can insert roles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins can insert roles" ON public.user_roles FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: profiles Admins can read all profiles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins can read all profiles" ON public.profiles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: user_roles Admins can read all roles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins can read all roles" ON public.user_roles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: profiles Admins can update all profiles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins can update all profiles" ON public.profiles FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: announcements Admins manage announcements; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage announcements" ON public.announcements TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: admission_applications Admins manage applications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage applications" ON public.admission_applications TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: transport_assignments Admins manage assignments; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage assignments" ON public.transport_assignments TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: attendance Admins manage attendance; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage attendance" ON public.attendance TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: books Admins manage books; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage books" ON public.books TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: classes Admins manage classes; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage classes" ON public.classes TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: donations Admins manage donations; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage donations" ON public.donations TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: drivers Admins manage drivers; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage drivers" ON public.drivers TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: employment_applications Admins manage employment applications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage employment applications" ON public.employment_applications TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: events Admins manage events; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage events" ON public.events TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: exam_results Admins manage exam results; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage exam results" ON public.exam_results TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: exams Admins manage exams; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage exams" ON public.exams TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: fee_structures Admins manage fee structures; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage fee structures" ON public.fee_structures TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: homework Admins manage homework; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage homework" ON public.homework TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: import_profiles Admins manage import profiles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage import profiles" ON public.import_profiles TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: admission_interviews Admins manage interviews; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage interviews" ON public.admission_interviews TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: inventory_categories Admins manage inventory categories; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage inventory categories" ON public.inventory_categories TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: inventory_items Admins manage inventory items; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage inventory items" ON public.inventory_items TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: inventory_transactions Admins manage inventory transactions; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage inventory transactions" ON public.inventory_transactions TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: invoices Admins manage invoices; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage invoices" ON public.invoices TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: book_issues Admins manage issues; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage issues" ON public.book_issues TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: messages Admins manage messages; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage messages" ON public.messages TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: notifications Admins manage notifications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage notifications" ON public.notifications TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: parent_contacts Admins manage parent contacts; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage parent contacts" ON public.parent_contacts TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: payments Admins manage payments; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage payments" ON public.payments TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: payroll_items Admins manage payroll items; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage payroll items" ON public.payroll_items TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: payroll_runs Admins manage payroll runs; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage payroll runs" ON public.payroll_runs TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: transport_routes Admins manage routes; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage routes" ON public.transport_routes TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: staff_attendance Admins manage staff attendance; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage staff attendance" ON public.staff_attendance TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: students Admins manage students; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage students" ON public.students TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: homework_submissions Admins manage submissions; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage submissions" ON public.homework_submissions TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: teachers Admins manage teachers; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage teachers" ON public.teachers TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: timetable_slots Admins manage timetable; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage timetable" ON public.timetable_slots TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: transport_vehicles Admins manage vehicles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins manage vehicles" ON public.transport_vehicles TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: parents Admins read parents; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins read parents" ON public.parents FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: student_parents Admins read student_parents; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins read student_parents" ON public.student_parents FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: admission_applications Admins view applications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins view applications" ON public.admission_applications FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: admission_interviews Admins view interviews; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins view interviews" ON public.admission_interviews FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: notifications Admins view notifications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins view notifications" ON public.notifications FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: grading_scales Admins view scales; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins view scales" ON public.grading_scales FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: school_settings Admins view settings; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Admins view settings" ON public.school_settings FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: events Anyone can view events; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Anyone can view events" ON public.events FOR SELECT TO anon USING (true);
-
-
---
--- Name: audit_logs Anyone insert audit; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Anyone insert audit" ON public.audit_logs FOR INSERT TO authenticated WITH CHECK (true);
-
-
---
--- Name: import_profiles Authenticated can view import profiles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Authenticated can view import profiles" ON public.import_profiles FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: user_roles Only admins can update roles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Only admins can update roles" ON public.user_roles FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: admission_applications Public can submit admission applications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Public can submit admission applications" ON public.admission_applications FOR INSERT TO anon WITH CHECK (true);
-
-
---
--- Name: donations Public can submit donations; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Public can submit donations" ON public.donations FOR INSERT TO anon WITH CHECK (true);
-
-
---
--- Name: employment_applications Public can submit employment applications; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Public can submit employment applications" ON public.employment_applications FOR INSERT TO anon WITH CHECK (true);
-
-
---
--- Name: events Signed-in users can view events; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Signed-in users can view events" ON public.events FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: staff_attendance Staff attendance viewable by staff; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff attendance viewable by staff" ON public.staff_attendance FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: drivers Staff can view drivers; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff can view drivers" ON public.drivers FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: parents Staff manage parents; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff manage parents" ON public.parents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: student_parents Staff manage student_parents; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff manage student_parents" ON public.student_parents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: subjects Staff manage subjects; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff manage subjects" ON public.subjects TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role))) WITH CHECK ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: announcements Staff read announcements; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff read announcements" ON public.announcements FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'accountant'::public.app_role)));
-
-
---
--- Name: fee_structures Staff read fee structures; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff read fee structures" ON public.fee_structures FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'accountant'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: inventory_categories Staff read inventory categories; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff read inventory categories" ON public.inventory_categories FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: inventory_items Staff read inventory items; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff read inventory items" ON public.inventory_items FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: inventory_transactions Staff read inventory transactions; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff read inventory transactions" ON public.inventory_transactions FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: subjects Staff read subjects; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff read subjects" ON public.subjects FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: timetable_slots Staff view timetable; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Staff view timetable" ON public.timetable_slots FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
-
-
---
--- Name: announcements Students read announcements; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Students read announcements" ON public.announcements FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'student'::public.app_role) AND (published_at IS NOT NULL) AND ((audience = ANY (ARRAY['all'::public.announcement_audience, 'parents'::public.announcement_audience])) OR ((audience = 'class'::public.announcement_audience) AND (EXISTS ( SELECT 1
-   FROM public.students s
-  WHERE ((s.user_id = auth.uid()) AND (s.class_id = announcements.class_id))))))));
-
-
---
--- Name: classes Students read own class; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Students read own class" ON public.classes FOR SELECT TO authenticated USING ((EXISTS ( SELECT 1
-   FROM public.students s
-  WHERE ((s.user_id = auth.uid()) AND (s.class_id = classes.id)))));
-
-
---
--- Name: timetable_slots Students read own class timetable; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Students read own class timetable" ON public.timetable_slots FOR SELECT TO authenticated USING ((EXISTS ( SELECT 1
-   FROM public.students s
-  WHERE ((s.user_id = auth.uid()) AND (s.class_id = timetable_slots.class_id)))));
-
-
---
--- Name: students Students read own record; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Students read own record" ON public.students FOR SELECT TO authenticated USING ((user_id = auth.uid()));
-
-
---
--- Name: attendance Teachers insert attendance; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers insert attendance" ON public.attendance FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: exam_results Teachers insert exam results; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers insert exam results" ON public.exam_results FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: homework Teachers manage homework; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers manage homework" ON public.homework TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: book_issues Teachers manage issues; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers manage issues" ON public.book_issues TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role))) WITH CHECK ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: messages Teachers manage messages; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers manage messages" ON public.messages TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role))) WITH CHECK ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: homework_submissions Teachers manage submissions; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers manage submissions" ON public.homework_submissions TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: transport_assignments Teachers read assignments; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read assignments" ON public.transport_assignments FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: attendance Teachers read attendance; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read attendance" ON public.attendance FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: classes Teachers read classes; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read classes" ON public.classes FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: events Teachers read events; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read events" ON public.events FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: teachers Teachers read own record; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read own record" ON public.teachers FOR SELECT TO authenticated USING ((user_id = auth.uid()));
-
-
---
--- Name: parent_contacts Teachers read parent contacts; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read parent contacts" ON public.parent_contacts FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: transport_routes Teachers read routes; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read routes" ON public.transport_routes FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: students Teachers read students; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read students" ON public.students FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: teachers Teachers read teachers; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read teachers" ON public.teachers FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: transport_vehicles Teachers read vehicles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers read vehicles" ON public.transport_vehicles FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: attendance Teachers update attendance; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers update attendance" ON public.attendance FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: exam_results Teachers update exam results; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers update exam results" ON public.exam_results FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: books Teachers view books; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers view books" ON public.books FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
-
-
---
--- Name: exam_results Teachers view exam results; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers view exam results" ON public.exam_results FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: exams Teachers view exams; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Teachers view exams" ON public.exams FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
-
-
---
--- Name: profiles Users can read own profile; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Users can read own profile" ON public.profiles FOR SELECT TO authenticated USING ((auth.uid() = id));
-
-
---
--- Name: user_roles Users can read own roles; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING ((auth.uid() = user_id));
-
-
---
--- Name: profiles Users can update own profile; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING ((auth.uid() = id)) WITH CHECK ((auth.uid() = id));
-
-
---
--- Name: admission_applications; Type: ROW SECURITY; Schema: public; Owner: -
---
+ALTER TABLE ONLY public.admission_applications ADD CONSTRAINT admission_applications_applying_for_class_id_fkey FOREIGN KEY (applying_for_class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.admission_interviews ADD CONSTRAINT admission_interviews_application_id_fkey FOREIGN KEY (application_id) REFERENCES public.admission_applications(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.admission_interviews ADD CONSTRAINT admission_interviews_interviewer_id_fkey FOREIGN KEY (interviewer_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.announcements ADD CONSTRAINT announcements_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.announcements ADD CONSTRAINT announcements_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.attendance ADD CONSTRAINT attendance_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.attendance ADD CONSTRAINT attendance_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.attendance ADD CONSTRAINT attendance_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.audit_logs ADD CONSTRAINT audit_logs_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.book_issues ADD CONSTRAINT book_issues_book_id_fkey FOREIGN KEY (book_id) REFERENCES public.books(id) ON DELETE RESTRICT;
+ALTER TABLE ONLY public.book_issues ADD CONSTRAINT book_issues_issued_by_fkey FOREIGN KEY (issued_by) REFERENCES auth.users(id);
+ALTER TABLE ONLY public.book_issues ADD CONSTRAINT book_issues_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE RESTRICT;
+ALTER TABLE ONLY public.classes ADD CONSTRAINT classes_class_teacher_id_fkey FOREIGN KEY (class_teacher_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.events ADD CONSTRAINT events_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.events ADD CONSTRAINT events_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.exam_results ADD CONSTRAINT exam_results_exam_id_fkey FOREIGN KEY (exam_id) REFERENCES public.exams(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.exam_results ADD CONSTRAINT exam_results_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.exam_results ADD CONSTRAINT exam_results_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.exams ADD CONSTRAINT exams_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.exams ADD CONSTRAINT exams_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.fee_challans ADD CONSTRAINT fee_challans_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.fee_groups(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.fee_challans ADD CONSTRAINT fee_challans_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES auth.users(id);
+ALTER TABLE ONLY public.fee_challans ADD CONSTRAINT fee_challans_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.fee_group_constituents ADD CONSTRAINT fee_group_constituents_constituent_id_fkey FOREIGN KEY (constituent_id) REFERENCES public.fee_constituents(id) ON DELETE RESTRICT;
+ALTER TABLE ONLY public.fee_group_constituents ADD CONSTRAINT fee_group_constituents_group_id_fkey FOREIGN KEY (group_id) REFERENCES public.fee_groups(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.fee_structures ADD CONSTRAINT fee_structures_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.homework ADD CONSTRAINT homework_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.homework ADD CONSTRAINT homework_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.homework_submissions ADD CONSTRAINT homework_submissions_homework_id_fkey FOREIGN KEY (homework_id) REFERENCES public.homework(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.homework_submissions ADD CONSTRAINT homework_submissions_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.import_profiles ADD CONSTRAINT import_profiles_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id);
+ALTER TABLE ONLY public.inventory_items ADD CONSTRAINT inventory_items_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.inventory_categories(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.inventory_transactions ADD CONSTRAINT inventory_transactions_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.inventory_transactions ADD CONSTRAINT inventory_transactions_item_id_fkey FOREIGN KEY (item_id) REFERENCES public.inventory_items(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.invoices ADD CONSTRAINT invoices_fee_structure_id_fkey FOREIGN KEY (fee_structure_id) REFERENCES public.fee_structures(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.invoices ADD CONSTRAINT invoices_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.messages ADD CONSTRAINT messages_parent_contact_id_fkey FOREIGN KEY (parent_contact_id) REFERENCES public.parent_contacts(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.messages ADD CONSTRAINT messages_sent_by_fkey FOREIGN KEY (sent_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.messages ADD CONSTRAINT messages_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.notifications ADD CONSTRAINT notifications_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.parent_contacts ADD CONSTRAINT parent_contacts_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.parents ADD CONSTRAINT parents_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.payments ADD CONSTRAINT payments_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES public.invoices(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.payroll_item_lines ADD CONSTRAINT payroll_item_lines_payroll_item_id_fkey FOREIGN KEY (payroll_item_id) REFERENCES public.payroll_items(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.payroll_items ADD CONSTRAINT payroll_items_run_id_fkey FOREIGN KEY (run_id) REFERENCES public.payroll_runs(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.payroll_items ADD CONSTRAINT payroll_items_staff_id_fkey FOREIGN KEY (staff_id) REFERENCES public.teachers(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.payroll_run_bonus_lines ADD CONSTRAINT payroll_run_bonus_lines_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.teachers(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.payroll_run_bonus_lines ADD CONSTRAINT payroll_run_bonus_lines_payroll_run_id_fkey FOREIGN KEY (payroll_run_id) REFERENCES public.payroll_runs(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.payroll_runs ADD CONSTRAINT payroll_runs_processed_by_fkey FOREIGN KEY (processed_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.profiles ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.profiles ADD CONSTRAINT profiles_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.role_permissions ADD CONSTRAINT role_permissions_role_id_fkey FOREIGN KEY (role_id) REFERENCES public.roles(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.staff_attendance ADD CONSTRAINT staff_attendance_recorded_by_fkey FOREIGN KEY (recorded_by) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.staff_attendance ADD CONSTRAINT staff_attendance_staff_id_fkey FOREIGN KEY (staff_id) REFERENCES public.teachers(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.student_parents ADD CONSTRAINT student_parents_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES public.parents(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.student_parents ADD CONSTRAINT student_parents_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.students ADD CONSTRAINT students_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.students ADD CONSTRAINT students_driver_id_fkey FOREIGN KEY (driver_id) REFERENCES public.drivers(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.students ADD CONSTRAINT students_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.subjects ADD CONSTRAINT subjects_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.subjects ADD CONSTRAINT subjects_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.teachers ADD CONSTRAINT teachers_department_id_fkey FOREIGN KEY (department_id) REFERENCES public.departments(id) ON DELETE RESTRICT;
+ALTER TABLE ONLY public.teachers ADD CONSTRAINT teachers_fee_group_id_fkey FOREIGN KEY (fee_group_id) REFERENCES public.fee_groups(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.teachers ADD CONSTRAINT teachers_subject_id_fkey FOREIGN KEY (subject_id) REFERENCES public.subjects(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.teachers ADD CONSTRAINT teachers_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.timetable_slots ADD CONSTRAINT timetable_slots_class_id_fkey FOREIGN KEY (class_id) REFERENCES public.classes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.timetable_slots ADD CONSTRAINT timetable_slots_teacher_id_fkey FOREIGN KEY (teacher_id) REFERENCES public.teachers(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.transport_assignments ADD CONSTRAINT transport_assignments_route_id_fkey FOREIGN KEY (route_id) REFERENCES public.transport_routes(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.transport_assignments ADD CONSTRAINT transport_assignments_student_id_fkey FOREIGN KEY (student_id) REFERENCES public.students(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.transport_vehicles ADD CONSTRAINT transport_vehicles_route_id_fkey FOREIGN KEY (route_id) REFERENCES public.transport_routes(id) ON DELETE SET NULL;
+ALTER TABLE ONLY public.user_roles ADD CONSTRAINT user_roles_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- =====================================================================
+-- Migration: 20260929030421_master_part6_rls_policies.sql
+-- =====================================================================
 
 ALTER TABLE public.admission_applications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: admission_interviews; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.admission_interviews ENABLE ROW LEVEL SECURITY;
-
---
--- Name: attendance_deduction_rules adr admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "adr admin" ON public.attendance_deduction_rules TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: announcements; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
-
---
--- Name: attendance; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
-
---
--- Name: attendance_deduction_rules; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.attendance_deduction_rules ENABLE ROW LEVEL SECURITY;
-
---
--- Name: audit_logs; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-
---
--- Name: book_issues; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.book_issues ENABLE ROW LEVEL SECURITY;
-
---
--- Name: books; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.books ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_challans challans admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "challans admin" ON public.fee_challans TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: fee_challans challans own read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "challans own read" ON public.fee_challans FOR SELECT TO authenticated USING ((EXISTS ( SELECT 1
-   FROM public.students s
-  WHERE ((s.id = fee_challans.student_id) AND (s.user_id = auth.uid())))));
-
-
---
--- Name: fee_challans challans own upload; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "challans own upload" ON public.fee_challans FOR UPDATE TO authenticated USING ((EXISTS ( SELECT 1
-   FROM public.students s
-  WHERE ((s.id = fee_challans.student_id) AND (s.user_id = auth.uid()))))) WITH CHECK ((EXISTS ( SELECT 1
-   FROM public.students s
-  WHERE ((s.id = fee_challans.student_id) AND (s.user_id = auth.uid())))));
-
-
---
--- Name: fee_challans challans staff read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "challans staff read" ON public.fee_challans FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'accountant'::public.app_role)));
-
-
---
--- Name: classes; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
-
---
--- Name: deduction_components; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.deduction_components ENABLE ROW LEVEL SECURITY;
-
---
--- Name: deduction_components deduction_components admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "deduction_components admin" ON public.deduction_components TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: departments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: departments departments admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "departments admin" ON public.departments TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: departments departments read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "departments read" ON public.departments FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: donations; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.donations ENABLE ROW LEVEL SECURITY;
-
---
--- Name: drivers; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.drivers ENABLE ROW LEVEL SECURITY;
-
---
--- Name: employment_applications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.employment_applications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: events; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
-
---
--- Name: exam_results; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.exam_results ENABLE ROW LEVEL SECURITY;
-
---
--- Name: exams; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_challans; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.fee_challans ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_constituents; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.fee_constituents ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_constituents fee_constituents admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "fee_constituents admin" ON public.fee_constituents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: fee_constituents fee_constituents read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "fee_constituents read" ON public.fee_constituents FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: fee_group_constituents; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.fee_group_constituents ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_groups; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.fee_groups ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_groups fee_groups admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "fee_groups admin" ON public.fee_groups TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: fee_groups fee_groups read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "fee_groups read" ON public.fee_groups FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: fee_structures; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.fee_structures ENABLE ROW LEVEL SECURITY;
-
---
--- Name: fee_group_constituents fgc admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "fgc admin" ON public.fee_group_constituents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: fee_group_constituents fgc read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "fgc read" ON public.fee_group_constituents FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: grading_scales; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.grading_scales ENABLE ROW LEVEL SECURITY;
-
---
--- Name: homework; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.homework ENABLE ROW LEVEL SECURITY;
-
---
--- Name: homework_submissions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.homework_submissions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: import_profiles; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.import_profiles ENABLE ROW LEVEL SECURITY;
-
---
--- Name: inventory_categories; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.inventory_categories ENABLE ROW LEVEL SECURITY;
-
---
--- Name: inventory_items; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.inventory_items ENABLE ROW LEVEL SECURITY;
-
---
--- Name: inventory_transactions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.inventory_transactions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: invoices; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
-
---
--- Name: messages; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-
---
--- Name: notifications; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-
---
--- Name: parent_contacts; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.parent_contacts ENABLE ROW LEVEL SECURITY;
-
---
--- Name: parents; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.parents ENABLE ROW LEVEL SECURITY;
-
---
--- Name: payments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: payroll_item_lines; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.payroll_item_lines ENABLE ROW LEVEL SECURITY;
-
---
--- Name: payroll_item_lines payroll_item_lines admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "payroll_item_lines admin" ON public.payroll_item_lines TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: payroll_items; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.payroll_items ENABLE ROW LEVEL SECURITY;
-
---
--- Name: payroll_run_bonus_lines; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.payroll_run_bonus_lines ENABLE ROW LEVEL SECURITY;
-
---
--- Name: payroll_runs; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.payroll_runs ENABLE ROW LEVEL SECURITY;
-
---
--- Name: payroll_run_bonus_lines prbl admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "prbl admin" ON public.payroll_run_bonus_lines TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
---
--- Name: role_permissions; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
-
---
--- Name: role_permissions role_permissions admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "role_permissions admin" ON public.role_permissions TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: role_permissions role_permissions read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "role_permissions read" ON public.role_permissions FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: roles; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
-
---
--- Name: roles roles admin; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "roles admin" ON public.roles TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
-
-
---
--- Name: roles roles read; Type: POLICY; Schema: public; Owner: -
---
-
-CREATE POLICY "roles read" ON public.roles FOR SELECT TO authenticated USING (true);
-
-
---
--- Name: school_settings; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.school_settings ENABLE ROW LEVEL SECURITY;
-
---
--- Name: staff_attendance; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.staff_attendance ENABLE ROW LEVEL SECURITY;
-
---
--- Name: student_parents; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.student_parents ENABLE ROW LEVEL SECURITY;
-
---
--- Name: students; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
-
---
--- Name: subjects; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.subjects ENABLE ROW LEVEL SECURITY;
-
---
--- Name: teachers; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.teachers ENABLE ROW LEVEL SECURITY;
-
---
--- Name: timetable_slots; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.timetable_slots ENABLE ROW LEVEL SECURITY;
-
---
--- Name: transport_assignments; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.transport_assignments ENABLE ROW LEVEL SECURITY;
-
---
--- Name: transport_routes; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.transport_routes ENABLE ROW LEVEL SECURITY;
-
---
--- Name: transport_vehicles; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.transport_vehicles ENABLE ROW LEVEL SECURITY;
-
---
--- Name: user_roles; Type: ROW SECURITY; Schema: public; Owner: -
---
-
 ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
---
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: -
---
+CREATE POLICY "Accountants manage invoices" ON public.invoices TO authenticated USING (public.has_role(auth.uid(), 'accountant'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'accountant'::public.app_role));
+CREATE POLICY "Accountants manage payments" ON public.payments TO authenticated USING (public.has_role(auth.uid(), 'accountant'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'accountant'::public.app_role));
+CREATE POLICY "Admin manage scales" ON public.grading_scales TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admin manage settings" ON public.school_settings TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admin view audit" ON public.audit_logs FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins can delete roles" ON public.user_roles FOR DELETE TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins can insert roles" ON public.user_roles FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins can read all profiles" ON public.profiles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins can read all roles" ON public.user_roles FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins can update all profiles" ON public.profiles FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage announcements" ON public.announcements TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage applications" ON public.admission_applications TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage assignments" ON public.transport_assignments TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage attendance" ON public.attendance TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage books" ON public.books TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage classes" ON public.classes TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage donations" ON public.donations TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage drivers" ON public.drivers TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage employment applications" ON public.employment_applications TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage events" ON public.events TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage exam results" ON public.exam_results TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage exams" ON public.exams TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage fee structures" ON public.fee_structures TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage homework" ON public.homework TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage import profiles" ON public.import_profiles TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage interviews" ON public.admission_interviews TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage inventory categories" ON public.inventory_categories TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage inventory items" ON public.inventory_items TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage inventory transactions" ON public.inventory_transactions TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage invoices" ON public.invoices TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage issues" ON public.book_issues TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage messages" ON public.messages TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage notifications" ON public.notifications TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage parent contacts" ON public.parent_contacts TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage payments" ON public.payments TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage payroll items" ON public.payroll_items TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage payroll runs" ON public.payroll_runs TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage routes" ON public.transport_routes TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage staff attendance" ON public.staff_attendance TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage students" ON public.students TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage submissions" ON public.homework_submissions TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage teachers" ON public.teachers TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage timetable" ON public.timetable_slots TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins manage vehicles" ON public.transport_vehicles TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins read parents" ON public.parents FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins read student_parents" ON public.student_parents FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins view applications" ON public.admission_applications FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins view interviews" ON public.admission_interviews FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins view notifications" ON public.notifications FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins view scales" ON public.grading_scales FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Admins view settings" ON public.school_settings FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Anyone can view events" ON public.events FOR SELECT TO anon USING (true);
+CREATE POLICY "Anyone insert audit" ON public.audit_logs FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Authenticated can view import profiles" ON public.import_profiles FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Only admins can update roles" ON public.user_roles FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Public can submit admission applications" ON public.admission_applications FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Public can submit donations" ON public.donations FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Public can submit employment applications" ON public.employment_applications FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "Signed-in users can view events" ON public.events FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Staff attendance viewable by staff" ON public.staff_attendance FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff can view drivers" ON public.drivers FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff manage parents" ON public.parents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Staff manage student_parents" ON public.student_parents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "Staff manage subjects" ON public.subjects TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role))) WITH CHECK ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff read announcements" ON public.announcements FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'accountant'::public.app_role)));
+CREATE POLICY "Staff read fee structures" ON public.fee_structures FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'accountant'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff read inventory categories" ON public.inventory_categories FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff read inventory items" ON public.inventory_items FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff read inventory transactions" ON public.inventory_transactions FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff read subjects" ON public.subjects FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Staff view timetable" ON public.timetable_slots FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'admin'::public.app_role) OR public.has_role(auth.uid(), 'teacher'::public.app_role)));
+CREATE POLICY "Students read announcements" ON public.announcements FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'student'::public.app_role) AND (published_at IS NOT NULL) AND ((audience = ANY (ARRAY['all'::public.announcement_audience, 'parents'::public.announcement_audience])) OR ((audience = 'class'::public.announcement_audience) AND (EXISTS ( SELECT 1 FROM public.students s WHERE ((s.user_id = auth.uid()) AND (s.class_id = announcements.class_id))))))));
+CREATE POLICY "Students read own class" ON public.classes FOR SELECT TO authenticated USING ((EXISTS ( SELECT 1 FROM public.students s WHERE ((s.user_id = auth.uid()) AND (s.class_id = classes.id)))));
+CREATE POLICY "Students read own class timetable" ON public.timetable_slots FOR SELECT TO authenticated USING ((EXISTS ( SELECT 1 FROM public.students s WHERE ((s.user_id = auth.uid()) AND (s.class_id = timetable_slots.class_id)))));
+CREATE POLICY "Students read own record" ON public.students FOR SELECT TO authenticated USING ((user_id = auth.uid()));
+CREATE POLICY "Teachers insert attendance" ON public.attendance FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers insert exam results" ON public.exam_results FOR INSERT TO authenticated WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers manage homework" ON public.homework TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers manage issues" ON public.book_issues TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role))) WITH CHECK ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers manage messages" ON public.messages TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role))) WITH CHECK ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers manage submissions" ON public.homework_submissions TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers read assignments" ON public.transport_assignments FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers read attendance" ON public.attendance FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers read classes" ON public.classes FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers read events" ON public.events FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers read own record" ON public.teachers FOR SELECT TO authenticated USING ((user_id = auth.uid()));
+CREATE POLICY "Teachers read parent contacts" ON public.parent_contacts FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers read routes" ON public.transport_routes FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers read students" ON public.students FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers read teachers" ON public.teachers FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers read vehicles" ON public.transport_vehicles FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers update attendance" ON public.attendance FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers update exam results" ON public.exam_results FOR UPDATE TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers view books" ON public.books FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'admin'::public.app_role)));
+CREATE POLICY "Teachers view exam results" ON public.exam_results FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Teachers view exams" ON public.exams FOR SELECT TO authenticated USING (public.has_role(auth.uid(), 'teacher'::public.app_role));
+CREATE POLICY "Users can read own profile" ON public.profiles FOR SELECT TO authenticated USING ((auth.uid() = id));
+CREATE POLICY "Users can read own roles" ON public.user_roles FOR SELECT TO authenticated USING ((auth.uid() = user_id));
+CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated USING ((auth.uid() = id)) WITH CHECK ((auth.uid() = id));
+CREATE POLICY "adr admin" ON public.attendance_deduction_rules TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "challans admin" ON public.fee_challans TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "challans own read" ON public.fee_challans FOR SELECT TO authenticated USING ((EXISTS ( SELECT 1 FROM public.students s WHERE ((s.id = fee_challans.student_id) AND (s.user_id = auth.uid())))));
+CREATE POLICY "challans own upload" ON public.fee_challans FOR UPDATE TO authenticated USING ((EXISTS ( SELECT 1 FROM public.students s WHERE ((s.id = fee_challans.student_id) AND (s.user_id = auth.uid()))))) WITH CHECK ((EXISTS ( SELECT 1 FROM public.students s WHERE ((s.id = fee_challans.student_id) AND (s.user_id = auth.uid())))));
+CREATE POLICY "challans staff read" ON public.fee_challans FOR SELECT TO authenticated USING ((public.has_role(auth.uid(), 'teacher'::public.app_role) OR public.has_role(auth.uid(), 'accountant'::public.app_role)));
+CREATE POLICY "deduction_components admin" ON public.deduction_components TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "departments admin" ON public.departments TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "departments read" ON public.departments FOR SELECT TO authenticated USING (true);
+CREATE POLICY "fee_constituents admin" ON public.fee_constituents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "fee_constituents read" ON public.fee_constituents FOR SELECT TO authenticated USING (true);
+CREATE POLICY "fee_groups admin" ON public.fee_groups TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "fee_groups read" ON public.fee_groups FOR SELECT TO authenticated USING (true);
+CREATE POLICY "fgc admin" ON public.fee_group_constituents TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "fgc read" ON public.fee_group_constituents FOR SELECT TO authenticated USING (true);
+CREATE POLICY "payroll_item_lines admin" ON public.payroll_item_lines TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "prbl admin" ON public.payroll_run_bonus_lines TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "role_permissions admin" ON public.role_permissions TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "role_permissions read" ON public.role_permissions FOR SELECT TO authenticated USING (true);
+CREATE POLICY "roles admin" ON public.roles TO authenticated USING (public.has_role(auth.uid(), 'admin'::public.app_role)) WITH CHECK (public.has_role(auth.uid(), 'admin'::public.app_role));
+CREATE POLICY "roles read" ON public.roles FOR SELECT TO authenticated USING (true);
+
+-- =====================================================================
+-- Migration: 20260929030449_master_part7_grants_auth_storage.sql
+-- =====================================================================
 
 GRANT USAGE ON SCHEMA public TO anon;
 GRANT USAGE ON SCHEMA public TO authenticated;
 GRANT USAGE ON SCHEMA public TO service_role;
 
-
---
--- Name: FUNCTION apply_inventory_transaction(); Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON FUNCTION public.apply_inventory_transaction() TO anon;
 GRANT ALL ON FUNCTION public.apply_inventory_transaction() TO authenticated;
 GRANT ALL ON FUNCTION public.apply_inventory_transaction() TO service_role;
-
-
---
--- Name: FUNCTION handle_book_issue_change(); Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON FUNCTION public.handle_book_issue_change() TO anon;
 GRANT ALL ON FUNCTION public.handle_book_issue_change() TO authenticated;
 GRANT ALL ON FUNCTION public.handle_book_issue_change() TO service_role;
-
-
---
--- Name: FUNCTION handle_new_user(); Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON FUNCTION public.handle_new_user() TO anon;
 GRANT ALL ON FUNCTION public.handle_new_user() TO authenticated;
 GRANT ALL ON FUNCTION public.handle_new_user() TO service_role;
-
-
---
--- Name: FUNCTION has_role(_user_id uuid, _role public.app_role); Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON FUNCTION public.has_role(_user_id uuid, _role public.app_role) TO anon;
 GRANT ALL ON FUNCTION public.has_role(_user_id uuid, _role public.app_role) TO authenticated;
 GRANT ALL ON FUNCTION public.has_role(_user_id uuid, _role public.app_role) TO service_role;
-
-
---
--- Name: FUNCTION recompute_invoice_totals(); Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON FUNCTION public.recompute_invoice_totals() TO anon;
 GRANT ALL ON FUNCTION public.recompute_invoice_totals() TO authenticated;
 GRANT ALL ON FUNCTION public.recompute_invoice_totals() TO service_role;
-
-
---
--- Name: FUNCTION set_updated_at(); Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON FUNCTION public.set_updated_at() TO anon;
 GRANT ALL ON FUNCTION public.set_updated_at() TO authenticated;
 GRANT ALL ON FUNCTION public.set_updated_at() TO service_role;
 
-
---
--- Name: TABLE admission_applications; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.admission_applications TO anon;
 GRANT ALL ON TABLE public.admission_applications TO authenticated;
 GRANT ALL ON TABLE public.admission_applications TO service_role;
-
-
---
--- Name: TABLE admission_interviews; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.admission_interviews TO anon;
 GRANT ALL ON TABLE public.admission_interviews TO authenticated;
 GRANT ALL ON TABLE public.admission_interviews TO service_role;
-
-
---
--- Name: TABLE announcements; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.announcements TO anon;
 GRANT ALL ON TABLE public.announcements TO authenticated;
 GRANT ALL ON TABLE public.announcements TO service_role;
-
-
---
--- Name: TABLE attendance; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.attendance TO anon;
 GRANT ALL ON TABLE public.attendance TO authenticated;
 GRANT ALL ON TABLE public.attendance TO service_role;
-
-
---
--- Name: TABLE attendance_deduction_rules; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.attendance_deduction_rules TO anon;
 GRANT ALL ON TABLE public.attendance_deduction_rules TO authenticated;
 GRANT ALL ON TABLE public.attendance_deduction_rules TO service_role;
-
-
---
--- Name: TABLE audit_logs; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.audit_logs TO anon;
 GRANT ALL ON TABLE public.audit_logs TO authenticated;
 GRANT ALL ON TABLE public.audit_logs TO service_role;
-
-
---
--- Name: TABLE book_issues; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.book_issues TO anon;
 GRANT ALL ON TABLE public.book_issues TO authenticated;
 GRANT ALL ON TABLE public.book_issues TO service_role;
-
-
---
--- Name: TABLE books; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.books TO anon;
 GRANT ALL ON TABLE public.books TO authenticated;
 GRANT ALL ON TABLE public.books TO service_role;
-
-
---
--- Name: TABLE classes; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.classes TO anon;
 GRANT ALL ON TABLE public.classes TO authenticated;
 GRANT ALL ON TABLE public.classes TO service_role;
-
-
---
--- Name: TABLE deduction_components; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.deduction_components TO anon;
 GRANT ALL ON TABLE public.deduction_components TO authenticated;
 GRANT ALL ON TABLE public.deduction_components TO service_role;
-
-
---
--- Name: TABLE departments; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.departments TO anon;
 GRANT ALL ON TABLE public.departments TO authenticated;
 GRANT ALL ON TABLE public.departments TO service_role;
-
-
---
--- Name: TABLE donations; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.donations TO anon;
 GRANT ALL ON TABLE public.donations TO authenticated;
 GRANT ALL ON TABLE public.donations TO service_role;
-
-
---
--- Name: TABLE drivers; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.drivers TO anon;
 GRANT ALL ON TABLE public.drivers TO authenticated;
 GRANT ALL ON TABLE public.drivers TO service_role;
-
-
---
--- Name: TABLE employment_applications; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.employment_applications TO anon;
 GRANT ALL ON TABLE public.employment_applications TO authenticated;
 GRANT ALL ON TABLE public.employment_applications TO service_role;
-
-
---
--- Name: TABLE events; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.events TO anon;
 GRANT ALL ON TABLE public.events TO authenticated;
 GRANT ALL ON TABLE public.events TO service_role;
-
-
---
--- Name: TABLE exam_results; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.exam_results TO anon;
 GRANT ALL ON TABLE public.exam_results TO authenticated;
 GRANT ALL ON TABLE public.exam_results TO service_role;
-
-
---
--- Name: TABLE exams; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.exams TO anon;
 GRANT ALL ON TABLE public.exams TO authenticated;
 GRANT ALL ON TABLE public.exams TO service_role;
-
-
---
--- Name: TABLE fee_challans; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.fee_challans TO anon;
 GRANT ALL ON TABLE public.fee_challans TO authenticated;
 GRANT ALL ON TABLE public.fee_challans TO service_role;
-
-
---
--- Name: TABLE fee_constituents; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.fee_constituents TO anon;
 GRANT ALL ON TABLE public.fee_constituents TO authenticated;
 GRANT ALL ON TABLE public.fee_constituents TO service_role;
-
-
---
--- Name: TABLE fee_group_constituents; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.fee_group_constituents TO anon;
 GRANT ALL ON TABLE public.fee_group_constituents TO authenticated;
 GRANT ALL ON TABLE public.fee_group_constituents TO service_role;
-
-
---
--- Name: TABLE fee_groups; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.fee_groups TO anon;
 GRANT ALL ON TABLE public.fee_groups TO authenticated;
 GRANT ALL ON TABLE public.fee_groups TO service_role;
-
-
---
--- Name: TABLE fee_structures; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.fee_structures TO anon;
 GRANT ALL ON TABLE public.fee_structures TO authenticated;
 GRANT ALL ON TABLE public.fee_structures TO service_role;
-
-
---
--- Name: TABLE grading_scales; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.grading_scales TO anon;
 GRANT ALL ON TABLE public.grading_scales TO authenticated;
 GRANT ALL ON TABLE public.grading_scales TO service_role;
-
-
---
--- Name: TABLE homework; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.homework TO anon;
 GRANT ALL ON TABLE public.homework TO authenticated;
 GRANT ALL ON TABLE public.homework TO service_role;
-
-
---
--- Name: TABLE homework_submissions; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.homework_submissions TO anon;
 GRANT ALL ON TABLE public.homework_submissions TO authenticated;
 GRANT ALL ON TABLE public.homework_submissions TO service_role;
-
-
---
--- Name: TABLE import_profiles; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.import_profiles TO anon;
 GRANT ALL ON TABLE public.import_profiles TO authenticated;
 GRANT ALL ON TABLE public.import_profiles TO service_role;
-
-
---
--- Name: TABLE inventory_categories; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.inventory_categories TO anon;
 GRANT ALL ON TABLE public.inventory_categories TO authenticated;
 GRANT ALL ON TABLE public.inventory_categories TO service_role;
-
-
---
--- Name: TABLE inventory_items; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.inventory_items TO anon;
 GRANT ALL ON TABLE public.inventory_items TO authenticated;
 GRANT ALL ON TABLE public.inventory_items TO service_role;
-
-
---
--- Name: TABLE inventory_transactions; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.inventory_transactions TO anon;
 GRANT ALL ON TABLE public.inventory_transactions TO authenticated;
 GRANT ALL ON TABLE public.inventory_transactions TO service_role;
-
-
---
--- Name: TABLE invoices; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.invoices TO anon;
 GRANT ALL ON TABLE public.invoices TO authenticated;
 GRANT ALL ON TABLE public.invoices TO service_role;
-
-
---
--- Name: TABLE messages; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.messages TO anon;
 GRANT ALL ON TABLE public.messages TO authenticated;
 GRANT ALL ON TABLE public.messages TO service_role;
-
-
---
--- Name: TABLE notifications; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.notifications TO anon;
 GRANT ALL ON TABLE public.notifications TO authenticated;
 GRANT ALL ON TABLE public.notifications TO service_role;
-
-
---
--- Name: TABLE parent_contacts; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.parent_contacts TO anon;
 GRANT ALL ON TABLE public.parent_contacts TO authenticated;
 GRANT ALL ON TABLE public.parent_contacts TO service_role;
-
-
---
--- Name: TABLE parents; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.parents TO anon;
 GRANT ALL ON TABLE public.parents TO authenticated;
 GRANT ALL ON TABLE public.parents TO service_role;
-
-
---
--- Name: TABLE payments; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.payments TO anon;
 GRANT ALL ON TABLE public.payments TO authenticated;
 GRANT ALL ON TABLE public.payments TO service_role;
-
-
---
--- Name: TABLE payroll_item_lines; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.payroll_item_lines TO anon;
 GRANT ALL ON TABLE public.payroll_item_lines TO authenticated;
 GRANT ALL ON TABLE public.payroll_item_lines TO service_role;
-
-
---
--- Name: TABLE payroll_items; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.payroll_items TO anon;
 GRANT ALL ON TABLE public.payroll_items TO authenticated;
 GRANT ALL ON TABLE public.payroll_items TO service_role;
-
-
---
--- Name: TABLE payroll_run_bonus_lines; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.payroll_run_bonus_lines TO anon;
 GRANT ALL ON TABLE public.payroll_run_bonus_lines TO authenticated;
 GRANT ALL ON TABLE public.payroll_run_bonus_lines TO service_role;
-
-
---
--- Name: TABLE payroll_runs; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.payroll_runs TO anon;
 GRANT ALL ON TABLE public.payroll_runs TO authenticated;
 GRANT ALL ON TABLE public.payroll_runs TO service_role;
-
-
---
--- Name: TABLE profiles; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.profiles TO anon;
 GRANT ALL ON TABLE public.profiles TO authenticated;
 GRANT ALL ON TABLE public.profiles TO service_role;
-
-
---
--- Name: TABLE role_permissions; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.role_permissions TO anon;
 GRANT ALL ON TABLE public.role_permissions TO authenticated;
 GRANT ALL ON TABLE public.role_permissions TO service_role;
-
-
---
--- Name: TABLE roles; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.roles TO anon;
 GRANT ALL ON TABLE public.roles TO authenticated;
 GRANT ALL ON TABLE public.roles TO service_role;
-
-
---
--- Name: TABLE school_settings; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.school_settings TO anon;
 GRANT ALL ON TABLE public.school_settings TO authenticated;
 GRANT ALL ON TABLE public.school_settings TO service_role;
-
-
---
--- Name: TABLE staff_attendance; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.staff_attendance TO anon;
 GRANT ALL ON TABLE public.staff_attendance TO authenticated;
 GRANT ALL ON TABLE public.staff_attendance TO service_role;
-
-
---
--- Name: TABLE student_parents; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.student_parents TO anon;
 GRANT ALL ON TABLE public.student_parents TO authenticated;
 GRANT ALL ON TABLE public.student_parents TO service_role;
-
-
---
--- Name: TABLE students; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.students TO anon;
 GRANT ALL ON TABLE public.students TO authenticated;
 GRANT ALL ON TABLE public.students TO service_role;
-
-
---
--- Name: TABLE subjects; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.subjects TO anon;
 GRANT ALL ON TABLE public.subjects TO authenticated;
 GRANT ALL ON TABLE public.subjects TO service_role;
-
-
---
--- Name: TABLE teachers; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.teachers TO anon;
 GRANT ALL ON TABLE public.teachers TO authenticated;
 GRANT ALL ON TABLE public.teachers TO service_role;
-
-
---
--- Name: TABLE timetable_slots; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.timetable_slots TO anon;
 GRANT ALL ON TABLE public.timetable_slots TO authenticated;
 GRANT ALL ON TABLE public.timetable_slots TO service_role;
-
-
---
--- Name: TABLE transport_assignments; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.transport_assignments TO anon;
 GRANT ALL ON TABLE public.transport_assignments TO authenticated;
 GRANT ALL ON TABLE public.transport_assignments TO service_role;
-
-
---
--- Name: TABLE transport_routes; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.transport_routes TO anon;
 GRANT ALL ON TABLE public.transport_routes TO authenticated;
 GRANT ALL ON TABLE public.transport_routes TO service_role;
-
-
---
--- Name: TABLE transport_vehicles; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.transport_vehicles TO anon;
 GRANT ALL ON TABLE public.transport_vehicles TO authenticated;
 GRANT ALL ON TABLE public.transport_vehicles TO service_role;
-
-
---
--- Name: TABLE user_roles; Type: ACL; Schema: public; Owner: -
---
-
 GRANT ALL ON TABLE public.user_roles TO anon;
 GRANT ALL ON TABLE public.user_roles TO authenticated;
 GRANT ALL ON TABLE public.user_roles TO service_role;
 
-
---
--- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: -
---
-
-
-
---
--- Name: DEFAULT PRIVILEGES FOR SEQUENCES; Type: DEFAULT ACL; Schema: public; Owner: -
---
-
-
-
---
--- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: -
---
-
-
-
---
--- Name: DEFAULT PRIVILEGES FOR FUNCTIONS; Type: DEFAULT ACL; Schema: public; Owner: -
---
-
-
-
---
--- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: -
---
-
-
-
---
--- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: -
---
-
-
-
---
--- PostgreSQL database dump complete
---
-
-
--- =====================================================================
--- AUTH: auto-create a profile on sign-up; first ever user becomes admin
--- =====================================================================
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- =====================================================================
--- STORAGE: private bucket for payment proofs
--- =====================================================================
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('payment-proofs', 'payment-proofs', false)
 ON CONFLICT (id) DO NOTHING;
@@ -5186,22 +1538,1205 @@ CREATE POLICY "proofs admin delete" ON storage.objects
   FOR DELETE TO authenticated
   USING (bucket_id = 'payment-proofs' AND public.has_role(auth.uid(), 'admin'));
 
-COMMIT;
+-- =====================================================================
+-- Migration: 20260929031253_multi_tenant_infra.sql
+-- =====================================================================
+
+/*
+# Multi-tenant infrastructure: tenants table + tenant_id on all tables
+*/
+
+CREATE TABLE IF NOT EXISTS public.tenants (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    subdomain text NOT NULL,
+    display_name text NOT NULL,
+    status text DEFAULT 'trial' NOT NULL,
+    school_name text,
+    tagline text,
+    logo_url text,
+    favicon_url text,
+    primary_color text,
+    secondary_color text,
+    accent_color text,
+    onboarding_completed_steps jsonb DEFAULT '[]'::jsonb NOT NULL,
+    onboarding_dismissed boolean DEFAULT false NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT tenants_subdomain_key UNIQUE (subdomain),
+    CONSTRAINT tenants_pkey PRIMARY KEY (id),
+    CONSTRAINT tenants_status_check CHECK ((status = ANY (ARRAY['trial'::text, 'active'::text, 'suspended'::text])))
+);
+
+ALTER TABLE public.tenants ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON TABLE public.tenants TO anon;
+GRANT ALL ON TABLE public.tenants TO authenticated;
+GRANT ALL ON TABLE public.tenants TO service_role;
+
+-- Add tenant_id to profiles FIRST (policies depend on it)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'tenant_id') THEN
+    ALTER TABLE public.profiles ADD COLUMN tenant_id uuid REFERENCES public.tenants(id) ON DELETE SET NULL;
+    CREATE INDEX IF NOT EXISTS profiles_tenant_id_idx ON public.profiles (tenant_id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_roles' AND column_name = 'tenant_id') THEN
+    ALTER TABLE public.user_roles ADD COLUMN tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE;
+    CREATE INDEX IF NOT EXISTS user_roles_tenant_id_idx ON public.user_roles (tenant_id);
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'school_settings' AND column_name = 'tenant_id') THEN
+    ALTER TABLE public.school_settings ADD COLUMN tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE;
+  END IF;
+END $$;
+CREATE UNIQUE INDEX IF NOT EXISTS school_settings_tenant_id_idx ON public.school_settings (tenant_id) WHERE tenant_id IS NOT NULL;
+
+-- Now add tenant_id to all data tables
+DO $$
+DECLARE
+    tbl text;
+    data_tables text[] := ARRAY[
+        'admission_applications','admission_interviews','announcements','attendance',
+        'attendance_deduction_rules','audit_logs','book_issues','books','classes',
+        'deduction_components','departments','donations','drivers',
+        'employment_applications','events','exam_results','exams','fee_challans',
+        'fee_constituents','fee_group_constituents','fee_groups','fee_structures',
+        'grading_scales','homework','homework_submissions','import_profiles',
+        'inventory_categories','inventory_items','inventory_transactions','invoices',
+        'messages','notifications','parent_contacts','parents','payments',
+        'payroll_item_lines','payroll_items','payroll_run_bonus_lines','payroll_runs',
+        'role_permissions','roles','staff_attendance','student_parents','students',
+        'subjects','teachers','timetable_slots','transport_assignments',
+        'transport_routes','transport_vehicles'
+    ];
+BEGIN
+    FOREACH tbl IN ARRAY data_tables LOOP
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = tbl AND column_name = 'tenant_id') THEN
+            EXECUTE format('ALTER TABLE public.%I ADD COLUMN tenant_id uuid REFERENCES public.tenants(id) ON DELETE CASCADE', tbl);
+            EXECUTE format('CREATE INDEX IF NOT EXISTS %I_tenant_idx ON public.%I (tenant_id)', tbl, tbl);
+        END IF;
+    END LOOP;
+END $$;
+
+-- Now create RLS policies on tenants (profiles.tenant_id exists now)
+DROP POLICY IF EXISTS "tenants select own" ON public.tenants;
+CREATE POLICY "tenants select own" ON public.tenants FOR SELECT
+    TO authenticated USING (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.tenant_id = tenants.id)
+    );
+DROP POLICY IF EXISTS "tenants update own" ON public.tenants;
+CREATE POLICY "tenants update own" ON public.tenants FOR UPDATE
+    TO authenticated USING (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.tenant_id = tenants.id)
+    ) WITH CHECK (
+        EXISTS (SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.tenant_id = tenants.id)
+    );
+DROP POLICY IF EXISTS "tenants insert own" ON public.tenants;
+CREATE POLICY "tenants insert own" ON public.tenants FOR INSERT
+    TO authenticated WITH CHECK (true);
+
+-- Helper function
+CREATE OR REPLACE FUNCTION public.current_tenant_id() RETURNS uuid
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$ SELECT tenant_id FROM public.profiles WHERE id = auth.uid() LIMIT 1; $$;
+
+-- Update handle_new_user
+CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+DECLARE v_tenant_id uuid; v_user_count integer; v_subdomain text;
+BEGIN
+    INSERT INTO public.profiles (id, full_name, email)
+    VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data ->> 'full_name', split_part(NEW.email, '@', 1)), NEW.email)
+    ON CONFLICT (id) DO NOTHING;
+    SELECT COUNT(*) INTO v_user_count FROM public.tenants;
+    IF v_user_count = 0 THEN
+        v_subdomain := COALESCE(NEW.raw_user_meta_data ->> 'subdomain', 'default');
+        INSERT INTO public.tenants (subdomain, display_name, school_name)
+        VALUES (v_subdomain, COALESCE(NEW.raw_user_meta_data ->> 'school_name', 'My School'), COALESCE(NEW.raw_user_meta_data ->> 'school_name', 'My School'))
+        RETURNING id INTO v_tenant_id;
+        UPDATE public.profiles SET tenant_id = v_tenant_id WHERE id = NEW.id;
+        INSERT INTO public.user_roles (user_id, role, tenant_id) VALUES (NEW.id, 'admin', v_tenant_id) ON CONFLICT DO NOTHING;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+-- RPC functions
+CREATE OR REPLACE FUNCTION public.get_tenant_public(_subdomain text) RETURNS jsonb
+    LANGUAGE sql SECURITY DEFINER SET search_path TO 'public'
+    AS $$ SELECT jsonb_build_object('id', t.id, 'subdomain', t.subdomain, 'display_name', t.display_name, 'status', t.status, 'school_name', t.school_name, 'tagline', t.tagline, 'logo_url', t.logo_url, 'favicon_url', t.favicon_url, 'primary_color', t.primary_color, 'secondary_color', t.secondary_color, 'accent_color', t.accent_color) FROM public.tenants t WHERE t.subdomain = _subdomain; $$;
+
+CREATE OR REPLACE FUNCTION public.update_onboarding(_step text, _dismiss boolean) RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+    AS $$
+DECLARE v_tenant_id uuid; v_steps jsonb;
+BEGIN
+    SELECT tenant_id INTO v_tenant_id FROM public.profiles WHERE id = auth.uid();
+    IF v_tenant_id IS NULL THEN RETURN; END IF;
+    IF _dismiss THEN UPDATE public.tenants SET onboarding_dismissed = true, updated_at = now() WHERE id = v_tenant_id; RETURN; END IF;
+    IF _step IS NULL THEN RETURN; END IF;
+    SELECT onboarding_completed_steps INTO v_steps FROM public.tenants WHERE id = v_tenant_id;
+    IF NOT (v_steps ? _step) THEN
+        UPDATE public.tenants SET onboarding_completed_steps = v_steps || jsonb_build_array(_step), updated_at = now() WHERE id = v_tenant_id;
+    END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.register_tenant(_subdomain text, _display_name text, _school_name text) RETURNS uuid
+    LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+    AS $$
+DECLARE v_tenant_id uuid; v_existing uuid;
+BEGIN
+    SELECT id INTO v_existing FROM public.tenants WHERE subdomain = _subdomain;
+    IF v_existing IS NOT NULL THEN RAISE EXCEPTION 'Subdomain already taken'; END IF;
+    INSERT INTO public.tenants (subdomain, display_name, school_name) VALUES (_subdomain, _display_name, _school_name) RETURNING id INTO v_tenant_id;
+    UPDATE public.profiles SET tenant_id = v_tenant_id WHERE id = auth.uid();
+    INSERT INTO public.user_roles (user_id, role, tenant_id) VALUES (auth.uid(), 'admin', v_tenant_id) ON CONFLICT DO NOTHING;
+    INSERT INTO public.school_settings (tenant_id, school_name) VALUES (v_tenant_id, _school_name) ON CONFLICT DO NOTHING;
+    RETURN v_tenant_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_tenant_public(text) TO anon;
+GRANT EXECUTE ON FUNCTION public.get_tenant_public(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.update_onboarding(text, boolean) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.register_tenant(text, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.current_tenant_id() TO authenticated;
+
+INSERT INTO storage.buckets (id, name, public) VALUES ('branding', 'branding', false) ON CONFLICT (id) DO NOTHING;
+DROP POLICY IF EXISTS "branding upload" ON storage.objects;
+CREATE POLICY "branding upload" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'branding');
+DROP POLICY IF EXISTS "branding read own" ON storage.objects;
+CREATE POLICY "branding read own" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'branding' AND (owner = auth.uid() OR public.has_role(auth.uid(), 'admin')));
+DROP POLICY IF EXISTS "branding update" ON storage.objects;
+CREATE POLICY "branding update" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'branding' AND (owner = auth.uid() OR public.has_role(auth.uid(), 'admin')));
+DROP POLICY IF EXISTS "branding delete" ON storage.objects;
+CREATE POLICY "branding delete" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'branding' AND (owner = auth.uid() OR public.has_role(auth.uid(), 'admin')));
+
+DROP TRIGGER IF EXISTS tenants_updated_at ON public.tenants;
+CREATE TRIGGER tenants_updated_at BEFORE UPDATE ON public.tenants FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- =====================================================================
--- ADMIN USER CREATION
--- Preferred: sign up through the app's /auth page. The FIRST account
--- created in a fresh project automatically becomes admin (see the
--- handle_new_user trigger above).
---
--- To promote an existing account to admin, run:
---
---   INSERT INTO public.user_roles (user_id, role)
---   SELECT id, 'admin' FROM auth.users WHERE email = 'you@example.com'
---   ON CONFLICT DO NOTHING;
---
---   INSERT INTO public.profiles (id, full_name, email)
---   SELECT id, COALESCE(raw_user_meta_data->>'full_name', split_part(email,'@',1)), email
---   FROM auth.users WHERE email = 'you@example.com'
---   ON CONFLICT (id) DO NOTHING;
+-- Migration: 20260929032702_fix_rls_public_access.sql
 -- =====================================================================
+
+/*
+# Fix RLS policies for multi-tenant public access and user scoping
+
+1. school_settings: allow anon SELECT so visitors can see branding
+2. classes: allow anon SELECT so embed forms can show class dropdowns
+3. events: already has anon SELECT policy, but verify
+4. Add tenant-scoped user management support
+*/
+
+-- school_settings: anon can read (branding info is public)
+DROP POLICY IF EXISTS "settings public read" ON public.school_settings;
+CREATE POLICY "settings public read" ON public.school_settings
+    FOR SELECT TO anon, authenticated USING (true);
+
+-- classes: anon can read (needed for embed admission form dropdown)
+DROP POLICY IF EXISTS "classes public read" ON public.classes;
+CREATE POLICY "classes public read" ON public.classes
+    FOR SELECT TO anon USING (true);
+
+-- Add a helper function to get the caller's tenant_id (already exists as current_tenant_id)
+-- Add a function to check if a user is in the same tenant as the caller
+CREATE OR REPLACE FUNCTION public.is_same_tenant(_other_user_id uuid) RETURNS boolean
+    LANGUAGE sql STABLE SECURITY DEFINER
+    SET search_path TO 'public'
+    AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.profiles a, public.profiles b
+    WHERE a.id = auth.uid() AND b.id = _other_user_id
+    AND a.tenant_id IS NOT NULL AND a.tenant_id = b.tenant_id
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.is_same_tenant(uuid) TO authenticated;
+
+-- =====================================================================
+-- Migration: 20260929033323_fix_import_profiles_tenant_constraint.sql
+-- =====================================================================
+
+/*
+# Fix import_profiles unique constraint for multi-tenant isolation
+
+The original unique constraint on (entity_key, name) allows cross-tenant
+collisions. Add tenant_id to the constraint so each school can have its
+own saved import profiles with the same name.
+*/
+
+ALTER TABLE public.import_profiles DROP CONSTRAINT IF EXISTS import_profiles_entity_key_name_key;
+
+ALTER TABLE public.import_profiles ADD CONSTRAINT import_profiles_tenant_entity_name_key UNIQUE (tenant_id, entity_key, name);
+
+-- =====================================================================
+-- Migration: 20261001081939_attendance_mode_configurable.sql
+-- =====================================================================
+
+/*
+# Configurable Attendance Mode (Per-Day vs Per-Course)
+
+1. New Columns
+- `school_settings.attendance_mode` — text, not null, default 'per_day', CHECK in ('per_day','per_course').
+  School-wide switch: 'per_day' = class teacher marks once/day; 'per_course' = each subject teacher marks per period.
+- `attendance.timetable_slot_id` — nullable uuid FK to timetable_slots(id).
+  NULL = per_day row (one per student per day); non-NULL = per_course row (one per student per slot per day).
+
+2. Unique Index
+- `attendance_unique_per_day_or_slot` on (class_id, student_id, date, coalesce(timetable_slot_id, zero-uuid)).
+  Replaces the implicit (class_id, student_id, date) uniqueness so both modes coexist.
+
+3. RLS Changes
+- Drop old teacher INSERT/UPDATE policies and replace with mode-aware ones:
+  - per_day: teacher must be the class_teacher_id on classes for that class_id.
+  - per_course: teacher must be the teacher_id on the timetable_slots row referenced by timetable_slot_id.
+- Admins retain full access.
+- Teachers retain SELECT (unchanged).
+
+4. Helper Function
+- `can_take_attendance(_class_id, _slot_id)` — returns true if the caller is allowed to record
+  attendance for the given class/slot under the current school mode.
+*/
+
+ALTER TABLE public.school_settings
+  ADD COLUMN IF NOT EXISTS attendance_mode text NOT NULL DEFAULT 'per_day'
+  CHECK (attendance_mode IN ('per_day', 'per_course'));
+
+ALTER TABLE public.attendance
+  ADD COLUMN IF NOT EXISTS timetable_slot_id uuid REFERENCES public.timetable_slots(id) ON DELETE SET NULL;
+
+-- Drop old unique constraint if it exists (named or unnamed)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conrelid = 'public.attendance'::regclass
+    AND contype = 'u'
+    AND array_to_string(conkey, ',') = (
+      SELECT array_to_string(array_agg(attnum), ',')
+      FROM pg_attribute
+      WHERE attrelid = 'public.attendance'::regclass
+      AND attname IN ('class_id', 'student_id', 'date')
+    )
+  ) THEN
+    ALTER TABLE public.attendance DROP CONSTRAINT attendance_class_id_student_id_date_key;
+  END IF;
+END $$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS attendance_unique_per_day_or_slot
+  ON public.attendance (
+    class_id, student_id, date,
+    coalesce(timetable_slot_id, '00000000-0000-0000-0000-000000000000'::uuid)
+  );
+
+-- Helper: can the current user take attendance for this class/slot?
+CREATE OR REPLACE FUNCTION public.can_take_attendance(
+  _class_id uuid,
+  _slot_id uuid
+) RETURNS boolean
+  LANGUAGE sql STABLE SECURITY DEFINER
+  SET search_path TO 'public'
+  AS $$
+  SELECT CASE
+    -- Admins can always take attendance
+    WHEN public.has_role(auth.uid(), 'admin'::public.app_role) THEN true
+    -- No session = no access
+    WHEN auth.uid() IS NULL THEN false
+    ELSE
+      CASE
+        -- per_day: must be the class teacher
+        WHEN (
+          SELECT COALESCE(ss.attendance_mode, 'per_day')
+          FROM public.school_settings ss
+          LIMIT 1
+        ) = 'per_day'
+        THEN EXISTS (
+          SELECT 1 FROM public.classes c
+          WHERE c.id = _class_id AND c.class_teacher_id = auth.uid()
+        )
+        -- per_course: must be the slot's teacher
+        ELSE EXISTS (
+          SELECT 1 FROM public.timetable_slots ts
+          WHERE ts.id = _slot_id AND ts.teacher_id = auth.uid()
+        )
+      END
+  END
+$$;
+
+GRANT EXECUTE ON FUNCTION public.can_take_attendance(uuid, uuid) TO authenticated;
+
+-- Replace teacher INSERT policy with mode-aware check
+DROP POLICY IF EXISTS "Teachers insert attendance" ON public.attendance;
+CREATE POLICY "Teachers insert attendance" ON public.attendance
+  FOR INSERT TO authenticated
+  WITH CHECK (public.can_take_attendance(class_id, timetable_slot_id));
+
+-- Replace teacher UPDATE policy with mode-aware check
+DROP POLICY IF EXISTS "Teachers update attendance" ON public.attendance;
+CREATE POLICY "Teachers update attendance" ON public.attendance
+  FOR UPDATE TO authenticated
+  USING (public.has_role(auth.uid(), 'teacher'::public.app_role))
+  WITH CHECK (public.can_take_attendance(class_id, timetable_slot_id));
+
+-- =====================================================================
+-- Migration: 20261001082040_faculty_chat_tables.sql
+-- =====================================================================
+
+/*
+# Faculty Chat — Data Model & RLS
+
+1. New Tables
+- `chat_channels` — id, tenant_id, name, type (direct|group|announcement), created_by, created_at.
+- `chat_channel_members` — id, channel_id, user_id, joined_at.
+- `chat_messages` — id, channel_id, sender_id, body, created_at, edited_at.
+
+2. Security (RLS)
+- All three tables tenant-scoped. Membership scoped to admin+teacher roles.
+- chat_channels: members see channels they belong to; staff can create.
+- chat_channel_members: read own; insert by self/admin/channel creator; delete by self/admin.
+- chat_messages: members read; members insert (announcement = admin only); sender can update; sender/admin can delete.
+
+3. Auto-All-Staff Channel
+- Trigger on user_roles INSERT (admin or teacher): auto-add to school's All Staff channel.
+*/
+
+CREATE TABLE IF NOT EXISTS public.chat_channels (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL DEFAULT public.current_tenant_id(),
+  name text NOT NULL,
+  type text NOT NULL DEFAULT 'group' CHECK (type IN ('direct', 'group', 'announcement')),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.chat_channel_members (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  channel_id uuid NOT NULL REFERENCES public.chat_channels(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  joined_at timestamptz DEFAULT now() NOT NULL,
+  UNIQUE (channel_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  channel_id uuid NOT NULL REFERENCES public.chat_channels(id) ON DELETE CASCADE,
+  sender_id uuid NOT NULL DEFAULT auth.uid() REFERENCES auth.users(id) ON DELETE CASCADE,
+  body text NOT NULL,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  edited_at timestamptz
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_channels_tenant ON public.chat_channels(tenant_id);
+CREATE INDEX IF NOT EXISTS idx_chat_members_channel ON public.chat_channel_members(channel_id);
+CREATE INDEX IF NOT EXISTS idx_chat_members_user ON public.chat_channel_members(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_channel_created ON public.chat_messages(channel_id, created_at);
+
+ALTER TABLE public.chat_channels ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_channel_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- chat_channels: read if you're a member
+DROP POLICY IF EXISTS "chat_channels member read" ON public.chat_channels;
+CREATE POLICY "chat_channels member read" ON public.chat_channels
+  FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.chat_channel_members m
+    WHERE m.channel_id = chat_channels.id AND m.user_id = auth.uid()
+  ));
+
+-- chat_channels: create — admin or teacher only
+DROP POLICY IF EXISTS "chat_channels staff create" ON public.chat_channels;
+CREATE POLICY "chat_channels staff create" ON public.chat_channels
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- chat_channels: update — admin or creator
+DROP POLICY IF EXISTS "chat_channels admin update" ON public.chat_channels;
+CREATE POLICY "chat_channels admin update" ON public.chat_channels
+  FOR UPDATE TO authenticated
+  USING (created_by = auth.uid() OR public.has_role(auth.uid(), 'admin'::public.app_role))
+  WITH CHECK (created_by = auth.uid() OR public.has_role(auth.uid(), 'admin'::public.app_role));
+
+-- chat_channels: delete — admin or creator
+DROP POLICY IF EXISTS "chat_channels admin delete" ON public.chat_channels;
+CREATE POLICY "chat_channels admin delete" ON public.chat_channels
+  FOR DELETE TO authenticated
+  USING (created_by = auth.uid() OR public.has_role(auth.uid(), 'admin'::public.app_role));
+
+-- chat_channel_members: read if you're a member of that channel
+DROP POLICY IF EXISTS "chat_members read own channels" ON public.chat_channel_members;
+CREATE POLICY "chat_members read own channels" ON public.chat_channel_members
+  FOR SELECT TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR EXISTS (
+      SELECT 1 FROM public.chat_channel_members m2
+      WHERE m2.channel_id = chat_channel_members.channel_id AND m2.user_id = auth.uid()
+    )
+  );
+
+-- chat_channel_members: insert — self, admin, or channel creator
+DROP POLICY IF EXISTS "chat_members insert" ON public.chat_channel_members;
+CREATE POLICY "chat_members insert" ON public.chat_channel_members
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    user_id = auth.uid()
+    OR public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR EXISTS (
+      SELECT 1 FROM public.chat_channels c
+      WHERE c.id = chat_channel_members.channel_id AND c.created_by = auth.uid()
+    )
+  );
+
+-- chat_channel_members: delete — self or admin
+DROP POLICY IF EXISTS "chat_members delete" ON public.chat_channel_members;
+CREATE POLICY "chat_members delete" ON public.chat_channel_members
+  FOR DELETE TO authenticated
+  USING (
+    user_id = auth.uid()
+    OR public.has_role(auth.uid(), 'admin'::public.app_role)
+  );
+
+-- chat_messages: read if you're a member of the channel
+DROP POLICY IF EXISTS "chat_messages member read" ON public.chat_messages;
+CREATE POLICY "chat_messages member read" ON public.chat_messages
+  FOR SELECT TO authenticated
+  USING (EXISTS (
+    SELECT 1 FROM public.chat_channel_members m
+    WHERE m.channel_id = chat_messages.channel_id AND m.user_id = auth.uid()
+  ));
+
+-- chat_messages: insert — must be member; announcement channels require admin
+DROP POLICY IF EXISTS "chat_messages member insert" ON public.chat_messages;
+CREATE POLICY "chat_messages member insert" ON public.chat_messages
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    auth.uid() = sender_id
+    AND EXISTS (
+      SELECT 1 FROM public.chat_channel_members m
+      WHERE m.channel_id = chat_messages.channel_id AND m.user_id = auth.uid()
+    )
+    AND NOT EXISTS (
+      SELECT 1 FROM public.chat_channels c
+      WHERE c.id = chat_messages.channel_id
+        AND c.type = 'announcement'
+        AND NOT public.has_role(auth.uid(), 'admin'::public.app_role)
+    )
+  );
+
+-- chat_messages: update own messages
+DROP POLICY IF EXISTS "chat_messages sender update" ON public.chat_messages;
+CREATE POLICY "chat_messages sender update" ON public.chat_messages
+  FOR UPDATE TO authenticated
+  USING (sender_id = auth.uid())
+  WITH CHECK (sender_id = auth.uid());
+
+-- chat_messages: delete — sender or admin
+DROP POLICY IF EXISTS "chat_messages sender delete" ON public.chat_messages;
+CREATE POLICY "chat_messages sender delete" ON public.chat_messages
+  FOR DELETE TO authenticated
+  USING (sender_id = auth.uid() OR public.has_role(auth.uid(), 'admin'::public.app_role));
+
+-- Function to ensure "All Staff" channel exists for a tenant and return its id
+CREATE OR REPLACE FUNCTION public.ensure_all_staff_channel()
+  RETURNS uuid
+  LANGUAGE plpgsql SECURITY DEFINER
+  SET search_path TO 'public'
+  AS $$
+DECLARE
+  v_tenant uuid;
+  v_channel uuid;
+BEGIN
+  v_tenant := public.current_tenant_id();
+  IF v_tenant IS NULL THEN RETURN NULL; END IF;
+
+  SELECT id INTO v_channel
+  FROM public.chat_channels
+  WHERE tenant_id = v_tenant AND type = 'announcement' AND name = 'All Staff'
+  LIMIT 1;
+
+  IF v_channel IS NULL THEN
+    INSERT INTO public.chat_channels (tenant_id, name, type, created_by)
+    VALUES (v_tenant, 'All Staff', 'announcement', auth.uid())
+    RETURNING id INTO v_channel;
+  END IF;
+
+  RETURN v_channel;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.ensure_all_staff_channel() TO authenticated;
+
+-- Trigger: when a user gets admin or teacher role, auto-add them to All Staff channel
+CREATE OR REPLACE FUNCTION public.auto_join_all_staff()
+  RETURNS trigger
+  LANGUAGE plpgsql SECURITY DEFINER
+  SET search_path TO 'public'
+  AS $$
+DECLARE
+  v_channel uuid;
+  v_tenant text;
+BEGIN
+  IF NEW.role NOT IN ('admin', 'teacher') THEN RETURN NEW; END IF;
+
+  SELECT tenant_id::text INTO v_tenant FROM public.profiles WHERE id = NEW.user_id;
+  IF v_tenant IS NULL THEN RETURN NEW; END IF;
+
+  PERFORM set_config('app.current_tenant', v_tenant, true);
+
+  v_channel := public.ensure_all_staff_channel();
+  IF v_channel IS NOT NULL THEN
+    INSERT INTO public.chat_channel_members (channel_id, user_id)
+    VALUES (v_channel, NEW.user_id)
+    ON CONFLICT (channel_id, user_id) DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_auto_join_all_staff ON public.user_roles;
+CREATE TRIGGER trg_auto_join_all_staff
+  AFTER INSERT ON public.user_roles
+  FOR EACH ROW EXECUTE FUNCTION public.auto_join_all_staff();
+
+-- =====================================================================
+-- Migration: 20261001093557_teacher_student_portal_schema.sql
+-- =====================================================================
+
+/*
+# Teacher & Student Portal Schema
+
+1. Extended Tables
+- homework: + instructions_file_url, allow_late, max_attempts
+- homework_submissions: + submission_text, submission_file_url, attempt_number, graded_by, graded_at
+
+2. New Tables
+- question_bank: reusable questions (mcq/short_answer/long_answer) with options, correct answer, marks, difficulty, tags, is_shared
+- quizzes: timed online quizzes with availability window, status (draft/published/closed)
+- quiz_questions: links quiz to question_bank entries with order and optional marks override
+- quiz_attempts: student attempt with start/submit times, status, score
+- quiz_attempt_answers: per-question answers with auto-grading results
+- generated_papers: printable test paper metadata (question_ids array, total_marks)
+
+3. New Enums
+- question_type: mcq | short_answer | long_answer
+- question_difficulty: easy | medium | hard
+- quiz_status: draft | published | closed
+- quiz_attempt_status: in_progress | submitted | auto_submitted | graded
+
+4. Storage
+- assignments bucket for student submission files and teacher instruction files
+
+5. Server-side Functions
+- submit_quiz_attempt(p_attempt_id): enforces timing server-side, auto-grades MCQ, returns score
+*/
+
+-- ── Enums ──────────────────────────────────────────────────────────
+
+DO $$ BEGIN
+  CREATE TYPE public.question_type AS ENUM ('mcq', 'short_answer', 'long_answer');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.question_difficulty AS ENUM ('easy', 'medium', 'hard');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.quiz_status AS ENUM ('draft', 'published', 'closed');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE public.quiz_attempt_status AS ENUM ('in_progress', 'submitted', 'auto_submitted', 'graded');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+-- ── Extend homework ────────────────────────────────────────────────
+
+ALTER TABLE public.homework
+  ADD COLUMN IF NOT EXISTS instructions_file_url text,
+  ADD COLUMN IF NOT EXISTS allow_late boolean NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS max_attempts int NOT NULL DEFAULT 1;
+
+-- ── Extend homework_submissions ────────────────────────────────────
+
+ALTER TABLE public.homework_submissions
+  ADD COLUMN IF NOT EXISTS submission_text text,
+  ADD COLUMN IF NOT EXISTS submission_file_url text,
+  ADD COLUMN IF NOT EXISTS attempt_number int NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS graded_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS graded_at timestamptz;
+
+-- ── question_bank ──────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.question_bank (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  class_id uuid REFERENCES public.classes(id) ON DELETE CASCADE,
+  subject text NOT NULL,
+  question_type public.question_type NOT NULL,
+  question_text text NOT NULL,
+  options jsonb,
+  correct_option_id text,
+  marks numeric NOT NULL DEFAULT 1,
+  difficulty public.question_difficulty DEFAULT 'medium',
+  tags text[] DEFAULT '{}',
+  is_shared boolean NOT NULL DEFAULT false,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  updated_at timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_qb_class_subject ON public.question_bank(class_id, subject);
+CREATE INDEX IF NOT EXISTS idx_qb_created_by ON public.question_bank(created_by);
+CREATE INDEX IF NOT EXISTS idx_qb_shared ON public.question_bank(is_shared) WHERE is_shared = true;
+
+-- ── quizzes ────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.quizzes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  class_id uuid NOT NULL REFERENCES public.classes(id) ON DELETE CASCADE,
+  subject text NOT NULL,
+  title text NOT NULL,
+  description text,
+  duration_minutes int NOT NULL DEFAULT 30,
+  available_from timestamptz,
+  available_until timestamptz,
+  shuffle_questions boolean DEFAULT true,
+  status public.quiz_status DEFAULT 'draft',
+  total_marks numeric,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  updated_at timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_quizzes_class ON public.quizzes(class_id);
+
+-- ── quiz_questions ─────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.quiz_questions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
+  question_bank_id uuid NOT NULL REFERENCES public.question_bank(id) ON DELETE CASCADE,
+  order_index int NOT NULL DEFAULT 0,
+  marks_override numeric,
+  UNIQUE(quiz_id, question_bank_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_qq_quiz ON public.quiz_questions(quiz_id);
+
+-- ── quiz_attempts ──────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.quiz_attempts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
+  student_id uuid NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
+  started_at timestamptz DEFAULT now() NOT NULL,
+  submitted_at timestamptz,
+  status public.quiz_attempt_status DEFAULT 'in_progress',
+  score numeric,
+  max_score numeric,
+  UNIQUE(quiz_id, student_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_qa_quiz ON public.quiz_attempts(quiz_id);
+CREATE INDEX IF NOT EXISTS idx_qa_student ON public.quiz_attempts(student_id);
+
+-- ── quiz_attempt_answers ───────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.quiz_attempt_answers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  attempt_id uuid NOT NULL REFERENCES public.quiz_attempts(id) ON DELETE CASCADE,
+  question_id uuid NOT NULL REFERENCES public.question_bank(id) ON DELETE CASCADE,
+  selected_option_id text,
+  answer_text text,
+  is_correct boolean,
+  marks_awarded numeric,
+  UNIQUE(attempt_id, question_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_qaa_attempt ON public.quiz_attempt_answers(attempt_id);
+
+-- ── generated_papers ───────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS public.generated_papers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  class_id uuid REFERENCES public.classes(id) ON DELETE CASCADE,
+  subject text NOT NULL,
+  title text NOT NULL,
+  question_ids uuid[] NOT NULL DEFAULT '{}',
+  total_marks numeric,
+  created_at timestamptz DEFAULT now() NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_gp_created_by ON public.generated_papers(created_by);
+
+-- ── Storage bucket for assignments ─────────────────────────────────
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('assignments', 'assignments', false)
+ON CONFLICT (id) DO NOTHING;
+
+-- ── submit_quiz_attempt function ───────────────────────────────────
+-- Enforces timing server-side; auto-grades MCQ; returns score.
+
+CREATE OR REPLACE FUNCTION public.submit_quiz_attempt(p_attempt_id uuid)
+RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  v_attempt record;
+  v_quiz record;
+  v_is_auto boolean;
+  v_score numeric := 0;
+  v_max numeric := 0;
+  v_all_mcq boolean := true;
+  v_answer record;
+  v_qb record;
+  v_marks numeric;
+BEGIN
+  SELECT * INTO v_attempt FROM quiz_attempts WHERE id = p_attempt_id;
+  IF NOT FOUND THEN RETURN jsonb_build_object('error', 'Attempt not found'); END IF;
+  IF v_attempt.status NOT IN ('in_progress') THEN
+    RETURN jsonb_build_object('error', 'Already submitted', 'status', v_attempt.status);
+  END IF;
+
+  SELECT * INTO v_quiz FROM quizzes WHERE id = v_attempt.quiz_id;
+  IF NOT FOUND THEN RETURN jsonb_build_object('error', 'Quiz not found'); END IF;
+
+  -- Server-side timing enforcement
+  v_is_auto := (now() > v_attempt.started_at + (v_quiz.duration_minutes || ' minutes')::interval);
+
+  -- Auto-grade MCQ answers
+  FOR v_answer IN
+    SELECT qaa.*, qb.question_type, qb.correct_option_id, qb.marks AS qb_marks,
+           COALESCE(qq.marks_override, qb.marks) AS eff_marks
+    FROM quiz_attempt_answers qaa
+    JOIN quiz_questions qq ON qq.quiz_id = v_attempt.quiz_id AND qq.question_bank_id = qaa.question_id
+    JOIN question_bank qb ON qb.id = qaa.question_id
+    WHERE qaa.attempt_id = p_attempt_id
+  LOOP
+    v_max := v_max + v_answer.eff_marks;
+    IF v_answer.question_type = 'mcq' THEN
+      IF v_answer.selected_option_id IS NOT NULL AND v_answer.selected_option_id = v_answer.correct_option_id THEN
+        UPDATE quiz_attempt_answers SET is_correct = true, marks_awarded = v_answer.eff_marks
+        WHERE id = v_answer.id;
+        v_score := v_score + v_answer.eff_marks;
+      ELSE
+        UPDATE quiz_attempt_answers SET is_correct = false, marks_awarded = 0
+        WHERE id = v_answer.id;
+      END IF;
+    ELSE
+      -- short_answer / long_answer: leave for teacher review
+      v_all_mcq := false;
+      UPDATE quiz_attempt_answers SET marks_awarded = NULL WHERE id = v_answer.id;
+    END IF;
+  END LOOP;
+
+  -- Set attempt status
+  IF v_all_mcq THEN
+    UPDATE quiz_attempts
+    SET submitted_at = now(), status = 'graded', score = v_score, max_score = v_max
+    WHERE id = p_attempt_id;
+  ELSE
+    UPDATE quiz_attempts
+    SET submitted_at = now(),
+        status = CASE WHEN v_is_auto THEN 'auto_submitted' ELSE 'submitted' END,
+        score = v_score, max_score = v_max
+    WHERE id = p_attempt_id;
+  END IF;
+
+  RETURN jsonb_build_object(
+    'score', v_score,
+    'max_score', v_max,
+    'status', CASE WHEN v_all_mcq THEN 'graded' ELSE CASE WHEN v_is_auto THEN 'auto_submitted' ELSE 'submitted' END END,
+    'auto_submitted', v_is_auto
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.submit_quiz_attempt(uuid) TO authenticated;
+
+-- ── Helper: check if teacher is assigned to a class+subject ────────
+
+CREATE OR REPLACE FUNCTION public.teaches_class_subject(_class_id uuid, _subject text)
+RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+  SELECT CASE
+    WHEN public.has_role(auth.uid(), 'admin'::public.app_role) THEN true
+    WHEN auth.uid() IS NULL THEN false
+    ELSE EXISTS (
+      SELECT 1 FROM timetable_slots ts
+      WHERE ts.class_id = _class_id
+        AND ts.subject = _subject
+        AND ts.teacher_id = auth.uid()
+    ) OR EXISTS (
+      SELECT 1 FROM classes c
+      WHERE c.id = _class_id AND c.class_teacher_id = auth.uid()
+    )
+  END
+$$;
+
+GRANT EXECUTE ON FUNCTION public.teaches_class_subject(uuid, text) TO authenticated;
+
+
+-- =====================================================================
+-- Migration: 20261001093653_teacher_student_portal_rls.sql
+-- =====================================================================
+
+/*
+# Teacher & Student Portal RLS Policies
+
+1. New table policies (all RLS-enabled):
+- question_bank: teachers CRUD their own + shared readable by staff; students read when class matches
+- quizzes: teachers CRUD for classes/subjects they teach; students read published for their class
+- quiz_questions: same access as parent quiz
+- quiz_attempts: students create/read own; teachers read for their class
+- quiz_attempt_answers: same as parent attempt
+- generated_papers: teachers CRUD their own; admin all access
+
+2. Storage policies:
+- assignments bucket: students upload to own path; teachers read submissions for their classes
+
+3. Fixed existing RLS gaps:
+- homework: + students SELECT for their class_id
+- homework_submissions: + students SELECT own + INSERT own; students UPDATE own ungraded
+- exam_results: + students SELECT own results
+*/
+
+-- ── question_bank ──────────────────────────────────────────────────
+
+ALTER TABLE public.question_bank ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "qb teacher admin all" ON public.question_bank;
+CREATE POLICY "qb teacher admin all" ON public.question_bank
+  FOR ALL TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- Students can read questions for their class (needed for quiz attempts)
+DROP POLICY IF EXISTS "qb student read class" ON public.question_bank;
+CREATE POLICY "qb student read class" ON public.question_bank
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.user_id = auth.uid() AND s.class_id = question_bank.class_id
+    )
+  );
+
+-- ── quizzes ────────────────────────────────────────────────────────
+
+ALTER TABLE public.quizzes ENABLE ROW LEVEL SECURITY;
+
+-- Teachers/admin: full CRUD on quizzes for classes they teach
+DROP POLICY IF EXISTS "quiz teacher admin write" ON public.quizzes;
+CREATE POLICY "quiz teacher admin write" ON public.quizzes
+  FOR ALL TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- Students: read published quizzes for their class
+DROP POLICY IF EXISTS "quiz student read" ON public.quizzes;
+CREATE POLICY "quiz student read" ON public.quizzes
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND quizzes.status IN ('published', 'closed')
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.user_id = auth.uid() AND s.class_id = quizzes.class_id
+    )
+  );
+
+-- ── quiz_questions ─────────────────────────────────────────────────
+
+ALTER TABLE public.quiz_questions ENABLE ROW LEVEL SECURITY;
+
+-- Teachers/admin: full CRUD
+DROP POLICY IF EXISTS "qq teacher admin write" ON public.quiz_questions;
+CREATE POLICY "qq teacher admin write" ON public.quiz_questions
+  FOR ALL TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- Students: read quiz_questions for quizzes in their class
+DROP POLICY IF EXISTS "qq student read" ON public.quiz_questions;
+CREATE POLICY "qq student read" ON public.quiz_questions
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM quizzes q
+      JOIN students s ON s.class_id = q.class_id AND s.user_id = auth.uid()
+      WHERE q.id = quiz_questions.quiz_id
+    )
+  );
+
+-- ── quiz_attempts ──────────────────────────────────────────────────
+
+ALTER TABLE public.quiz_attempts ENABLE ROW LEVEL SECURITY;
+
+-- Students: create & read own attempts
+DROP POLICY IF EXISTS "qa student insert own" ON public.quiz_attempts;
+CREATE POLICY "qa student insert own" ON public.quiz_attempts
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s WHERE s.id = quiz_attempts.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "qa student read own" ON public.quiz_attempts;
+CREATE POLICY "qa student read own" ON public.quiz_attempts
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s WHERE s.id = quiz_attempts.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+-- Students can update own attempt (for submitting answers before calling RPC)
+DROP POLICY IF EXISTS "qa student update own" ON public.quiz_attempts;
+CREATE POLICY "qa student update own" ON public.quiz_attempts
+  FOR UPDATE TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s WHERE s.id = quiz_attempts.student_id AND s.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s WHERE s.id = quiz_attempts.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+-- Teachers/admin: read attempts for quizzes in their classes
+DROP POLICY IF EXISTS "qa teacher admin read" ON public.quiz_attempts;
+CREATE POLICY "qa teacher admin read" ON public.quiz_attempts
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- ── quiz_attempt_answers ───────────────────────────────────────────
+
+ALTER TABLE public.quiz_attempt_answers ENABLE ROW LEVEL SECURITY;
+
+-- Students: insert & read own answers
+DROP POLICY IF EXISTS "qaa student insert own" ON public.quiz_attempt_answers;
+CREATE POLICY "qaa student insert own" ON public.quiz_attempt_answers
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM quiz_attempts qa
+      JOIN students s ON s.id = qa.student_id AND s.user_id = auth.uid()
+      WHERE qa.id = quiz_attempt_answers.attempt_id
+    )
+  );
+
+DROP POLICY IF EXISTS "qaa student read own" ON public.quiz_attempt_answers;
+CREATE POLICY "qaa student read own" ON public.quiz_attempt_answers
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM quiz_attempts qa
+      JOIN students s ON s.id = qa.student_id AND s.user_id = auth.uid()
+      WHERE qa.id = quiz_attempt_answers.attempt_id
+    )
+  );
+
+-- Teachers/admin: read & update (for manual grading)
+DROP POLICY IF EXISTS "qaa teacher admin read" ON public.quiz_attempt_answers;
+CREATE POLICY "qaa teacher admin read" ON public.quiz_attempt_answers
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+DROP POLICY IF EXISTS "qaa teacher admin update" ON public.quiz_attempt_answers;
+CREATE POLICY "qaa teacher admin update" ON public.quiz_attempt_answers
+  FOR UPDATE TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- ── generated_papers ───────────────────────────────────────────────
+
+ALTER TABLE public.generated_papers ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "gp teacher admin all" ON public.generated_papers;
+CREATE POLICY "gp teacher admin all" ON public.generated_papers
+  FOR ALL TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::public.app_role)
+    OR public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- ── Fix existing gaps: homework student read ────────────────────────
+
+DROP POLICY IF EXISTS "Students read homework for class" ON public.homework;
+CREATE POLICY "Students read homework for class" ON public.homework
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.user_id = auth.uid() AND s.class_id = homework.class_id
+    )
+  );
+
+-- ── Fix existing gaps: homework_submissions student policies ────────
+
+DROP POLICY IF EXISTS "Students read own submissions" ON public.homework_submissions;
+CREATE POLICY "Students read own submissions" ON public.homework_submissions
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.id = homework_submissions.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Students submit homework" ON public.homework_submissions;
+CREATE POLICY "Students submit homework" ON public.homework_submissions
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.id = homework_submissions.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+DROP POLICY IF EXISTS "Students update own ungraded submission" ON public.homework_submissions;
+CREATE POLICY "Students update own ungraded submission" ON public.homework_submissions
+  FOR UPDATE TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.id = homework_submissions.student_id AND s.user_id = auth.uid()
+    )
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.id = homework_submissions.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+-- ── Fix existing gaps: exam_results student read ───────────────────
+
+DROP POLICY IF EXISTS "Students read own exam results" ON public.exam_results;
+CREATE POLICY "Students read own exam results" ON public.exam_results
+  FOR SELECT TO authenticated
+  USING (
+    public.has_role(auth.uid(), 'student'::public.app_role)
+    AND EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.id = exam_results.student_id AND s.user_id = auth.uid()
+    )
+  );
+
+-- ── Storage policies for assignments bucket ────────────────────────
+
+-- Students can upload to their own path
+DROP POLICY IF EXISTS "assignments student upload" ON storage.objects;
+CREATE POLICY "assignments student upload" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'assignments'
+    AND public.has_role(auth.uid(), 'student'::public.app_role)
+  );
+
+-- Students can read their own uploads
+DROP POLICY IF EXISTS "assignments student read own" ON storage.objects;
+CREATE POLICY "assignments student read own" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'assignments'
+    AND public.has_role(auth.uid(), 'student'::public.app_role)
+    AND (owner = auth.uid())
+  );
+
+-- Teachers can read all assignment files (for grading)
+DROP POLICY IF EXISTS "assignments teacher read" ON storage.objects;
+CREATE POLICY "assignments teacher read" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'assignments'
+    AND public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- Teachers can upload instruction files
+DROP POLICY IF EXISTS "assignments teacher upload" ON storage.objects;
+CREATE POLICY "assignments teacher upload" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'assignments'
+    AND public.has_role(auth.uid(), 'teacher'::public.app_role)
+  );
+
+-- Admins full access to assignments bucket
+DROP POLICY IF EXISTS "assignments admin all" ON storage.objects;
+CREATE POLICY "assignments admin all" ON storage.objects
+  FOR ALL TO authenticated
+  USING (
+    bucket_id = 'assignments'
+    AND public.has_role(auth.uid(), 'admin'::public.app_role)
+  )
+  WITH CHECK (
+    bucket_id = 'assignments'
+    AND public.has_role(auth.uid(), 'admin'::public.app_role)
+  );

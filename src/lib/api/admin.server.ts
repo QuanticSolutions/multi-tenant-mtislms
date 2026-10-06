@@ -15,7 +15,8 @@ export function getAdminClient() {
   const url =
     process.env["SUPABASE_URL"] ||
     process.env["VITE_SUPABASE_URL"] ||
-    import.meta.env.VITE_SUPABASE_URL;
+    import.meta.env.VITE_SUPABASE_URL ||
+    "https://tzkxnldknhsnmnhlasmj.supabase.co";
   const key = process.env["SUPABASE_SERVICE_ROLE_KEY"];
 
   if (!url || !key) throw new Error(ADMIN_KEY_MISSING_MESSAGE);
