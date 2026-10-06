@@ -54,7 +54,7 @@ export const registerTenant = createServerFn({ method: "POST" })
       .eq("id", ctx.userId);
 
     // Create tenant + link user via RPC
-    const { data: tenantId, error: rpcError } = await admin.rpc("register_tenant", {
+    const { data: tenantId, error: rpcError } = await ctx.supabase.rpc("register_tenant", {
       _subdomain: data.subdomain.toLowerCase(),
       _display_name: data.school_name.trim(),
       _school_name: data.school_name.trim(),
