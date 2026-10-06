@@ -208,7 +208,11 @@ function RegisterPage() {
                 </p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={loading || subdomainStatus !== "ok"}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || subdomainStatus === "taken" || subdomainStatus === "invalid" || subdomainStatus === "checking" || !subdomain.trim()}
+            >
               {loading ? <Loader2 className="animate-spin" /> : null}
               Create my school portal
             </Button>
